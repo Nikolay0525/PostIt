@@ -31,10 +31,12 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($fields)) {
-            return Redirect::back()->withErrors(['email' => 'Invalid credentials']);
+        if (Auth::attempt($fields, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            return Redirect::intended(route('home'));
         }
 
-        return Redirect::route('home');
+        return Redirect::back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
     }
 }

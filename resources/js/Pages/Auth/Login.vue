@@ -1,9 +1,11 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import TextInput from '@/Pages/Components/TextInput.vue';
 
 const form = useForm({
     email: '',
-    password: ''
+    password: '',
+    remember: null
 });
 
 const submitForm = () => {
@@ -13,18 +15,21 @@ const submitForm = () => {
 </script>
 
 <template>
-    <Head title = " | Login"/>
+
+    <Head title=" | Login" />
     <h1>Login into your account</h1>
     <div>
         <form @submit.prevent="submitForm">
-            <div>
-                <label for="email">Email</label>
-                <input type="email" id="email" v-model="form.email" required />
+            <TextInput name="Email" type="email" v-model="form.email" :message="form.errors.email" />
+            <TextInput name="Password" type="password" v-model="form.password" :message="form.errors.password" />
+            
+            <div class ="flex items-center mt-4 gap-2">
+                <label>
+                    <input type="checkbox" v-model="form.remember" />
+                    Remember Me
+                </label>
             </div>
-            <div>
-                <label for="password">Password</label>
-                <input type="password" id="password" v-model="form.password" required />
-            </div>
+            
             <button type="submit">Login</button>
         </form>
     </div>
