@@ -9,6 +9,8 @@
                 <div class="flex items-center gap-6">
                     <Link :href="route('home')" class="font-semibold text-gray-900 transition hover:text-indigo-600">Home</Link>
                     <Link :href="route('about')" class="text-gray-600 transition hover:text-indigo-600">About</Link>
+                    <Link :href="route('login')" class="text-gray-600 transition hover:text-indigo-600">Login</Link>
+                    <Link :href="route('register')" class="text-gray-600 transition hover:text-indigo-600">Register</Link>
                 </div>
             </nav>
         </header>
