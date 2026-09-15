@@ -17,7 +17,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        User::create($fields);
+        $user = User::create($fields);
 
         Auth::Login($user);
 
