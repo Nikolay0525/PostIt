@@ -10,11 +10,10 @@ use Illuminate\Support\Str;
 class User extends Authenticatable implements MustVerifyEmailContract
 {
     use Notifiable;
-    // use \Laravel\Sanctum\HasApiTokens; // додати, якщо/коли з'явиться окремий мобільний застосунок
 
     protected $keyType = 'string';
     public $incrementing = false;
-    public $timestamps = false;
+    public $timestamps = false; 
 
     protected $fillable = ['name', 'email', 'password', 'avatar_url', 'date_of_birth', 'role'];
     protected $hidden = ['password', 'remember_token'];
@@ -22,7 +21,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',
+            'password' => 'hashed', 
             'email_verified_at' => 'datetime',
             'date_of_birth' => 'date',
         ];
