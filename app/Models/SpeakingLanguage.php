@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class SpeakingLanguage extends Model
+class SpeakingLanguage extends BaseEntity
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -18,7 +19,7 @@ class SpeakingLanguage extends Model
         'name',
     ];
 
-    public function userSettings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function userSettings(): HasMany
     {
         return $this->hasMany(UserSettings::class, 'speaking_language_id');
     }

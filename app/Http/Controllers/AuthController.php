@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Redirect;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        protected UserRepositoryInterface $userRepository
+    ) {}
+
     public function register(Request $request)
     {
         $fields =$request->validate([
@@ -18,11 +22,11 @@ class AuthController extends Controller
             'date_of_birth' => 'required|date|before:today',
         ]);
 
-        $user = User::create($fields);
+        $user = $this->userRepository->create($fields);
 
-        Auth::Login($user);
-
-        Redirect::route('home');
+        Auth::login($user);
+        
+        return Redirect::route('home');
     }
 
     public function login(Request $request)

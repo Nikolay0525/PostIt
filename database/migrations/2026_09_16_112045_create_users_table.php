@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('avatar_url', 100)->nullable();
             $table->date('date_of_birth');
             $table->unsignedTinyInteger('role')->default(0); // 0=user, 1=admin, ...
-            $table->timestamp('date_of_creation')->useCurrent();
+            $table->timestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -35,6 +35,24 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+    
+        Schema::create('images', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->foreignUuid('uploader_id')->constrained('users')->cascadeOnDelete();
+
+            $table->integer('owner_type');
+            $table->uuid('owner_id');
+
+            $table->string('file_name', 100);
+            $table->boolean('is_adult_image')->default(false);
+            $table->string('file_extension', 100);
+            $table->string('url', 100);
+            $table->integer('moderation_status')->default(0);
+
+            $table->timestamps();
+        });
+    
     }
 
     public function down(): void
@@ -42,5 +60,6 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('images');
     }
 };

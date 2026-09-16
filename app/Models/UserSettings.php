@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserSettings extends Model
 {
@@ -17,17 +18,17 @@ class UserSettings extends Model
         'show_swear_words', 'show_adult_content', 'enable_cookies', 'allow_messages',
     ];
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function uiLanguage(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function uiLanguage(): BelongsTo
     {
         return $this->belongsTo(UILanguage::class, 'ui_language_id');
     }
 
-    public function speakingLanguage(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function speakingLanguage(): BelongsTo
     {
         return $this->belongsTo(SpeakingLanguage::class, 'speaking_language_id');
     }

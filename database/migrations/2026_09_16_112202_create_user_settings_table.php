@@ -33,7 +33,7 @@ return new class extends Migration
             $table->boolean('enable_cookies')->default(false);
             $table->boolean('allow_messages')->default(true);
 
-            $table->timestamp('date_of_creation')->useCurrent();
+            $table->timestamps();
         });
     }
 

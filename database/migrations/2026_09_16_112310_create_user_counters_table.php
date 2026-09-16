@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedInteger('negative_votes')->default(0);
             $table->integer('karma')->default(0);
 
-            $table->timestamp('date_of_creation')->useCurrent();
+            $table->timestamps();
         });
     }
 

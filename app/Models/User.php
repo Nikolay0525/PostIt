@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable implements MustVerifyEmailContract
 {
@@ -13,7 +14,6 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     protected $keyType = 'string';
     public $incrementing = false;
-    public $timestamps = false; 
 
     protected $fillable = ['name', 'email', 'password', 'avatar_url', 'date_of_birth', 'role'];
     protected $hidden = ['password', 'remember_token'];
@@ -36,12 +36,12 @@ class User extends Authenticatable implements MustVerifyEmailContract
         });
     }
 
-    public function settings(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function settings(): HasOne
     {
         return $this->hasOne(UserSettings::class, 'user_id');
     }
 
-    public function counters(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function counters(): HasOne
     {
         return $this->hasOne(UserCounter::class, 'user_id');
     }
