@@ -13,7 +13,7 @@ class UserCounters extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'posts_created', 'comments_created', 'groups_connected',
+        'user_id', 'posts_created', 'comments_created', 'groups_connected',
         'reports_sent', 'positive_votes', 'negative_votes', 'karma',
     ];
 

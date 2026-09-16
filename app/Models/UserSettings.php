@@ -13,7 +13,7 @@ class UserSettings extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'ui_language_id', 'speaking_language_id', 'dark_theme',
+        'user_id', 'ui_language_id', 'speaking_language_id', 'dark_theme',
         'show_swear_words', 'show_adult_content', 'enable_cookies', 'allow_messages',
     ];
 

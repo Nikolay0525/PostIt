@@ -4,7 +4,9 @@ namespace App\Observers;
 
 use App\Models\User;
 use App\Models\UserSettings;
-use App\Models\UserCounter;
+use App\Models\UserCounters;
+use App\Models\UiLanguage;
+use App\Models\SpeakingLanguage;
 
 class UserObserver
 {
@@ -22,6 +24,6 @@ class UserObserver
             'speaking_language_id' => $defaultSpeakingLanguageId,
         ]);
 
-        UserCounter::create(['user_id' => $user->id]);
+        UserCounters::create(['user_id' => $user->id]);
     }
 }

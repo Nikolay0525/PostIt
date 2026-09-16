@@ -10,14 +10,14 @@ return new class extends Migration
     {
         Schema::create('ui_languages', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('code', 10);
-            $table->string('name', 50);
+            $table->string('code', 10)->unique();
+            $table->string('name', 50)->unique();
             $table->boolean('is_active')->default(true);
         });
 
         Schema::create('speaking_languages', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name', 50);
+            $table->string('name', 50)->unique();
         });
 
         Schema::create('user_settings', function (Blueprint $table) {
