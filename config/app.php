@@ -13,7 +13,19 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'PostIt'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default languages
+    |--------------------------------------------------------------------------
+    | 
+    | These values are the default languages for the application, which will be used when creating new users.
+    |
+    */
+    
+    'default_ui_language_code' => env('DEFAULT_UI_LANGUAGE_CODE', 'uk'),
+    'default_speaking_language_name' => env('DEFAULT_SPEAKING_LANGUAGE_NAME', 'Ukrainian'),
 
     /*
     |--------------------------------------------------------------------------

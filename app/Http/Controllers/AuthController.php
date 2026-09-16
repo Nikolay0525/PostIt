@@ -6,22 +6,28 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use App\Repositories\Contracts\UserRepositoryInterface;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        protected UserRepositoryInterface $userRepository
+    ) {}
+
     public function register(Request $request)
     {
         $fields =$request->validate([
             'name' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'date_of_birth' => 'required|date|before:today',
         ]);
 
-        $user = User::create($fields);
+        $user = $this->userRepository->create($fields);
 
-        Auth::Login($user);
-
-        Redirect::route('home');
+        Auth::login($user);
+        
+        return Redirect::route('home');
     }
 
     public function login(Request $request)

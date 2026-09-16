@@ -4,6 +4,7 @@ import TextInput from '@/Pages/Components/TextInput.vue';
 
 const form = useForm({
     name: '',
+    date_of_birth: '',
     email: '',
     password: '',
     password_confirmation: '',
@@ -24,6 +25,9 @@ const submitForm = () => {
     <div>
         <form @submit.prevent="submitForm">
             <TextInput name="Name" type="text" v-model="form.name" :message="form.errors.name" />
+
+            <TextInput name="Date of Birth" type="date" v-model="form.date_of_birth"
+                :message="form.errors.date_of_birth" />
 
             <TextInput name="Email" type="email" v-model="form.email" :message="form.errors.email" />
 
