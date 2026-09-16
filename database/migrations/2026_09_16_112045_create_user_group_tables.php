@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // ONLY USER RELATED TABLES
+
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name', 50);
@@ -36,6 +38,96 @@ return new class extends Migration
             $table->integer('last_activity')->index();
         });
 
+        Schema::create('user_counters', function (Blueprint $table) {
+            $table->uuid('user_id')->primary();
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+
+            $table->unsignedInteger('posts_created')->default(0);
+            $table->unsignedInteger('comments_created')->default(0);
+            $table->unsignedInteger('groups_connected')->default(0);
+            $table->unsignedInteger('reports_sent')->default(0);
+            $table->unsignedInteger('positive_votes')->default(0);
+            $table->unsignedInteger('negative_votes')->default(0);
+            $table->integer('karma')->default(0);
+
+            $table->timestamps();
+        });
+
+        Schema::create('ui_languages', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('code', 10)->unique();
+            $table->string('name', 50)->unique();
+            $table->boolean('is_active')->default(true);
+        });
+
+        Schema::create('speaking_languages', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('name', 50)->unique();
+        });
+
+        Schema::create('user_settings', function (Blueprint $table) {
+            $table->uuid('user_id')->primary();
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+
+            $table->foreignUuid('ui_language_id')->constrained('ui_languages');
+            $table->foreignUuid('speaking_language_id')->constrained('speaking_languages');
+
+            $table->boolean('dark_theme')->default(false);
+            $table->boolean('show_swear_words')->default(false);
+            $table->boolean('show_adult_content')->default(false);
+            $table->boolean('enable_cookies')->default(false);
+            $table->boolean('allow_messages')->default(true);
+
+            $table->timestamps();
+        });
+
+        Schema::create('user_user_subscriptions', function (Blueprint $table) {
+            $table->foreignUuid('user_follower_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('user_author_id')->constrained('users')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_follower_id', 'user_author_id']);
+        });
+
+        Schema::create('achievements', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('title', 100);
+            $table->string('description', 100);
+            $table->string('target_property', 100);
+            $table->string('target_value', 100);
+            $table->string('comparison_type', 100);
+            $table->string('icon_url', 100);
+        });
+
+        Schema::create('user_achievements', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('achievement_id')->constrained('achievements')->cascadeOnDelete();
+            $table->string('current_value', 100);
+            $table->boolean('is_completed')->default(false);
+            $table->timestamps();
+
+            $table->primary(['user_id', 'achievement_id']);
+        });
+
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('text', 100);
+            $table->string('url', 100)->nullable();
+            $table->boolean('is_read')->default(false);
+            $table->integer('type');
+            $table->timestamps();
+        });
+
+        Schema::create('blocked_users', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('blocked_user_id')->constrained('users')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'blocked_user_id']);
+        });
+
+        // GROUP RELATED TABLES
 
         Schema::create('groups', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -147,8 +239,17 @@ return new class extends Migration
     {
         Schema::dropIfExists('users');
         Schema::dropIfExists('groups');
+        Schema::dropIfExists('user_counters');
+        Schema::dropIfExists('user_settings');
+        Schema::dropIfExists('speaking_languages');
+        Schema::dropIfExists('ui_languages');
+        Schema::dropIfExists('user_user_subscriptions');
         Schema::dropIfExists('messages');
         Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('blocked_users');
+        Schema::dropIfExists('user_achievements');
+        Schema::dropIfExists('achievements');
+        Schema::dropIfExists('notifications');
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('images');
         Schema::dropIfExists('user_group_subscriptions');
