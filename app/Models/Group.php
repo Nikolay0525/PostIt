@@ -39,13 +39,20 @@ class Group extends BaseEntity
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_group_subscriptions', 'group_id', 'user_id')
-            ->withTimestamps();
+            ->withPivot('created_at');
     }
 
     public function moderators(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'group_moderators', 'group_id', 'user_id')
             ->withPivot(['role'])
+            ->withTimestamps();
+    }
+
+    public function joinRequests(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'group_join_requests', 'group_id', 'user_id')
+            ->withPivot('status')
             ->withTimestamps();
     }
 }
