@@ -11,7 +11,6 @@ class UserSettings extends Model
     protected $primaryKey = 'user_id';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
 
     protected $fillable = [
         'user_id', 'ui_language_id', 'speaking_language_id', 'dark_theme',

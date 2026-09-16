@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('blocked_users', function (Blueprint $table) {
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignUuid('blocked_user_id')->constrained('users')->cascadeOnDelete();
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
 
             $table->primary(['user_id', 'blocked_user_id']);
         });

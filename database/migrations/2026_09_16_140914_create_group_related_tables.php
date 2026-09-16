@@ -8,6 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::create('groups', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->string('name', 50);
+            $table->string('description', 250);
+            $table->string('rules', 250);
+            $table->string('icon_url', 100)->nullable();
+            $table->boolean('is_private')->default(false);
+
+            $table->foreignUuid('group_language_id')->constrained('speaking_languages')->cascadeOnDelete();
+            
+            $table->timestamps();
+        });
+
         Schema::create('messages', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('sender_id')->constrained('users')->cascadeOnDelete();

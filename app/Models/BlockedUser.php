@@ -9,6 +9,8 @@ class BlockedUser extends Model
 {
     public $incrementing = false;
 
+    const UPDATED_AT = null;
+
     protected $table = 'blocked_users';
 
     protected $fillable = [

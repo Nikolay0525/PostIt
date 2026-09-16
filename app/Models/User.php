@@ -46,6 +46,78 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->hasOne(UserCounter::class, 'user_id');
     }
 
+    public function blockedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'blocked_users',
+            'user_id',
+            'blocked_user_id'
+        )->withPivot('created_at');
+    }
+
+    public function blockedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'blocked_users',
+            'blocked_user_id',
+            'user_id'
+        )->withPivot('created_at');
+    }
+
+    public function following(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'user_user_subscriptions',
+            'user_follower_id',
+            'user_author_id'
+        )->withPivot('created_at');
+    }
+
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'user_user_subscriptions',
+            'user_author_id',
+            'user_follower_id'
+        )->withPivot('created_at');
+    }
+
+    public function achievements(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Achievement::class,
+            'user_achievements',
+            'user_id',
+            'achievement_id'
+        )->withPivot('current_value', 'is_completed')
+         ->withTimestamps();
+    }
+
+    public function subscribedGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Group::class,
+            'user_group_subscriptions',
+            'user_id',
+            'group_id'
+        )->withTimestamps();
+    }
+
+    public function moderatedGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Group::class,
+            'group_moderators',
+            'user_id',
+            'group_id'
+        )->withPivot('role')
+         ->withTimestamps();
+    }
+
     public function isAdult(): bool
     {
         return $this->date_of_birth->diffInYears(now()) >= 18;

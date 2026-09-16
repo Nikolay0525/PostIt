@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class UserUserSubscription extends Model
 {
     public $incrementing = false;
+    
+    const UPDATED_AT = null;
 
     protected $table = 'user_user_subscriptions';
 

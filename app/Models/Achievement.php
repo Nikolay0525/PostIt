@@ -30,6 +30,7 @@ class Achievement extends BaseEntity
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_achievements', 'achievement_id', 'user_id')
-            ->withPivot(['is_completed', 'date_of_creation']);
+            ->withPivot(['current_value', 'is_completed'])
+            ->withTimestamps();
     }
 }

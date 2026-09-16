@@ -11,7 +11,6 @@ class UserCounters extends Model
     protected $primaryKey = 'user_id';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
 
     protected $fillable = [
         'user_id', 'posts_created', 'comments_created', 'groups_connected',

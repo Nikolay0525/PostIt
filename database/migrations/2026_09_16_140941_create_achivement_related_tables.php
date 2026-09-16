@@ -21,6 +21,7 @@ return new class extends Migration
         Schema::create('user_achievements', function (Blueprint $table) {
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignUuid('achievement_id')->constrained('achievements')->cascadeOnDelete();
+            $table->string('current_value', 100);
             $table->boolean('is_completed')->default(false);
             $table->timestamps();
 

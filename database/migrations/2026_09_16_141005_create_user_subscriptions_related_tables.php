@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('user_user_subscriptions', function (Blueprint $table) {
             $table->foreignUuid('user_follower_id')->constrained('users')->cascadeOnDelete();
             $table->foreignUuid('user_author_id')->constrained('users')->cascadeOnDelete();
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
 
             $table->primary(['user_follower_id', 'user_author_id']);
         });

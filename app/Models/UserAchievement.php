@@ -14,6 +14,7 @@ class UserAchievement extends Model
     protected $fillable = [
         'user_id',
         'achievement_id',
+        'current_value',
         'is_completed',
     ];
 
