@@ -7,6 +7,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements MustVerifyEmailContract
 {
@@ -116,6 +118,23 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'group_id'
         )->withPivot('role')
          ->withTimestamps();
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'user_id');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'user_id');
+    }
+
+    public function groupJoinRequests(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'group_join_requests', 'user_id', 'group_id')
+            ->withPivot('status')
+            ->withTimestamps();
     }
 
     public function isAdult(): bool
