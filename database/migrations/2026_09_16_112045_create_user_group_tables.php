@@ -127,6 +127,15 @@ return new class extends Migration
             $table->primary(['user_id', 'blocked_user_id']);
         });
 
+        Schema::create('platform_bans', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('banned_user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('admin_id')->constrained('users')->cascadeOnDelete();
+            $table->string('reason', 250);
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamps();
+        });
+
         // GROUP RELATED TABLES
 
         Schema::create('groups', function (Blueprint $table) {
@@ -233,6 +242,31 @@ return new class extends Migration
 
             $table->primary(['parent_id', 'user_id']);
         });
+
+        Schema::create('group_bans', function (Blueprint $table) {
+            $table->foreignUuid('blamed_user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('moderator_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('group_id')->constrained('groups')->cascadeOnDelete();
+            $table->string('reason', 250);
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamps();
+
+            $table->primary(['group_id', 'blamed_user_id']);
+        });
+
+        Schema::create('reports', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('reporter_id')->constrained('users')->cascadeOnDelete();
+            $table->integer('target_type');
+            $table->uuid('target_id');
+            $table->foreignUuid('group_id')->nullable()->constrained('groups')->nullOnDelete();
+            $table->string('text', 100);
+            $table->integer('status')->default(0);
+            $table->foreignUuid('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('resolution_note', 500)->nullable();
+            $table->timestamp('escalated_at')->nullable();
+            $table->timestamps();
+        });
     }
 
     public function down(): void
@@ -247,6 +281,7 @@ return new class extends Migration
         Schema::dropIfExists('messages');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('blocked_users');
+        Schema::dropIfExists('platform_bans');
         Schema::dropIfExists('user_achievements');
         Schema::dropIfExists('achievements');
         Schema::dropIfExists('notifications');
@@ -254,9 +289,11 @@ return new class extends Migration
         Schema::dropIfExists('images');
         Schema::dropIfExists('user_group_subscriptions');
         Schema::dropIfExists('group_moderators');
+        Schema::dropIfExists('group_bans');
         Schema::dropIfExists('group_join_requests');
         Schema::dropIfExists('posts');
         Schema::dropIfExists('comments');
         Schema::dropIfExists('votes');
+        Schema::dropIfExists('reports');
     }
 };

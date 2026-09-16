@@ -130,6 +130,22 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->hasMany(Comment::class, 'user_id');
     }
 
+
+    public function platformBans(): HasMany
+    {
+        return $this->hasMany(PlatformBan::class, 'banned_user_id');
+    }
+
+    public function groupBans(): HasMany
+    {
+        return $this->hasMany(GroupBan::class, 'blamed_user_id');
+    }
+
+    public function submittedReports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
     public function groupJoinRequests(): BelongsToMany
     {
         return $this->belongsToMany(Group::class, 'group_join_requests', 'user_id', 'group_id')

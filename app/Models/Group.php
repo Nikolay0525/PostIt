@@ -36,6 +36,16 @@ class Group extends BaseEntity
         return $this->hasMany(Post::class, 'group_id');
     }
 
+    public function bans(): HasMany
+    {
+        return $this->hasMany(GroupBan::class, 'group_id');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'group_id');
+    }
+
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_group_subscriptions', 'group_id', 'user_id')
