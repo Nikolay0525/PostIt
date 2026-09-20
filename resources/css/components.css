@@ -1,0 +1,195 @@
+@layer components {
+  .brand-mark {
+    @apply text-lg font-semibold text-ink;
+  }
+  .brand-mark-accent {
+    @apply text-brand-600;
+  }
+
+  .nav-link {
+    @apply text-sm text-muted transition hover:text-ink;
+  }
+  .nav-link-active {
+    @apply font-medium text-brand-600 hover:text-brand-600;
+  }
+
+  .btn-primary {
+    @apply rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition
+           hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100
+           disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .auth-shell {
+    @apply flex justify-center pt-4 sm:pt-10;
+  }
+  .auth-card {
+    @apply w-full max-w-sm rounded-2xl border border-line bg-white p-8;
+  }
+  .auth-title {
+    @apply text-xl font-semibold text-ink;
+  }
+  .auth-subtitle {
+    @apply mt-1 text-sm text-muted;
+  }
+  .auth-form {
+    @apply mt-8 flex flex-col gap-5;
+  }
+  .auth-footer {
+    @apply mt-6 text-center text-sm text-muted;
+  }
+  .auth-link {
+    @apply font-medium text-brand-600 hover:text-brand-700;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+  .field-input {
+    @apply w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink
+           transition placeholder:text-muted
+           focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+  .field-input.has-error {
+    @apply border-danger focus:border-danger focus:ring-danger-soft;
+  }
+  .field-error {
+    @apply mt-1.5 text-sm text-danger;
+  }
+
+  /* Search bar. Uses logical properties (start/end) so it mirrors in RTL. */
+  .search-bar {
+    @apply relative max-w-md;
+  }
+  .search-icon {
+    @apply pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted;
+  }
+  .search-input {
+    @apply w-full rounded-lg border border-line bg-canvas py-2 ps-10 pe-3.5 text-sm text-ink
+           transition placeholder:text-muted
+           focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+
+  /* Header dropdowns. Logical properties so they mirror in RTL. */
+  .icon-btn {
+    @apply relative flex h-9 w-9 items-center justify-center rounded-full text-muted transition
+           hover:bg-canvas hover:text-ink focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+  .icon-badge {
+    @apply absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full
+           bg-brand-600 px-1 text-[10px] font-semibold leading-none text-white;
+  }
+  .avatar-btn {
+    @apply relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full
+           bg-brand-50 text-sm font-semibold text-brand-600 transition
+           focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+  .menu-panel {
+    @apply fixed inset-x-4 top-16 z-20 overflow-hidden rounded-2xl border border-line bg-white
+           sm:absolute sm:inset-x-auto sm:end-0 sm:top-full sm:mt-2 sm:w-80;
+  }
+  .menu-heading {
+    @apply border-b border-line px-4 py-3 text-sm font-semibold text-ink;
+  }
+  .menu-tabs {
+    @apply flex border-b border-line;
+  }
+  .menu-tab {
+    @apply flex-1 px-4 py-3 text-sm text-muted transition hover:text-ink;
+  }
+  .menu-tab-active {
+    @apply border-b-2 border-brand-600 font-medium text-brand-600 hover:text-brand-600;
+  }
+  .menu-list {
+    @apply max-h-80 divide-y divide-line overflow-y-auto;
+  }
+  .menu-row {
+    @apply flex items-center gap-3 px-4 py-3;
+  }
+  .unread-dot {
+    @apply h-2 w-2 shrink-0 rounded-full bg-brand-600;
+  }
+  .unread-dot-space {
+    @apply h-2 w-2 shrink-0;
+  }
+  .menu-item {
+    @apply block w-full px-4 py-2.5 text-start text-sm text-ink transition hover:bg-canvas;
+  }
+
+  /* Feed */
+  .feed {
+    @apply mx-auto flex max-w-2xl flex-col gap-4;
+  }
+  .feed-title {
+    @apply text-xl font-semibold text-ink;
+  }
+  .post-card {
+    @apply rounded-2xl border border-line bg-white p-5 transition hover:border-brand-100;
+  }
+  .post-meta {
+    @apply flex items-center gap-3;
+  }
+  .avatar {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50
+           text-sm font-semibold text-brand-600;
+  }
+  .post-meta-text {
+    @apply min-w-0 text-sm leading-tight text-muted;
+  }
+  .post-group {
+    @apply font-medium text-ink hover:text-brand-600;
+  }
+  .post-author {
+    @apply hover:text-ink;
+  }
+  .post-title {
+    @apply mt-4 text-lg font-semibold text-ink;
+  }
+  .post-body {
+    @apply mt-2 text-sm leading-relaxed text-muted;
+  }
+  .post-footer {
+    @apply mt-4 flex items-center gap-5 text-sm text-muted;
+  }
+  .post-stat {
+    @apply inline-flex items-center gap-1.5;
+  }
+  .post-action {
+    @apply transition hover:text-brand-600;
+  }
+  .post-login-prompt {
+    @apply mt-3 rounded-lg border border-brand-100 bg-brand-50 p-3 text-sm text-brand-700;
+  }
+
+  /* Guest hero */
+  .hero {
+    @apply relative mx-auto mb-10 flex max-w-4xl flex-col items-center overflow-hidden rounded-3xl
+           border border-line px-6 py-16 text-center sm:py-24;
+    background-image:
+      radial-gradient(circle at 15% 20%, var(--color-brand-100) 0, transparent 45%),
+      radial-gradient(circle at 85% 80%, var(--color-brand-100) 0, transparent 45%),
+      linear-gradient(to bottom, #ffffff, var(--color-brand-50));
+  }
+  .hero-brand {
+    @apply text-3xl font-semibold text-ink;
+  }
+  .hero-title {
+    @apply mt-6 max-w-xl text-3xl font-semibold leading-tight text-ink sm:text-4xl;
+  }
+  .hero-subtitle {
+    @apply mt-4 max-w-md text-base text-muted;
+  }
+  .hero-actions {
+    @apply mt-8 flex flex-wrap items-center justify-center gap-3;
+  }
+  .btn-secondary {
+    @apply rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition
+           hover:border-brand-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+
+  .checkbox-row {
+    @apply flex items-center gap-2 text-sm text-muted;
+  }
+  .checkbox-input {
+    @apply h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-100;
+  }
+}

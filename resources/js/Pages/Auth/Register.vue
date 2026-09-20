@@ -11,31 +11,36 @@ const form = useForm({
 });
 
 const submitForm = () => {
-    // Handle form submission logic here
     form.post('/register');
 };
 </script>
 
 <template>
+    <Head title=" | Register" />
 
-    <Head title="Register" />
+    <div class="auth-shell">
+        <div class="auth-card">
+            <p class="brand-mark">Post<span class="brand-mark-accent">It.</span></p>
 
-    <h1 class="title">Register a new account</h1>
+            <h1 class="auth-title mt-6">Create your account</h1>
+            <p class="auth-subtitle">Join communities built around long-form writing and open discussion.</p>
 
-    <div>
-        <form @submit.prevent="submitForm">
-            <TextInput name="Name" type="text" v-model="form.name" :message="form.errors.name" />
+            <form class="auth-form" @submit.prevent="submitForm">
+                <TextInput name="Name" type="text" v-model="form.name" :message="form.errors.name" />
+                <TextInput name="Date of Birth" type="date" v-model="form.date_of_birth" :message="form.errors.date_of_birth" />
+                <TextInput name="Email" type="email" v-model="form.email" :message="form.errors.email" />
+                <TextInput name="Password" type="password" v-model="form.password" :message="form.errors.password" />
+                <TextInput name="Confirm Password" type="password" v-model="form.password_confirmation" :message="form.errors.password_confirmation" />
 
-            <TextInput name="Date of Birth" type="date" v-model="form.date_of_birth"
-                :message="form.errors.date_of_birth" />
+                <button type="submit" class="btn-primary" :disabled="form.processing">
+                    {{ form.processing ? 'Creating account…' : 'Create account' }}
+                </button>
+            </form>
 
-            <TextInput name="Email" type="email" v-model="form.email" :message="form.errors.email" />
-
-            <TextInput name="Password" type="password" v-model="form.password" :message="form.errors.password" />
-
-            <TextInput name="Confirm Password" type="password" v-model="form.password_confirmation"
-                :message="form.errors.password_confirmation" />
-            <button type="submit">Register</button>
-        </form>
+            <p class="auth-footer">
+                Already have an account?
+                <Link :href="route('login')" class="auth-link">Log in</Link>
+            </p>
+        </div>
     </div>
 </template>

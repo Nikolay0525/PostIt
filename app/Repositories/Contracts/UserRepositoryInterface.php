@@ -10,4 +10,5 @@ interface UserRepositoryInterface
     public function findWithSettingsAndCounters(string $id): ?User;
     public function create(array $data): User;
     public function update(User $user, array $data): User;
+    public function updatePassword(User $user, string $password): User;
 }

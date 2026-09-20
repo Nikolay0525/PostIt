@@ -2,45 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Services\AuthService;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Redirect;
-use App\Repositories\Contracts\UserRepositoryInterface;
+use Inertia\Inertia;
 
 class AuthController extends Controller
 {
     public function __construct(
-        protected UserRepositoryInterface $userRepository
+        protected AuthService $authService
     ) {}
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $fields =$request->validate([
-            'name' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'date_of_birth' => 'required|date|before:today',
-        ]);
+        $this->authService->register($request->validated());
 
-        $user = $this->userRepository->create($fields);
-
-        Auth::login($user);
-        
-        return Redirect::route('home');
+        return Redirect::route('verification.notice');
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $fields = $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-
-        if (Auth::attempt($fields, $request->boolean('remember'))) {
+        if ($this->authService->attemptLogin($request->validated(), $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return Redirect::intended(route('dashboard'));
+            return Redirect::intended(route('home'));
         }
 
         return Redirect::back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
@@ -48,11 +39,67 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        $this->authService->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home');
+        return Redirect::route('home');
+    }
+
+    public function sendResetLink(ForgotPasswordRequest $request)
+    {
+        $status = $this->authService->sendResetLink($request->validated('email'));
+
+        if ($status === Password::RESET_THROTTLED) {
+            return back()->withErrors(['email' => __($status)]);
+        }
+
+        // Same response whether or not the email exists, to avoid account enumeration.
+        return back()->with('status', __(Password::RESET_LINK_SENT));
+    }
+
+    public function showResetForm(Request $request, string $token)
+    {
+        return Inertia::render('Auth/ResetPassword', [
+            'token' => $token,
+            'email' => $request->query('email'),
+        ]);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $status = $this->authService->resetPassword($request->validated());
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return back()->withErrors(['email' => __($status)]);
+        }
+
+        return Redirect::route('login')->with('status', __($status));
+    }
+
+    public function verificationNotice(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return Redirect::route('home');
+        }
+
+        return Inertia::render('Auth/EmailConfirmation');
+    }
+
+    public function verifyEmail(EmailVerificationRequest $request)
+    {
+        $request->fulfill();
+
+        return Redirect::route('home');
+    }
+
+    public function resendVerification(Request $request)
+    {
+        if (! $this->authService->resendVerification($request->user())) {
+            return Redirect::route('home');
+        }
+
+        return back()->with('status', 'verification-link-sent');
     }
 }
