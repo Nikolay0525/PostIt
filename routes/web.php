@@ -6,6 +6,12 @@ use App\Http\Controllers\AuthController;
 
 Route::inertia('/','Home')->name('home');
 
+// Public pages: anyone can read, interactions are gated in the UI (and later on the server).
+Route::get('/posts/{id}', fn (string $id) => Inertia::render('Posts/Show', ['id' => $id]))
+    ->whereUuid('id')->name('posts.show');
+Route::get('/groups/{id}', fn (string $id) => Inertia::render('Groups/Show', ['id' => $id]))
+    ->whereUuid('id')->name('groups.show');
+
 Route::middleware(['guest'])->group(function () {
     Route::inertia('/login', 'Auth/Login')->name('login');
     Route::inertia('/register', 'Auth/Register')->name('register');
