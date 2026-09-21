@@ -29,6 +29,11 @@ class GroupService
         return $userId !== null && $this->groupRepository->isMember($groupId, $userId);
     }
 
+    public function hasSubscriptions(string $userId): bool
+    {
+        return $this->groupRepository->hasSubscriptions($userId);
+    }
+
     /**
      * Posts of a private group are visible to its members only.
      */

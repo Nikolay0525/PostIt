@@ -4,9 +4,10 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
 
-Route::inertia('/','Home')->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Public pages: anyone can read, interactions are gated in the UI (and later on the server).
 Route::get('/posts/{id}', [PostController::class, 'show'])

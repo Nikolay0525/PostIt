@@ -36,6 +36,17 @@ class EloquentPostRepository implements PostRepositoryInterface
         return $this->orderByScore($query)->paginate($perPage);
     }
 
+    public function paginateForSubscriber(string $userId, int $perPage): LengthAwarePaginator
+    {
+        return $this->withStats()
+            ->whereIn('group_id', fn ($groups) => $groups
+                ->select('group_id')
+                ->from('user_group_subscriptions')
+                ->where('user_id', $userId))
+            ->latest()
+            ->paginate($perPage);
+    }
+
     private function withStats(): Builder
     {
         return Post::query()

@@ -12,4 +12,6 @@ interface GroupRepositoryInterface
     public function findWithMembersCount(string $id): ?Group;
 
     public function isMember(string $groupId, string $userId): bool;
+
+    public function hasSubscriptions(string $userId): bool;
 }
