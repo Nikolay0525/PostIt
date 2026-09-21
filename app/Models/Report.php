@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ReportStatus;
+use App\Enums\ReportTargetType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Report extends BaseEntity
@@ -23,8 +25,8 @@ class Report extends BaseEntity
     protected function casts(): array
     {
         return [
-            'target_type' => 'integer',
-            'status' => 'integer',
+            'target_type' => ReportTargetType::class,
+            'status' => ReportStatus::class,
             'escalated_at' => 'datetime',
         ];
     }

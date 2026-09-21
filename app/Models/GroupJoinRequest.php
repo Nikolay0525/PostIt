@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\JoinRequestStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,7 +22,7 @@ class GroupJoinRequest extends Model
     protected function casts(): array
     {
         return [
-            'status' => 'integer',
+            'status' => JoinRequestStatus::class,
         ];
     }
 

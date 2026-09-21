@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\NotificationType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,7 +23,7 @@ class Notification extends BaseEntity
     {
         return [
             'is_read' => 'boolean',
-            'type' => 'integer',
+            'type' => NotificationType::class,
         ];
     }
 

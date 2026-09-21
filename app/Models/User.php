@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -26,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'password' => 'hashed', 
             'email_verified_at' => 'datetime',
             'date_of_birth' => 'date',
+            'role' => UserRole::class,
         ];
     }
 
