@@ -20,4 +20,9 @@ interface PostRepositoryInterface
      * Posts from public groups created within the last $days days, best score first.
      */
     public function paginateTrending(int $days, int $perPage): LengthAwarePaginator;
+
+    /**
+     * Posts from every group the user is subscribed to, newest first.
+     */
+    public function paginateForSubscriber(string $userId, int $perPage): LengthAwarePaginator;
 }

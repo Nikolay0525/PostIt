@@ -31,6 +31,11 @@ class PostService
         return $this->postRepository->paginateForGroup($groupId, $sort, self::PER_PAGE);
     }
 
+    public function getSubscribedPosts(string $userId): LengthAwarePaginator
+    {
+        return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE);
+    }
+
     public function getTrendingPosts(): LengthAwarePaginator
     {
         return $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE);

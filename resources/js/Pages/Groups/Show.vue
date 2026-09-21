@@ -1,38 +1,44 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { InfiniteScroll, router, usePage } from '@inertiajs/vue3';
 import PostCard from '@/Pages/Components/PostCard.vue';
-import { postsForGroup, score } from '@/data/dummyPosts';
-import { findGroup } from '@/data/dummyGroups';
 import { formatCount } from '@/utils/format';
 
 const props = defineProps({
-    id: String,
+    group: Object,
+    is_member: Boolean,
+    sort: String,
+    // Paginated by <InfiniteScroll>. null when the group is private and the viewer is not a member.
+    posts: Object,
 });
 
 const page = usePage();
-const group = computed(() => findGroup(props.id));
 
 const sorts = [
     { key: 'newest', label: 'Newest' },
     { key: 'top', label: 'Top' },
 ];
-const sort = ref('newest');
 
-const posts = computed(() => {
-    const list = [...postsForGroup(props.id)];
-    return sort.value === 'top'
-        ? list.sort((a, b) => score(b) - score(a))
-        : list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-});
+// Sorting happens on the server: reload only the posts and start their list over from page 1.
+const changeSort = (key) => {
+    if (key === props.sort) return;
+
+    router.get(`/groups/${props.group.id}`, { sort: key }, {
+        only: ['posts', 'sort'],
+        reset: ['posts'],
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
+};
 
 // Subscribing (or requesting to join a private group) is a local toggle for now;
-// guests are asked to log in.
-const joined = ref(false);
+// guests are asked to log in. The real subscribe action comes with the write endpoints.
+const joined = ref(props.is_member);
 const showLoginPrompt = ref(false);
 
 const buttonLabel = computed(() => {
-    if (group.value.is_private) return joined.value ? 'Request sent' : 'Request to join';
+    if (props.group.is_private) return joined.value ? 'Request sent' : 'Request to join';
     return joined.value ? 'Subscribed' : 'Subscribe';
 });
 
@@ -46,9 +52,9 @@ const toggleJoin = () => {
 </script>
 
 <template>
-    <Head :title="group ? ` | ${group.name}` : ' | Group not found'" />
+    <Head :title="` | ${group.name}`" />
 
-    <section v-if="group" class="feed">
+    <section class="feed">
         <header class="group-header">
             <span class="group-avatar" aria-hidden="true">{{ group.name.charAt(0).toUpperCase() }}</span>
 
@@ -77,7 +83,7 @@ const toggleJoin = () => {
         </header>
 
         <!-- Private groups keep their posts hidden from non-members. -->
-        <p v-if="group.is_private" class="post-login-prompt">
+        <p v-if="!posts" class="post-login-prompt">
             This group is private. Posts are visible to members only.
         </p>
 
@@ -90,19 +96,19 @@ const toggleJoin = () => {
                     role="tab"
                     class="sort-tab"
                     :class="{ 'sort-tab-active': sort === s.key }"
-                    @click="sort = s.key"
+                    @click="changeSort(s.key)"
                 >{{ s.label }}</button>
             </div>
 
-            <PostCard v-for="post in posts" :key="post.id" :post="post" />
+            <p v-if="!posts.data.length" class="text-sm text-muted">No posts in this group yet.</p>
 
-            <p v-if="!posts.length" class="text-sm text-muted">No posts in this group yet.</p>
+            <InfiniteScroll data="posts" class="feed-list">
+                <PostCard v-for="post in posts.data" :key="post.id" :post="post" />
+
+                <template #loading>
+                    <p class="text-sm text-muted">Loading more posts…</p>
+                </template>
+            </InfiniteScroll>
         </template>
-    </section>
-
-    <section v-else class="feed">
-        <h1 class="feed-title">Group not found</h1>
-        <p class="text-sm text-muted">This group doesn't exist or was removed.</p>
-        <Link :href="route('home')" class="auth-link">Back to home</Link>
     </section>
 </template>
