@@ -1,34 +1,55 @@
 <script setup>
+import InboxMenu from '@/Pages/Components/InboxMenu.vue';
+import NotificationsMenu from '@/Pages/Components/NotificationsMenu.vue';
+import UserMenu from '@/Pages/Components/UserMenu.vue';
 </script>
 
 <template>
+    <div class="min-h-screen bg-canvas text-ink">
+        <header class="border-b border-line bg-white">
+            <nav class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-8">
+                    <Link :href="route('home')" class="brand-mark">
+                        Post<span class="brand-mark-accent">It.</span>
+                    </Link>
 
-    <div class="min-h-screen bg-gray-100 text-gray-900">
-        <header class="border-b border-gray-200 bg-white shadow-sm">
-            <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-                <div v-if="$page.props.auth.user" class="flex items-center gap-4">
-                    <span class="font-semibold text-gray-900">Hello, {{ $page.props.auth.user.name }}!</span>
-                    <Link :href="route('dashboard')" 
-                    class="text-gray-600 transition hover:text-indigo-600"
-                    :class="{ 'text-indigo-600' : $page.component === 'Dashboard'}">Dashboard</Link>
-                    
-                    <Link :href="route('logout')" method="post" as="button" type="button" class="text-gray-600 transition hover:text-indigo-600">Logout</Link>
+                    <div class="hidden items-center gap-6 sm:flex">
+                        <Link
+                            :href="route('home')"
+                            class="nav-link"
+                            :class="{ 'nav-link-active': $page.component === 'Home' }"
+                        >Home</Link>
+                    </div>
                 </div>
-                <div v-else class="flex items-center gap-4">
-                    <Link :href="route('login')" 
-                    class="text-gray-600 transition hover:text-indigo-600"
-                    :class="{ 'text-indigo-600' : $page.component === 'Auth/Login'}">Login</Link>
-                    <Link :href="route('register')" 
-                    class="text-gray-600 transition hover:text-indigo-600"
-                    :class="{ 'text-indigo-600' : $page.component === 'Auth/Register'}">Register</Link>
-                </div>
-                <div class="flex items-center gap-6">
-                    <Link :href="route('home')" 
-                    class="font-semibold text-gray-900 transition hover:text-indigo-600"
-                    :class="{ 'text-indigo-600' : $page.component === 'Home'}">Home</Link>
-                    <Link :href="route('about')" 
-                    class="text-gray-600 transition hover:text-indigo-600"
-                    :class="{ 'text-indigo-600' : $page.component === 'About'}">About</Link>
+
+                <form class="search-bar order-last w-full sm:order-none sm:w-auto sm:flex-1" role="search" @submit.prevent>
+                    <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                        <circle cx="9" cy="9" r="5.5" />
+                        <path d="m13.5 13.5 3.5 3.5" stroke-linecap="round" />
+                    </svg>
+                    <input
+                        type="search"
+                        dir="auto"
+                        class="search-input"
+                        placeholder="Search posts, groups and people"
+                        aria-label="Search"
+                    />
+                </form>
+
+                <div class="flex items-center gap-4">
+                    <template v-if="$page.props.auth.user">
+                        <InboxMenu />
+                        <NotificationsMenu />
+                        <UserMenu />
+                    </template>
+                    <template v-else>
+                        <Link
+                            :href="route('login')"
+                            class="nav-link"
+                            :class="{ 'nav-link-active': $page.component === 'Auth/Login' }"
+                        >Log in</Link>
+                        <Link :href="route('register')" class="btn-primary">Sign up</Link>
+                    </template>
                 </div>
             </nav>
         </header>

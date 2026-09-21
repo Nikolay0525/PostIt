@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\VoteParentType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Comment extends BaseEntity
 {
+    use HasFactory;
+
     protected $table = 'comments';
 
     protected $fillable = [
@@ -51,6 +55,6 @@ class Comment extends BaseEntity
     public function votes(): HasMany
     {
         return $this->hasMany(Vote::class, 'parent_id')
-            ->where('parent_type', 2); // 2 = Comment
+            ->where('parent_type', VoteParentType::Comment);
     }
 }
