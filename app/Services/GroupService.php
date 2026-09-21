@@ -20,4 +20,20 @@ class GroupService
         return $this->groupRepository->findWithMembersCount($id)
             ?? throw (new ModelNotFoundException)->setModel(Group::class, [$id]);
     }
+
+    /**
+     * Guests ($userId = null) are never members.
+     */
+    public function isMember(string $groupId, ?string $userId): bool
+    {
+        return $userId !== null && $this->groupRepository->isMember($groupId, $userId);
+    }
+
+    /**
+     * Posts of a private group are visible to its members only.
+     */
+    public function canViewPosts(Group $group, bool $isMember): bool
+    {
+        return ! $group->is_private || $isMember;
+    }
 }
