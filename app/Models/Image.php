@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ImageOwnerType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,7 +25,7 @@ class Image extends BaseEntity
     protected function casts(): array
     {
         return [
-            'owner_type' => 'integer',
+            'owner_type' => ImageOwnerType::class,
             'is_adult_image' => 'boolean',
             'moderation_status' => 'integer',
         ];

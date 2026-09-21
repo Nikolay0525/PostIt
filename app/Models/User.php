@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -12,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements MustVerifyEmailContract
 {
-    use Notifiable;
+    use HasFactory, Notifiable;
 
     protected $keyType = 'string';
     public $incrementing = false;
@@ -26,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'password' => 'hashed', 
             'email_verified_at' => 'datetime',
             'date_of_birth' => 'date',
+            'role' => UserRole::class,
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use App\Repositories\Contracts\UserRepositoryInterface;
 
 class EloquentUserRepository implements UserRepositoryInterface
@@ -26,5 +27,15 @@ class EloquentUserRepository implements UserRepositoryInterface
     {
         $user->update($data);
         return $user->fresh();
+    }
+
+    public function updatePassword(User $user, string $password): User
+    {
+        $user->forceFill([
+            'password' => $password,
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        return $user;
     }
 }

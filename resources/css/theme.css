@@ -1,0 +1,24 @@
+@theme {
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #eff5fe;
+  --color-brand-100: #dce9fc;
+  --color-brand-500: #2f6fe0;
+  --color-brand-600: #1656d8;
+  --color-brand-700: #123fa8;
+
+  --color-ink: #101828;
+  --color-muted: #64748b;
+  --color-line: #e4e9f2;
+  --color-canvas: #f6f9fd;
+
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas text-ink antialiased;
+    font-family: var(--font-sans);
+  }
+}
