@@ -37,7 +37,7 @@ defineProps({
 
             <p v-if="!comments.data.length" class="text-sm text-muted">No comments yet.</p>
 
-            <InfiniteScroll data="comments">
+            <InfiniteScroll data="comments" class="feed-list">
                 <CommentNode v-for="c in comments.data" :key="c.id" :comment="c" />
 
                 <template #loading>

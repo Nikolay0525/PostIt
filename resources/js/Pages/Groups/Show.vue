@@ -102,7 +102,7 @@ const toggleJoin = () => {
 
             <p v-if="!posts.data.length" class="text-sm text-muted">No posts in this group yet.</p>
 
-            <InfiniteScroll data="posts">
+            <InfiniteScroll data="posts" class="feed-list">
                 <PostCard v-for="post in posts.data" :key="post.id" :post="post" />
 
                 <template #loading>
