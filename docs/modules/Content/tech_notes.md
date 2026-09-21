@@ -1,0 +1,18 @@
+# Content — Tech Notes
+
+## Tech debt
+- The pages read `resources/js/data/dummyPosts.js`, `dummyGroups.js`, `dummyComments.js`. Replace with Inertia props from controllers and delete the dummy files (policy anti-pattern #11).
+- `Vote` has an array `$primaryKey` (`parent_id`, `user_id`) — same composite-key limitation as in Community.
+- `Vote.parent_type` (1 = Post, 2 = Comment) is a magic integer and `parent_id` has **no foreign key** (polymorphic). Introduce the shared `TargetType` enum and consider referential integrity checks in the Service.
+- Post score is computed in the frontend helper `score()`; move to the server (aggregate query) before pagination is added.
+- `posts.slug` is required but has no uniqueness rule or generator yet.
+- Verify that an `Image` model exists: the `images` table is in the migrations, but the model was not among the reviewed files.
+- Comment tree is built on the client (`buildCommentTree`); for big threads move to the server and paginate.
+
+## Non-obvious decisions
+- Posts and comments are soft-deleted with their own `is_deleted` / `deleted_at` fields instead of Laravel's `SoftDeletes`. Queries must filter `is_deleted = false` explicitly, or the model should be switched to `SoftDeletes`.
+- Comment text is limited to 500 characters (DB and textarea `maxlength`).
+
+## Edge cases
+- A deleted comment with replies must stay in the tree (rendered as "deleted").
+- Posts without a title are shown with the article preview as the link text.
