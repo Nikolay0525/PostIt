@@ -11,7 +11,8 @@ const props = defineProps({
 });
 
 const initial = computed(() => props.post.author.name.charAt(0).toUpperCase());
-const group = computed(() => findGroup(props.post.group_id));
+// Posts from the backend carry their group. The dummy fallback stays until the feed and group page use the backend too.
+const group = computed(() => props.post.group ?? findGroup(props.post.group_id));
 const preview = computed(() => excerpt(props.post.article));
 
 const showLoginPrompt = ref(false);
