@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | Document | Architecture Description (style: ISO/IEC/IEEE 42010:2022) |
-| Version | 0.1.0 |
+| Version | 0.1.1 |
 | Status | Draft |
-| Last update | 2026-09-21 |
+| Last update | 2026-09-26 |
 | Owner | Project owner (Mykola Poberezhnyi) |
 
 ## 1. Introduction
@@ -124,6 +124,9 @@ erDiagram
     GROUP ||--o{ REPORT : scopes
     USER ||--o{ MESSAGE : sends
     USER ||--o{ IMAGE : uploads
+    USER ||--o{ MODERATION_APPEAL : files
+    GROUP ||--o{ MODERATION_APPEAL : scopes
+    USER }o--o{ MODERATION_APPEAL : reviews_as_juror
 ```
 
 Data conventions:
@@ -131,6 +134,7 @@ Data conventions:
 - `votes`, `reports` and `images` reference their target polymorphically through `*_type` (integer) and an id column; integrity is checked in the application layer.
 - Post and comment deletion is soft (`is_deleted`, `deleted_at`).
 - Ownership of tables by module is described in each module's `business_logic.md`.
+- *(0.1.1, planned)* `group_moderators.role` distinguishes `Owner` (permanent) from `Guardian` (community-elevated, decaying); a Guardian's candidacy and standing, and a filed appeal with its jurors' blind votes, are new entities described in `Community`/`Moderation` `business_logic.md` — not yet reflected in migrations.
 
 ## 5. Runtime view
 
@@ -232,8 +236,10 @@ Aligned with the intent of NIST SP 800-218 (SSDF): validate inputs, protect secr
 | AD-6 | Polymorphic targets via integer type + id | One `votes` / `reports` table for posts and comments | No FK on the target; application must guard integrity; needs a shared `TargetType` enum |
 | AD-7 | Soft deletion by flags | Keeps thread structure and audit trail | Queries must always filter deleted rows |
 | AD-8 | Dummy frontend data during early development | UI can be built before backend endpoints | Must be removed per module as endpoints appear (anti-pattern #11) |
+| AD-9 *(0.1.1)* | Group moderation power is split into two non-overlapping roles — a permanent `Owner` and a community-elevated, decaying `Guardian` — with a Guardian's individual actions reviewable only by an independent jury drawn platform-wide, never by a direct vote of the people it sanctions | Avoids both failure modes seen in comparable systems: an admin-appointed moderator nobody can remove, and direct crowd voting that lets a sanctioned majority overturn its own sanction (patterned after CS:GO's Overwatch review system: independent, blind, jury-based) | Needs new planned entities (`GuardianCandidacy`, `GuardianStanding`, `ModerationAppeal`, `AppealVote`) and a cross-module event flow between `Community` and `Moderation`; several tuning parameters are intentionally left open (see module `tech_notes.md`) |
 
 ## 10. Known risks
 
 - Access rules for private groups and bans exist only in the UI/model level for now — server-side enforcement is required before release.
 - Composite keys on Eloquent models need careful handling (see tech notes).
+- *(0.1.1)* The Guardian/Owner model is designed but not yet implemented; several numeric parameters (score thresholds, decay windows, warning periods) are explicitly undecided and need real usage data before they can be fixed.

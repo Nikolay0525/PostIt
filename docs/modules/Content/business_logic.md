@@ -7,7 +7,8 @@
 - Nested comment threads under posts.
 - Votes on posts and comments (up/down).
 - Images attached to content, including adult-image flag and moderation status.
-- Feed construction and ordering (Newest / Top).
+- Feed and group post ordering (Newest / Top).
+- *(0.1.1)* Comment ordering within a post: **Best** (time-decayed score) by default, **Top** (raw score) as an alternative — a separate concern from post ordering, because a comment thread keeps growing under the reader's eyes and a purely count-based order buries every new, good comment under old ones that simply had more time to accumulate votes.
 
 **NOT here:**
 - Deciding if a user may see a private group — `Community`.
@@ -28,6 +29,7 @@
 - Anyone can read a post and its comments (public groups); writing a comment or voting requires login (guests see a "log in or sign up" prompt).
 - Comments are loaded flat and assembled into a tree by `parent_id`.
 - Score of a post is derived from its votes (currently computed by a frontend dummy helper); **Top** sort orders by score, **Newest** by `created_at`.
+- *(0.1.1)* Top-level comments default to **Best** order: `score / (age_in_hours + 2) ^ gravity` (Hacker-News-style time decay; `gravity` ≈ 1.5–1.8, exact value open), so a new comment with few votes can outrank an old one that has merely had longer to collect them. **Top** (raw `upvotes − downvotes`, no decay) stays available as an explicit alternative, so a purely popularity-ranked view is never lost.
 - Users the viewer has blocked, and content of banned users, are hidden *(planned)*.
 
 **Boundary:** `Content` stores and orders content; visibility rules for private groups are asked from `Community`.
@@ -48,6 +50,7 @@
 | `CommentService` | Add comment / reply, soft-delete, emits `CommentCreated`. |
 | `VoteService` | Cast, change or remove a vote; emits `VoteCast`. |
 | `FeedService` | Build feed for a viewer / group with sort (Newest, Top) and pagination. |
+| `CommentThreadService` *(0.1.1)* | Build a post's top-level comment page ordered by Best or Top; replies stay ordered oldest-first under their parent. |
 
 ## Domain Events *(planned)*
 
