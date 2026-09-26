@@ -101,4 +101,4 @@ Two roles hold moderation power in a group, and neither may appoint, remove or o
 - `GuardianCandidacy`, `GuardianStanding` — 0.1.1, planned; no migration yet.
 
 ### UI
-- `Pages/Groups/Show.vue`: group header (avatar initial, members count, private badge), rules, join/subscribe button, Newest/Top sort tabs, private-group notice. Currently uses `dummyGroups`.
+- `Pages/Groups/Show.vue`: group header (avatar initial, members count, private badge), rules, join/subscribe button, Newest/Top sort tabs, private-group notice. Backed by `GroupController` via `GroupResource` (real `members_count`), with the post list paginated through `Inertia::scroll`. The join/subscribe button itself is still a local UI toggle — no write endpoint exists yet (tracked in *Tech debt*).

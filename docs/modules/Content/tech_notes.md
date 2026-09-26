@@ -1,7 +1,7 @@
 # Content — Tech Notes
 
 ## Tech debt
-- The pages read `resources/js/data/dummyPosts.js`, `dummyGroups.js`, `dummyComments.js`. Replace with Inertia props from controllers and delete the dummy files (policy anti-pattern #11).
+- No write endpoint exists yet for commenting or voting: the comment form and `VoteButtons` are still visual stubs (`// Real voting comes with the backend.`). This is the actual remaining gap now that reading is server-backed — see `CommentService`/`VoteService` in *Domain Services*.
 - `Vote` has an array `$primaryKey` (`parent_id`, `user_id`) — same composite-key limitation as in Community.
 - `Vote.parent_type` (1 = Post, 2 = Comment) is a magic integer and `parent_id` has **no foreign key** (polymorphic). Introduce the shared `TargetType` enum and consider referential integrity checks in the Service.
 - Post score is computed in the frontend helper `score()`; move to the server (aggregate query) before pagination is added.

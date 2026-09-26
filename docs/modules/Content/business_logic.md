@@ -28,7 +28,7 @@
 
 - Anyone can read a post and its comments (public groups); writing a comment or voting requires login (guests see a "log in or sign up" prompt).
 - Comments are loaded flat and assembled into a tree by `parent_id`.
-- Score of a post is derived from its votes (currently computed by a frontend dummy helper); **Top** sort orders by score, **Newest** by `created_at`.
+- Score of a post is derived from its votes, computed server-side (`upvotes_count`/`downvotes_count` aggregates in `EloquentPostRepository`); **Top** sort orders by score, **Newest** by `created_at`.
 - *(0.1.1)* Top-level comments default to **Best** order: `score / (age_in_hours + 2) ^ gravity` (Hacker-News-style time decay; `gravity` ≈ 1.5–1.8, exact value open), so a new comment with few votes can outrank an old one that has merely had longer to collect them. **Top** (raw `upvotes − downvotes`, no decay) stays available as an explicit alternative, so a purely popularity-ranked view is never lost.
 - Users the viewer has blocked, and content of banned users, are hidden *(planned)*.
 
@@ -73,4 +73,4 @@
 - `Vote` — composite PK `(parent_id, user_id)`; casts `parent_type` int, `positive` bool.
 
 ### UI
-- `Pages/Posts/Show.vue` (post + comment form + comment tree), `PostFeed`, `PostCard`, `CommentNode`, `VoteButtons`. Currently backed by `dummyPosts` / `dummyComments`.
+- `Pages/Posts/Show.vue` (post + comment form + comment tree), `PostFeed`, `PostCard`, `CommentNode`, `VoteButtons`. The dummy data files are gone: posts and comments are read from the server (`PostController`, `HomeController`, and the post list on `Groups/Show.vue`) via `PostResource`/`CommentResource`, paginated through `Inertia::scroll`. The comment form and the vote buttons are still visual stubs — no write endpoint exists yet for either (tracked in *Tech debt*).
