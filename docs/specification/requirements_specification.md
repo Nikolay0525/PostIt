@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Document | Requirements Specification (style: ISO/IEC/IEEE 29148:2018) |
-| Version | 0.1.1 |
+| Version | 0.1.2 |
 | Status | Draft |
 | Last update | 2026-09-26 |
 | Owner | Project owner (Mykola Poberezhnyi) |
@@ -114,7 +114,8 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-CON-009 | The system shall let an author or a moderator delete a post or comment softly; a deleted comment that has replies shall stay in the thread as "deleted". | M | Partial | T |
 | FR-CON-010 | The system shall let a user attach images to content and mark adult images; adult images shall be shown only to adults who enabled them. | C | Planned | T |
 | FR-CON-011 | The system shall let a user search posts, groups and people. | S | Planned | D |
-| FR-CON-012 | The system shall order a post's comments by **Best** by default — a score that decays with age so a new, lightly-voted comment can rank fairly against an older, heavily-voted one — with **Top** (raw vote score, no decay) as an alternative. | S | Planned | T |
+| FR-CON-012 | The system shall order a post's comments by **Best** by default — a score that decays with age so a new, lightly-voted comment can rank fairly against an older, heavily-voted one — with **Top** (raw vote score, no decay) and **Controversial** (balance between opposing votes) as alternatives. | S | Planned | T |
+| FR-CON-013 | The system shall show a comment's controversy as an approximate percentage (rounded to the nearest 10%) once it has received a minimum number of votes on both sides, and shall never expose the exact vote split through it. | S | Planned | T |
 
 ### 4.4 Moderation (module `Moderation`)
 
@@ -179,7 +180,7 @@ Each requirement has a verification method (T/I/D). Tests are organised as descr
 |---|---|---|
 | Account | FR-ACC-001 … 012 | [business_logic](../modules/Account/business_logic.md) |
 | Community | FR-COM-001 … 016 | [business_logic](../modules/Community/business_logic.md) |
-| Content | FR-CON-001 … 012 | [business_logic](../modules/Content/business_logic.md) |
+| Content | FR-CON-001 … 013 | [business_logic](../modules/Content/business_logic.md) |
 | Moderation | FR-MOD-001 … 012 | [business_logic](../modules/Moderation/business_logic.md) |
 | Engagement | FR-ENG-001 … 005 | [business_logic](../modules/Engagement/business_logic.md) |
 
@@ -188,3 +189,4 @@ Each requirement has a verification method (T/I/D). Tests are organised as descr
 - Karma formula, cool-down after rejected join requests and the administrator representation are not defined yet (see module `tech_notes.md`).
 - Guardian/Owner model (0.1.1): exact contribution-score thresholds, the decay/backlog time windows, the warning grace period, whether a declined Guardian offer can be repeated, whether a long-absent Owner automatically reclaims ownership on return, and juror eligibility criteria are not numerically defined yet (see `Community` and `Moderation` `tech_notes.md`).
 - Whether appealed content stays removed or is provisionally restored while an appeal is pending is not decided yet.
+- (0.1.2) The exact minimum-vote threshold for showing a comment's controversy percentage is a placeholder (see `Content` `tech_notes.md`), fixed rather than scaled to group size to avoid pulling group population into the sort query; revisit once real vote volume is known.
