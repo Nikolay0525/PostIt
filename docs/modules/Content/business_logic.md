@@ -8,7 +8,8 @@
 - Votes on posts and comments (up/down).
 - Images attached to content, including adult-image flag and moderation status.
 - Feed and group post ordering (Newest / Top).
-- *(0.1.1)* Comment ordering within a post: **Best** (time-decayed score) by default, **Top** (raw score) as an alternative — a separate concern from post ordering, because a comment thread keeps growing under the reader's eyes and a purely count-based order buries every new, good comment under old ones that simply had more time to accumulate votes.
+- *(0.1.1)* Comment ordering within a post: **Best** (time-decayed score) by default, **Top** (raw score) or **Controversial** (balance between opposing votes) as alternatives — a separate concern from post ordering, because a comment thread keeps growing under the reader's eyes and a purely count-based order buries every new, good comment under old ones that simply had more time to accumulate votes.
+- *(0.1.2)* A comment's controversy, shown as an approximate percentage — see *Key Flow* below.
 
 **NOT here:**
 - Deciding if a user may see a private group — `Community`.
@@ -30,6 +31,7 @@
 - Comments are loaded flat and assembled into a tree by `parent_id`.
 - Score of a post is derived from its votes (currently computed by a frontend dummy helper); **Top** sort orders by score, **Newest** by `created_at`.
 - *(0.1.1)* Top-level comments default to **Best** order: `score / (age_in_hours + 2) ^ gravity` (Hacker-News-style time decay; `gravity` ≈ 1.5–1.8, exact value open), so a new comment with few votes can outrank an old one that has merely had longer to collect them. **Top** (raw `upvotes − downvotes`, no decay) stays available as an explicit alternative, so a purely popularity-ranked view is never lost.
+- *(0.1.2)* **Controversial** order and the controversy indicator both use `100 × (1 − |upvotes − downvotes| / (upvotes + downvotes))`: a perfect 50/50 split scores 100%, a one-sided vote scores near 0%. Shown to the viewer **rounded to the nearest 10%** and only once the comment has a minimum number of votes on each side (exact number open, see tech notes) — both the rounding and the threshold exist so a fresh, unvoted comment never shows a score, and a genuinely contested one is never confused with it. The percentage is deliberately never shown to exact precision: combined with the (already public) net score, an exact percentage would let the exact upvote/downvote split be reconstructed by simple algebra, defeating the reason raw vote counts are not shown separately (see *Key Flow — Reading and voting* above).
 - Users the viewer has blocked, and content of banned users, are hidden *(planned)*.
 
 **Boundary:** `Content` stores and orders content; visibility rules for private groups are asked from `Community`.
@@ -50,7 +52,7 @@
 | `CommentService` | Add comment / reply, soft-delete, emits `CommentCreated`. |
 | `VoteService` | Cast, change or remove a vote; emits `VoteCast`. |
 | `FeedService` | Build feed for a viewer / group with sort (Newest, Top) and pagination. |
-| `CommentThreadService` *(0.1.1)* | Build a post's top-level comment page ordered by Best or Top; replies stay ordered oldest-first under their parent. |
+| `CommentThreadService` *(0.1.1)* | Build a post's top-level comment page ordered by Best, Top or Controversial; replies stay ordered oldest-first under their parent. Computes and rounds the controversy percentage *(0.1.2)*. |
 
 ## Domain Events *(planned)*
 

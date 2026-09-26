@@ -12,6 +12,7 @@
 ## Non-obvious decisions
 - Posts and comments are soft-deleted with their own `is_deleted` / `deleted_at` fields instead of Laravel's `SoftDeletes`. Queries must filter `is_deleted = false` explicitly, or the model should be switched to `SoftDeletes`.
 - Comment text is limited to 500 characters (DB and textarea `maxlength`).
+- (0.1.2) The controversy percentage is always rounded (nearest 10%) before it reaches the client, on purpose — an exact value next to the already-public net score would let the exact upvote/downvote split be reconstructed algebraically. Do not "fix" this rounding as a display nicety; it is load-bearing for vote-split privacy.
 
 ## Edge cases
 - A deleted comment with replies must stay in the tree (rendered as "deleted").
@@ -20,3 +21,4 @@
 ## Open questions
 - (0.1.1) Exact `gravity` constant for the Best-comment decay formula; needs tuning once there is real usage data, not guessed upfront.
 - (0.1.1) Whether Best decay risks rewarding a low-effort new comment placed in an already-hot thread purely for being new; consider bounding how early a comment can rank without any votes at all.
+- (0.1.2) Exact minimum-votes-per-side threshold before the controversy percentage is shown at all; started as a fixed constant (order of magnitude: single digits per side, e.g. 3, not 50-100 — the seeded dataset averages ~5-6 votes per item) rather than scaled to group size, and needs tuning once there is real vote-volume data.
