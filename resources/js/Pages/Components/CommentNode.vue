@@ -25,6 +25,8 @@ const showLoginPrompt = ref(false);
                 <p class="post-body text-ink" dir="auto">{{ comment.text }}</p>
                 <p class="post-footer">
                     <VoteButtons
+                        target-type="comment"
+                        :target-id="comment.id"
                         :upvotes="comment.upvotes"
                         :downvotes="comment.downvotes"
                         :controversy="comment.controversy"

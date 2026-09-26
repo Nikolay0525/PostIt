@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class EloquentPostRepository implements PostRepositoryInterface
 {
+    public function find(string $id): ?Post
+    {
+        return Post::find($id);
+    }
+
     public function findWithStats(string $id): ?Post
     {
         return $this->withStats()->find($id);

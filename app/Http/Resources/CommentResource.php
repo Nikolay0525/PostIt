@@ -2,7 +2,8 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\Concerns\ComputesControversy;
+use App\Models\Comment;
+use App\Support\Concerns\ComputesControversy;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,7 +14,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * The text and author of a deleted comment never leave the server: the comment stays in the
  * thread so its replies keep their place, but only as an empty "Removed" placeholder.
  *
- * @mixin \App\Models\Comment
+ * @mixin Comment
  */
 class CommentResource extends JsonResource
 {

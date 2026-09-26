@@ -35,7 +35,7 @@ trait ComputesControversy
 
     /**
      * @return int|null Rounded controversy score, or null when there are too few votes on
-     *                   both sides for the number to mean anything.
+     *                  both sides for the number to mean anything.
      */
     protected function controversyScore(int $upvotes, int $downvotes): ?int
     {

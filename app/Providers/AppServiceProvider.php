@@ -2,10 +2,20 @@
 
 namespace App\Providers;
 
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\ServiceProvider;
 use App\Models\User;
 use App\Observers\UserObserver;
+use App\Repositories\Contracts\CommentRepositoryInterface;
+use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Contracts\VoteRepositoryInterface;
+use App\Repositories\Eloquent\EloquentCommentRepository;
+use App\Repositories\Eloquent\EloquentGroupRepository;
+use App\Repositories\Eloquent\EloquentPostRepository;
+use App\Repositories\Eloquent\EloquentUserRepository;
+use App\Repositories\Eloquent\EloquentVoteRepository;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,23 +25,28 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(
-        \App\Repositories\Contracts\UserRepositoryInterface::class,
-        \App\Repositories\Eloquent\EloquentUserRepository::class
+            UserRepositoryInterface::class,
+            EloquentUserRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\PostRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentPostRepository::class
+            PostRepositoryInterface::class,
+            EloquentPostRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\CommentRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentCommentRepository::class
+            CommentRepositoryInterface::class,
+            EloquentCommentRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\GroupRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentGroupRepository::class
+            GroupRepositoryInterface::class,
+            EloquentGroupRepository::class
+        );
+
+        $this->app->bind(
+            VoteRepositoryInterface::class,
+            EloquentVoteRepository::class
         );
     }
 

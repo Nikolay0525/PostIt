@@ -12,6 +12,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
  */
 interface PostRepositoryInterface
 {
+    /**
+     * Plain lookup by id, without the author/group/aggregate loading findWithStats() does.
+     * Used where the post itself is needed (e.g. authorization checks), not its display data.
+     */
+    public function find(string $id): ?Post;
+
     public function findWithStats(string $id): ?Post;
 
     public function paginateForGroup(string $groupId, PostSort $sort, int $perPage): LengthAwarePaginator;

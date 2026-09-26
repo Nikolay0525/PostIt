@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Collection;
 
 class EloquentCommentRepository implements CommentRepositoryInterface
 {
+    public function find(string $id): ?Comment
+    {
+        return Comment::find($id);
+    }
+
     public function paginateThreadsForPost(string $postId, int $perPage): LengthAwarePaginator
     {
         $roots = $this->withStats()

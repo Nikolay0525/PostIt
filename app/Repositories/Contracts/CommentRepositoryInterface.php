@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Models\Comment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
@@ -10,6 +11,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
  */
 interface CommentRepositoryInterface
 {
+    /**
+     * Plain lookup by id, without the author/aggregate loading paginateThreadsForPost() does.
+     * Used where the comment itself is needed (e.g. authorization checks), not its display data.
+     */
+    public function find(string $id): ?Comment;
+
     /**
      * Paginates the top-level comments of a post, oldest first. Every comment
      * in the page has all of its descendants loaded in the nested `replies` relation.

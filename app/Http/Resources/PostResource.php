@@ -2,7 +2,8 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\Concerns\ComputesControversy;
+use App\Models\Post;
+use App\Support\Concerns\ComputesControversy;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -10,7 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Expects a post loaded with author, group and the upvotes_count / downvotes_count / comments_count
  * aggregates, which is what PostRepositoryInterface returns.
  *
- * @mixin \App\Models\Post
+ * @mixin Post
  */
 class PostResource extends JsonResource
 {
