@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Document | Requirements Specification (style: ISO/IEC/IEEE 29148:2018) |
-| Version | 0.1.2 |
+| Version | 0.1.3 |
 | Status | Draft |
 | Last update | 2026-09-26 |
 | Owner | Project owner (Mykola Poberezhnyi) |
@@ -108,14 +108,14 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-CON-003 | The system shall let anyone read a post of a public group together with its comments. | M | Partial | D |
 | FR-CON-004 | The system shall let a logged-in user comment on a post (≤ 500 characters) or reply to a comment, forming a nested thread. | M | Partial | T |
 | FR-CON-005 | The system shall let a guest read comments but not write them, prompting the guest to log in or register. | M | Done | D |
-| FR-CON-006 | The system shall let a logged-in user upvote or downvote a post or comment once, and change or remove that vote. | M | Partial | T |
+| FR-CON-006 | The system shall let a logged-in user upvote or downvote a post or comment once, and change or remove that vote; a user shall not vote on their own post or comment. *(0.1.3)* The system shall also show the user their own current vote on every post/comment they view, so the correct arrow stays highlighted. | M | Done | T |
 | FR-CON-007 | The system shall order a group's posts by **Newest** (creation time) or **Top** (vote score). | M | Partial | D |
 | FR-CON-008 | The system shall show a home feed: trending posts for guests, a personal feed for logged-in users. | M | Partial | D |
 | FR-CON-009 | The system shall let an author or a moderator delete a post or comment softly; a deleted comment that has replies shall stay in the thread as "deleted". | M | Partial | T |
 | FR-CON-010 | The system shall let a user attach images to content and mark adult images; adult images shall be shown only to adults who enabled them. | C | Planned | T |
 | FR-CON-011 | The system shall let a user search posts, groups and people. | S | Planned | D |
 | FR-CON-012 | The system shall order a post's comments by **Best** by default — a score that decays with age so a new, lightly-voted comment can rank fairly against an older, heavily-voted one — with **Top** (raw vote score, no decay) and **Controversial** (balance between opposing votes) as alternatives. | S | Planned | T |
-| FR-CON-013 | The system shall show a comment's controversy as an approximate percentage (rounded to the nearest 10%) once it has received a minimum number of votes on both sides, and shall never expose the exact vote split through it. | S | Planned | T |
+| FR-CON-013 | The system shall show a **post's or comment's** controversy as a rounded score once it has received a minimum number of votes on both sides, and shall never expose the exact vote split through it. *(0.1.3, corrected)* Implemented as a rounded, unbounded score (not a 0–100% value), covering posts and comments alike. | S | Done | T |
 
 ### 4.4 Moderation (module `Moderation`)
 
@@ -190,3 +190,4 @@ Each requirement has a verification method (T/I/D). Tests are organised as descr
 - Guardian/Owner model (0.1.1): exact contribution-score thresholds, the decay/backlog time windows, the warning grace period, whether a declined Guardian offer can be repeated, whether a long-absent Owner automatically reclaims ownership on return, and juror eligibility criteria are not numerically defined yet (see `Community` and `Moderation` `tech_notes.md`).
 - Whether appealed content stays removed or is provisionally restored while an appeal is pending is not decided yet.
 - (0.1.2) The exact minimum-vote threshold for showing a comment's controversy percentage is a placeholder (see `Content` `tech_notes.md`), fixed rather than scaled to group size to avoid pulling group population into the sort query; revisit once real vote volume is known.
+- (0.1.3) Votes do not yet update karma or per-user counters (`VoteCast` is not emitted); `POST /votes`'s rate limiting depends on a working cache store while `.env` is set to `CACHE_STORE=redis`, unconfirmed to be running locally (see `Content` `tech_notes.md`).
