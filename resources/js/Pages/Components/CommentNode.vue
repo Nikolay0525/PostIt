@@ -27,6 +27,7 @@ const showLoginPrompt = ref(false);
                     <VoteButtons
                         :upvotes="comment.upvotes"
                         :downvotes="comment.downvotes"
+                        :controversy="comment.controversy"
                         @needs-login="showLoginPrompt = true"
                     />
                 </p>

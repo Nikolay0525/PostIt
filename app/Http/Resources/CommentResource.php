@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\ComputesControversy;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,6 +17,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class CommentResource extends JsonResource
 {
+    use ComputesControversy;
+
     public function toArray(Request $request): array
     {
         return [
@@ -27,6 +30,7 @@ class CommentResource extends JsonResource
             'created_at' => $this->created_at,
             'upvotes' => $this->upvotes_count,
             'downvotes' => $this->downvotes_count,
+            'controversy' => $this->controversyScore($this->upvotes_count, $this->downvotes_count),
             'replies' => self::collection($this->whenLoaded('replies')),
         ];
     }

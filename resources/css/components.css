@@ -163,6 +163,11 @@
   .vote-score {
     @apply min-w-6 text-center font-medium text-ink;
   }
+  /* Deliberately a different visual language from .vote-score (pill vs. plain number), so a
+     genuinely contested item never looks like a freshly-posted, unvoted one — both can show "0". */
+  .controversy-badge {
+    @apply ms-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700;
+  }
   .group-rules {
     @apply w-full text-sm leading-relaxed text-muted;
   }
