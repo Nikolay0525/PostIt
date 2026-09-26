@@ -23,7 +23,8 @@ class GroupController extends Controller
         // Throws ModelNotFoundException (rendered as 404) when the group does not exist.
         $group = $this->groupService->getGroup($id);
 
-        $isMember = $this->groupService->isMember($group->id, $request->user()?->id);
+        $viewerId = $request->user()?->id;
+        $isMember = $this->groupService->isMember($group->id, $viewerId);
         $sort = PostSort::tryFrom((string) $request->query('sort')) ?? PostSort::Newest;
 
         return Inertia::render('Groups/Show', [
@@ -32,7 +33,7 @@ class GroupController extends Controller
             'sort' => $sort->value,
             // null hides the posts of a private group from non-members.
             'posts' => $this->groupService->canViewPosts($group, $isMember)
-                ? Inertia::scroll(fn () => PostResource::collection($this->postService->getGroupPosts($group->id, $sort)))
+                ? Inertia::scroll(fn () => PostResource::collection($this->postService->getGroupPosts($group->id, $sort, $viewerId)))
                 : null,
         ]);
     }

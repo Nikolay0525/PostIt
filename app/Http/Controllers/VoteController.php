@@ -40,12 +40,13 @@ class VoteController extends Controller
 
         $this->authorize('vote', $target);
 
-        $counts = $this->voteService->castVote($request->user(), $target, $type, $request->boolean('positive'));
+        $result = $this->voteService->castVote($request->user(), $target, $type, $request->boolean('positive'));
 
         return response()->json([
-            'upvotes' => $counts['upvotes'],
-            'downvotes' => $counts['downvotes'],
-            'controversy' => $this->controversyScore($counts['upvotes'], $counts['downvotes']),
+            'upvotes' => $result['upvotes'],
+            'downvotes' => $result['downvotes'],
+            'controversy' => $this->controversyScore($result['upvotes'], $result['downvotes']),
+            'viewer_vote' => $result['viewer_vote'],
         ]);
     }
 }

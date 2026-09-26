@@ -32,7 +32,7 @@ class HomeController extends Controller
             'posts' => Inertia::scroll(fn () => PostResource::collection(
                 $feed === FeedType::Subscriptions
                     ? $this->postService->getSubscribedPosts($userId)
-                    : $this->postService->getTrendingPosts()
+                    : $this->postService->getTrendingPosts($userId)
             )),
         ]);
     }

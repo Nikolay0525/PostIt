@@ -6,6 +6,7 @@ use App\Http\Resources\CommentResource;
 use App\Http\Resources\PostResource;
 use App\Services\CommentService;
 use App\Services\PostService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,16 +17,18 @@ class PostController extends Controller
         protected CommentService $commentService
     ) {}
 
-    public function show(string $id): Response
+    public function show(Request $request, string $id): Response
     {
+        $viewerId = $request->user()?->id;
+
         // Throws ModelNotFoundException (rendered as 404) when the post does not exist.
-        $post = $this->postService->getPost($id);
+        $post = $this->postService->getPost($id, $viewerId);
 
         return Inertia::render('Posts/Show', [
             'post' => new PostResource($post),
             // Merged page by page by the <InfiniteScroll> component on the client.
             'comments' => Inertia::scroll(
-                fn () => CommentResource::collection($this->commentService->getPostThreads($id))
+                fn () => CommentResource::collection($this->commentService->getPostThreads($id, $viewerId))
             ),
         ]);
     }

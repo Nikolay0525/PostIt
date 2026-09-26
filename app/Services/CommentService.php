@@ -13,8 +13,8 @@ class CommentService
         protected CommentRepositoryInterface $commentRepository
     ) {}
 
-    public function getPostThreads(string $postId): LengthAwarePaginator
+    public function getPostThreads(string $postId, ?string $viewerId = null): LengthAwarePaginator
     {
-        return $this->commentRepository->paginateThreadsForPost($postId, self::PER_PAGE);
+        return $this->commentRepository->paginateThreadsForPost($postId, self::PER_PAGE, $viewerId);
     }
 }

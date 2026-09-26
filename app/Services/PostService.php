@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class PostService
 {
     private const PER_PAGE = 20;
+
     private const TRENDING_DAYS = 7;
 
     public function __construct(
@@ -20,15 +21,15 @@ class PostService
     /**
      * @throws ModelNotFoundException when the post does not exist or was deleted
      */
-    public function getPost(string $id): Post
+    public function getPost(string $id, ?string $viewerId = null): Post
     {
-        return $this->postRepository->findWithStats($id)
+        return $this->postRepository->findWithStats($id, $viewerId)
             ?? throw (new ModelNotFoundException)->setModel(Post::class, [$id]);
     }
 
-    public function getGroupPosts(string $groupId, PostSort $sort = PostSort::Newest): LengthAwarePaginator
+    public function getGroupPosts(string $groupId, PostSort $sort = PostSort::Newest, ?string $viewerId = null): LengthAwarePaginator
     {
-        return $this->postRepository->paginateForGroup($groupId, $sort, self::PER_PAGE);
+        return $this->postRepository->paginateForGroup($groupId, $sort, self::PER_PAGE, $viewerId);
     }
 
     public function getSubscribedPosts(string $userId): LengthAwarePaginator
@@ -36,8 +37,8 @@ class PostService
         return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE);
     }
 
-    public function getTrendingPosts(): LengthAwarePaginator
+    public function getTrendingPosts(?string $viewerId = null): LengthAwarePaginator
     {
-        return $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE);
+        return $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE, $viewerId);
     }
 }

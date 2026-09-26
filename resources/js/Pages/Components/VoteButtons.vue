@@ -12,6 +12,8 @@ const props = defineProps({
     // Rounded (2 significant figures) controversy score from the server; grows with both the
     // vote split and the total volume. Null once there are too few votes on both sides.
     controversy: { type: Number, default: null },
+    // true = viewer already upvoted, false = downvoted, null = no vote (or a guest).
+    viewerVote: { type: Boolean, default: null },
 });
 
 // Guests can read everything, so the parent shows a login prompt when they try to vote.
@@ -25,13 +27,15 @@ const page = usePage();
 const localUpvotes = ref(props.upvotes);
 const localDownvotes = ref(props.downvotes);
 const localControversy = ref(props.controversy);
+const localViewerVote = ref(props.viewerVote);
 
 watch(
-    () => [props.upvotes, props.downvotes, props.controversy],
-    ([upvotes, downvotes, controversy]) => {
+    () => [props.upvotes, props.downvotes, props.controversy, props.viewerVote],
+    ([upvotes, downvotes, controversy, viewerVote]) => {
         localUpvotes.value = upvotes;
         localDownvotes.value = downvotes;
         localControversy.value = controversy;
+        localViewerVote.value = viewerVote;
     },
 );
 
@@ -64,6 +68,7 @@ const vote = async (positive) => {
         localUpvotes.value = result.upvotes;
         localDownvotes.value = result.downvotes;
         localControversy.value = result.controversy;
+        localViewerVote.value = result.viewer_vote;
     } catch (error) {
         console.error('Vote failed:', error);
         voteError.value = error.message || 'Something went wrong.';
@@ -75,9 +80,25 @@ const vote = async (positive) => {
 
 <template>
     <span class="vote-group">
-        <button type="button" class="post-action" aria-label="Upvote" :disabled="voting" @click="vote(true)">▲</button>
+        <button
+            type="button"
+            class="post-action"
+            :class="{ 'vote-active-up': localViewerVote === true }"
+            aria-label="Upvote"
+            :aria-pressed="localViewerVote === true"
+            :disabled="voting"
+            @click="vote(true)"
+        >▲</button>
         <span class="vote-score">{{ score }}</span>
-        <button type="button" class="post-action" aria-label="Downvote" :disabled="voting" @click="vote(false)">▼</button>
+        <button
+            type="button"
+            class="post-action"
+            :class="{ 'vote-active-down': localViewerVote === false }"
+            aria-label="Downvote"
+            :aria-pressed="localViewerVote === false"
+            :disabled="voting"
+            @click="vote(false)"
+        >▼</button>
 
         <span
             v-if="localControversy !== null"

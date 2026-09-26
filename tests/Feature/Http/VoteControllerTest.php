@@ -146,6 +146,27 @@ class VoteControllerTest extends TestCase
         $response->assertNotFound();
     }
 
+    public function test_the_response_reports_the_viewers_resulting_vote(): void
+    {
+        $voter = User::factory()->create();
+        $post = Post::factory()->create();
+
+        $up = $this->actingAs($voter)->postJson('/votes', [
+            'target_type' => 'post', 'target_id' => $post->id, 'positive' => true,
+        ]);
+        $up->assertJson(['viewer_vote' => true]);
+
+        $changed = $this->actingAs($voter)->postJson('/votes', [
+            'target_type' => 'post', 'target_id' => $post->id, 'positive' => false,
+        ]);
+        $changed->assertJson(['viewer_vote' => false]);
+
+        $removed = $this->actingAs($voter)->postJson('/votes', [
+            'target_type' => 'post', 'target_id' => $post->id, 'positive' => false,
+        ]);
+        $removed->assertJson(['viewer_vote' => null]);
+    }
+
     public function test_controversy_is_returned_once_both_sides_reach_the_threshold(): void
     {
         $post = Post::factory()->create();

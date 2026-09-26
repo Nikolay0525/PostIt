@@ -19,20 +19,33 @@ class VoteService
      * Casts a new vote, changes an existing one, or removes it if the same direction is
      * submitted again (one vote per user per target).
      *
-     * @return array{upvotes: int, downvotes: int}
+     * @return array{upvotes: int, downvotes: int, viewer_vote: bool|null}
      */
     public function castVote(User $user, Post|Comment $target, VoteParentType $type, bool $positive): array
     {
-        DB::transaction(function () use ($user, $target, $type, $positive) {
+        $viewerVote = DB::transaction(function () use ($user, $target, $type, $positive) {
             $existing = $this->voteRepository->find($target->id, $user->id, $type);
 
-            match (true) {
-                $existing === null => $this->voteRepository->create($target->id, $user->id, $type, $positive),
-                $existing->positive === $positive => $this->voteRepository->delete($existing),
-                default => $this->voteRepository->updateDirection($existing, $positive),
-            };
+            if ($existing === null) {
+                $this->voteRepository->create($target->id, $user->id, $type, $positive);
+
+                return $positive;
+            }
+
+            if ($existing->positive === $positive) {
+                $this->voteRepository->delete($existing);
+
+                return null;
+            }
+
+            $this->voteRepository->updateDirection($existing, $positive);
+
+            return $positive;
         });
 
-        return $this->voteRepository->countVotes($target->id, $type);
+        return [
+            ...$this->voteRepository->countVotes($target->id, $type),
+            'viewer_vote' => $viewerVote,
+        ];
     }
 }

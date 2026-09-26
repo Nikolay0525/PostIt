@@ -32,6 +32,8 @@ class CommentResource extends JsonResource
             'upvotes' => $this->upvotes_count,
             'downvotes' => $this->downvotes_count,
             'controversy' => $this->controversyScore($this->upvotes_count, $this->downvotes_count),
+            // true = viewer upvoted, false = downvoted, null = no vote (or a guest).
+            'viewer_vote' => $this->viewer_vote === null ? null : (bool) $this->viewer_vote,
             'replies' => self::collection($this->whenLoaded('replies')),
         ];
     }

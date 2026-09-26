@@ -241,6 +241,12 @@
   .post-action {
     @apply transition hover:text-brand-600;
   }
+  .vote-active-up {
+    @apply text-brand-600;
+  }
+  .vote-active-down {
+    @apply text-danger;
+  }
   .post-login-prompt {
     @apply mt-3 rounded-lg border border-brand-100 bg-brand-50 p-3 text-sm text-brand-700;
   }

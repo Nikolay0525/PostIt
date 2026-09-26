@@ -49,6 +49,7 @@ const showLoginPrompt = ref(false);
                 :upvotes="post.upvotes"
                 :downvotes="post.downvotes"
                 :controversy="post.controversy"
+                :viewer-vote="post.viewer_vote"
                 @needs-login="showLoginPrompt = true"
             />
 
