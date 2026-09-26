@@ -9,6 +9,11 @@ Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 - Rounding is deliberate, not cosmetic: an exact percentage next to the already-public net score would let the exact upvote/downvote split be reconstructed by algebra, which is exactly what showing raw counts separately was rejected for.
 - The threshold is a fixed constant, not scaled to group size, to avoid pulling group population into the sort query; exact value left open pending real vote-volume data.
 - Added FR-CON-013, extended FR-CON-012 (see requirements specification 0.1.2).
+- 
+## [2026-09-26] [DOCS] Corrected stale dummy-data references
+
+- `resources/js/data/dummyPosts.js`, `dummyGroups.js`, `dummyComments.js` were deleted and the read paths (post page, home feed, group post list) moved to `PostController`/`HomeController` behind `PostResource`/`CommentResource` some time ago; the docs still described them as dummy-backed. Corrected in *Key Flow* and the *UI* infrastructure note.
+- Replaced the resolved "replace dummy data" tech-debt item with the debt that actually remains: there is still no write endpoint for comments or votes.
 
 ## [2026-09-26] [DOCS] Best (time-decayed) comment ordering
 

@@ -29,7 +29,7 @@
 
 - Anyone can read a post and its comments (public groups); writing a comment or voting requires login (guests see a "log in or sign up" prompt).
 - Comments are loaded flat and assembled into a tree by `parent_id`.
-- Score of a post is derived from its votes (currently computed by a frontend dummy helper); **Top** sort orders by score, **Newest** by `created_at`.
+- Score of a post is derived from its votes, computed server-side (`upvotes_count`/`downvotes_count` aggregates in `EloquentPostRepository`); **Top** sort orders by score, **Newest** by `created_at`.
 - *(0.1.1)* Top-level comments default to **Best** order: `score / (age_in_hours + 2) ^ gravity` (Hacker-News-style time decay; `gravity` ≈ 1.5–1.8, exact value open), so a new comment with few votes can outrank an old one that has merely had longer to collect them. **Top** (raw `upvotes − downvotes`, no decay) stays available as an explicit alternative, so a purely popularity-ranked view is never lost.
 - *(0.1.2)* **Controversial** order and the controversy indicator both use `100 × (1 − |upvotes − downvotes| / (upvotes + downvotes))`: a perfect 50/50 split scores 100%, a one-sided vote scores near 0%. Shown to the viewer **rounded to the nearest 10%** and only once the comment has a minimum number of votes on each side (exact number open, see tech notes) — both the rounding and the threshold exist so a fresh, unvoted comment never shows a score, and a genuinely contested one is never confused with it. The percentage is deliberately never shown to exact precision: combined with the (already public) net score, an exact percentage would let the exact upvote/downvote split be reconstructed by simple algebra, defeating the reason raw vote counts are not shown separately (see *Key Flow — Reading and voting* above).
 - Users the viewer has blocked, and content of banned users, are hidden *(planned)*.
@@ -75,4 +75,4 @@
 - `Vote` — composite PK `(parent_id, user_id)`; casts `parent_type` int, `positive` bool.
 
 ### UI
-- `Pages/Posts/Show.vue` (post + comment form + comment tree), `PostFeed`, `PostCard`, `CommentNode`, `VoteButtons`. Currently backed by `dummyPosts` / `dummyComments`.
+- `Pages/Posts/Show.vue` (post + comment form + comment tree), `PostFeed`, `PostCard`, `CommentNode`, `VoteButtons`. The dummy data files are gone: posts and comments are read from the server (`PostController`, `HomeController`, and the post list on `Groups/Show.vue`) via `PostResource`/`CommentResource`, paginated through `Inertia::scroll`. The comment form and the vote buttons are still visual stubs — no write endpoint exists yet for either (tracked in *Tech debt*).
