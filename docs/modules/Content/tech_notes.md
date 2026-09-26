@@ -16,3 +16,7 @@
 ## Edge cases
 - A deleted comment with replies must stay in the tree (rendered as "deleted").
 - Posts without a title are shown with the article preview as the link text.
+
+## Open questions
+- (0.1.1) Exact `gravity` constant for the Best-comment decay formula; needs tuning once there is real usage data, not guessed upfront.
+- (0.1.1) Whether Best decay risks rewarding a low-effort new comment placed in an already-hot thread purely for being new; consider bounding how early a comment can rank without any votes at all.
