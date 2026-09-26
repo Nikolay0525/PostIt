@@ -122,6 +122,10 @@
   .feed-title {
     @apply text-xl font-semibold text-ink;
   }
+  /* <InfiniteScroll> wraps its items in one element, so the spacing has to be set on it. */
+  .feed-list {
+    @apply flex flex-col gap-4;
+  }
   .post-card {
     @apply rounded-2xl border border-line bg-white p-5 transition hover:border-brand-100;
   }

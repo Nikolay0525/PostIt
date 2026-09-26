@@ -3,13 +3,16 @@
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\GroupController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PostController;
 
-Route::inertia('/','Home')->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Public pages: anyone can read, interactions are gated in the UI (and later on the server).
-Route::get('/posts/{id}', fn (string $id) => Inertia::render('Posts/Show', ['id' => $id]))
+Route::get('/posts/{id}', [PostController::class, 'show'])
     ->whereUuid('id')->name('posts.show');
-Route::get('/groups/{id}', fn (string $id) => Inertia::render('Groups/Show', ['id' => $id]))
+Route::get('/groups/{id}', [GroupController::class, 'show'])
     ->whereUuid('id')->name('groups.show');
 
 Route::middleware(['guest'])->group(function () {

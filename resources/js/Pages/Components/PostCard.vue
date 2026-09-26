@@ -1,7 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
-import { findGroup } from '@/data/dummyGroups';
 import { excerpt, timeAgo } from '@/utils/format';
 
 const props = defineProps({
@@ -11,7 +10,6 @@ const props = defineProps({
 });
 
 const initial = computed(() => props.post.author.name.charAt(0).toUpperCase());
-const group = computed(() => findGroup(props.post.group_id));
 const preview = computed(() => excerpt(props.post.article));
 
 const showLoginPrompt = ref(false);
@@ -24,7 +22,7 @@ const showLoginPrompt = ref(false);
 
             <!-- dir="auto" lets each piece of user text align by its own language -->
             <p class="post-meta-text">
-                <Link :href="route('groups.show', post.group_id)" class="post-group" dir="auto">{{ group?.name }}</Link>
+                <Link :href="route('groups.show', post.group_id)" class="post-group" dir="auto">{{ post.group.name }}</Link>
                 <span aria-hidden="true"> · </span>
                 <time :datetime="post.created_at">{{ timeAgo(post.created_at) }}</time>
                 <br />

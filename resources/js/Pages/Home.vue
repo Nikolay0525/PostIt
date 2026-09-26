@@ -1,5 +1,11 @@
 <script setup>
 import PostFeed from '@/Pages/Components/PostFeed.vue';
+
+// feed: 'subscriptions' (posts from the member's groups) or 'trending'.
+defineProps({
+    feed: String,
+    posts: Object,
+});
 </script>
 
 <template>
@@ -19,5 +25,9 @@ import PostFeed from '@/Pages/Components/PostFeed.vue';
         </div>
     </section>
 
-    <PostFeed :title="$page.props.auth.user ? 'Your feed' : 'Trending posts'" />
+    <PostFeed
+        :title="feed === 'subscriptions' ? 'Your feed' : 'Trending posts'"
+        :hint="$page.props.auth.user && feed === 'trending' ? 'You have not joined any groups yet, so here is what is trending.' : ''"
+        :posts="posts"
+    />
 </template>
