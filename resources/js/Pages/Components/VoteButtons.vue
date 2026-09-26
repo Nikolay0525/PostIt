@@ -37,6 +37,9 @@ watch(
 
 const score = computed(() => localUpvotes.value - localDownvotes.value);
 const voting = ref(false);
+// Shown next to the buttons on failure, instead of only logging to a console nobody is
+// watching — a silently-swallowed error here once looked, from the outside, like a broken button.
+const voteError = ref(null);
 
 const vote = async (positive) => {
     if (!page.props.auth.user) {
@@ -49,6 +52,7 @@ const vote = async (positive) => {
     }
 
     voting.value = true;
+    voteError.value = null;
 
     try {
         const result = await postJson('/votes', {
@@ -61,8 +65,8 @@ const vote = async (positive) => {
         localDownvotes.value = result.downvotes;
         localControversy.value = result.controversy;
     } catch (error) {
-        // A failed vote isn't worth interrupting the reader over; the buttons just stay as they were.
-        console.error('Vote failed', error);
+        console.error('Vote failed:', error);
+        voteError.value = error.message || 'Something went wrong.';
     } finally {
         voting.value = false;
     }
@@ -80,5 +84,7 @@ const vote = async (positive) => {
             class="controversy-badge"
             title="People are split roughly evenly between upvotes and downvotes here — the higher this number, the bigger the disagreement"
         >🔥 {{ formatCount(localControversy) }}</span>
+
+        <span v-if="voteError" class="vote-error" :title="voteError">⚠ Vote failed</span>
     </span>
 </template>

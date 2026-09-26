@@ -168,6 +168,9 @@
   .controversy-badge {
     @apply ms-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700;
   }
+  .vote-error {
+    @apply ms-1 inline-flex items-center rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger;
+  }
   .group-rules {
     @apply w-full text-sm leading-relaxed text-muted;
   }

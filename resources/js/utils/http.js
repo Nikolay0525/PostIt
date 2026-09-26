@@ -11,6 +11,10 @@ function xsrfToken() {
     return match ? decodeURIComponent(match[1]) : '';
 }
 
+// A non-2xx response is turned into a thrown Error carrying whatever Laravel put in the body
+// (its `message`, e.g. a validation error or, outside production, an exception message) instead
+// of just the bare status code — so a failure surfaces with an actual reason attached, in the
+// console and in anything the caller shows the user, rather than a mystery "failed with 500".
 export async function postJson(url, body) {
     const response = await fetch(url, {
         method: 'POST',
@@ -23,9 +27,11 @@ export async function postJson(url, body) {
         body: JSON.stringify(body),
     });
 
+    const data = await response.json().catch(() => null);
+
     if (!response.ok) {
-        throw new Error(`POST ${url} failed with ${response.status}`);
+        throw new Error(data?.message ?? `POST ${url} failed with ${response.status}`);
     }
 
-    return response.json();
+    return data;
 }
