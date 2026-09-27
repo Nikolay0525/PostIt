@@ -2,6 +2,16 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-27] [FEAT] Post creation (repository → service → policy → controller/route)
+
+- Built `PostRepositoryInterface::create()`/`EloquentPostRepository`, `PostService::createPost()` (generates the slug — closes FR-CON-002, previously Planned), `PostPolicy::create()`, `StorePostRequest`, and `PostController::store()` behind `POST /posts` — the same repo → interface → service → policy → FormRequest → controller sequence used for comments.
+- Unlike `VoteController`/`CommentController`, `store()` is a plain Inertia redirect to the new post, not a JSON endpoint — there's no already-scrolled list on the "create post" page to preserve, and the natural next step is a full navigation to the new post anyway.
+- Extracted `ChecksGroupBans` (`app/Policies/Concerns`), shared by `PostPolicy` and `CommentPolicy`, instead of duplicating the same group-ban query in both.
+- **[POLICY]** Decided that `PostPolicy::create()` requires group membership always, public or private — superseding the originally-planned "member, or group public" rule from 0.1.3 (a public group's readability was letting anyone post in it without joining, which turned out not to be the intended behaviour). See business logic 0.1.4.
+- Added `PostSort::Controversy` and a portable (`+ - * / abs nullif`, no `POW`/`GREATEST`) proxy for `ComputesControversy`'s formula in `EloquentPostRepository::orderByControversy()`, so post sorting works identically on MySQL (prod) and sqlite (tests) without reproducing the exact displayed score.
+- Added `PostRepositoryInterface::randomIdForGroup()` / `PostController::random()` behind `GET /groups/{id}/random-post` for an "I'm feeling lucky" action — public like `posts.show`, and, like `posts.show`, does not yet check private-group visibility (FR-COM-006 is still Partial; this isn't a new gap).
+- Root cause found for a real report of "nothing on the page reacts to clicks at all": a stale `public/hot` file (left behind by a `npm run dev` that was no longer running) was pointing every page at an unreachable Vite dev server, so the whole Vue/Inertia app silently failed to mount. Removed; unrelated to any of the above, but discovered while investigating the group-page buttons.
+
 ## [2026-09-26] [DOCS] Corrected controversy scope and formula
 
 - The controversy indicator was documented as comment-only with a 0–100% value rounded to the nearest 10%; that was the original design, not what shipped. Corrected: the shared `App\Support\Concerns\ComputesControversy` trait computes the score for **both posts and comments** identically (used by `PostResource`, `CommentResource` and `VoteController`), using Reddit's own unbounded formula `(upvotes + downvotes) ^ (min/max)` rounded to 2 significant figures — not a percentage.

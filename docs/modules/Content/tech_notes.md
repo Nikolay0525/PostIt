@@ -5,11 +5,13 @@
 - `Vote` has an array `$primaryKey` (`parent_id`, `user_id`) — same composite-key limitation as in Community. *(0.1.3)* `EloquentVoteRepository::updateDirection()`/`delete()` work around it with explicit WHERE-scoped queries instead of instance `update()`/`delete()`; keep that pattern for any future mutation on `Vote`.
 - `Vote.parent_type` (1 = Post, 2 = Comment) is a magic integer and `parent_id` has **no foreign key** (polymorphic). Introduce the shared `TargetType` enum and consider referential integrity checks in the Service.
 - Post score is computed in the frontend helper `score()`; move to the server (aggregate query) before pagination is added.
-- `posts.slug` is required but has no uniqueness rule or generator yet.
+- *(0.1.4)* `posts.slug` has a generator now (`PostService::generateSlug()` — title or first 8 words of the article, slugified, plus a random 6-char suffix) but still **no DB uniqueness constraint**; the random suffix makes a collision unlikely, not impossible.
 - Verify that an `Image` model exists: the `images` table is in the migrations, but the model was not among the reviewed files.
 - Comment tree is built on the client (`buildCommentTree`); for big threads move to the server and paginate.
 - *(0.1.3)* `VoteService::castVote()` does not emit `VoteCast`; per-user karma from votes (`FR-CON-006`/`Engagement`/`Account`) still has nothing to react to.
 - *(0.1.3)* `POST /votes` is rate-limited with `throttle:60,1`, which needs a working cache store. `.env` currently has `CACHE_STORE=redis` (a deliberate earlier choice — do not change without asking); if Redis is not running locally, voting will fail even though the feature code itself is correct. Confirm Redis is up, or ask before switching the store.
+- *(0.1.4)* `PostController::show()` (and now `random()`) does not check private-group visibility at all — a private group's post is reachable by URL/id regardless of membership. FR-COM-006 ("hide the posts of a private group from non-members, on the server and in the UI") is still Partial; the group page's post *list* already hides correctly (`GroupService::canViewPosts()`), but a direct/guessed post id bypasses it entirely.
+- *(0.1.4)* The "+ Create post" button on the group page is still a visual stub (no click handler) even when `PostPolicy::create()` would allow it — the create-post page/form itself doesn't exist yet. `POST /posts` (`PostController::store()`) is ready and tested; only the UI to reach it is missing.
 
 ## Non-obvious decisions
 - Posts and comments are soft-deleted with their own `is_deleted` / `deleted_at` fields instead of Laravel's `SoftDeletes`. Queries must filter `is_deleted = false` explicitly, or the model should be switched to `SoftDeletes`.
@@ -18,6 +20,8 @@
 - *(0.1.3)* Voting on your own content is forbidden (`PostPolicy::vote()`/`CommentPolicy::vote()`), resolving what used to be an open decision — self-votes would trivially inflate score and controversy.
 - *(0.1.3)* The vote endpoint is a plain `fetch()`/JSON call, not an Inertia form/link, specifically so it never triggers a full Inertia visit — that would reset `<InfiniteScroll>` back to page one. Do not "simplify" this to `router.post()` or `useForm()` without re-checking that constraint.
 - *(0.1.3)* `viewer_vote` is computed via a correlated subquery (`addSelect`) rather than loading the viewer's votes separately and matching them in PHP, so it stays a single query per page regardless of list length — same reasoning as the existing `withCount` vote aggregates.
+- *(0.1.4)* `PostPolicy::create()` requires group membership even in a public group, deliberately: a public group's posts being readable by anyone was letting anyone post in it too, which turned out not to be wanted. This supersedes the 0.1.3 "member, or group public" design — not a bug fix, a product decision.
+- *(0.1.4)* `EloquentPostRepository::orderByControversy()` does **not** reuse `ComputesControversy`'s exact formula (`POW`, `GREATEST`/`LEAST`) — those aren't available under one spelling on both MySQL (prod) and sqlite (the test suite's driver). It orders by a portable proxy (`sum * (sum-|diff|)/(sum+|diff|)`, only `+ - * / abs nullif`) that ranks the same way without reproducing the exact displayed number. Same caveat applies to any future SQL-level controversy sorting (e.g. if comments ever get a Controversial sort per FR-CON-012).
 
 ## Edge cases
 - A deleted comment with replies must stay in the tree (rendered as "deleted").

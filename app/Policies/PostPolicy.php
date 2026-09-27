@@ -12,8 +12,9 @@ class PostPolicy
     use ChecksGroupBans;
 
     /**
-     * A user may publish a post once verified, allowed in the group (a member, or the group is
-     * public), and not banned from it.
+     * A user may publish a post once verified, a member of the group (public or private — being
+     * able to read a public group's posts does not by itself grant posting rights in it), and
+     * not banned from it.
      */
     public function create(User $user, Group $group): bool
     {
@@ -21,9 +22,7 @@ class PostPolicy
             return false;
         }
 
-        $isAllowedInGroup = ! $group->is_private || $group->members()->where('user_id', $user->id)->exists();
-
-        if (! $isAllowedInGroup) {
+        if (! $group->members()->where('user_id', $user->id)->exists()) {
             return false;
         }
 

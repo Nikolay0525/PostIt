@@ -38,6 +38,11 @@ const changeSort = (key) => {
 const joined = ref(props.is_member);
 const showLoginPrompt = ref(false);
 
+// Posting requires membership in every group, public or private (PostPolicy::create()) — based
+// on the server-truth `is_member` prop, not the still-fake `joined` toggle above, so faking a
+// "Subscribed" click here never unlocks a button that would just fail once posting is wired up.
+const canPost = computed(() => Boolean(page.props.auth.user) && props.is_member);
+
 const buttonLabel = computed(() => {
     if (props.group.is_private) return joined.value ? 'Request sent' : 'Request to join';
     return joined.value ? 'Subscribed' : 'Subscribe';
@@ -91,9 +96,19 @@ const toggleJoin = () => {
 
         <template v-else>
             <div class="feed-toolbar">
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap items-center gap-3">
                     <!-- Not wired yet: the create-post page/route comes with the next step. -->
-                    <button type="button" class="btn-primary">+ Create post</button>
+                    <button v-if="canPost" type="button" class="btn-primary">+ Create post</button>
+                    <p v-else-if="!page.props.auth.user" class="text-sm text-muted">
+                        <Link :href="route('login')" class="auth-link">Log in</Link>
+                        or
+                        <Link :href="route('register')" class="auth-link">sign up</Link>
+                        to post.
+                    </p>
+                    <p v-else class="text-sm text-muted">
+                        <button type="button" class="auth-link cursor-pointer border-0 bg-transparent p-0" @click="toggleJoin">Join</button> to post.
+                    </p>
+
                     <Link :href="route('groups.random_post', group.id)" class="btn-secondary">🎲 I'm feeling lucky</Link>
                 </div>
 

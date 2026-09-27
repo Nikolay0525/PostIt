@@ -43,7 +43,7 @@
 
 | Domain Policy | Description |
 |---|---|
-| `PostPolicy` | Create: authenticated, verified, allowed in group (member, or group public) and not banned. Delete: author or group moderator. *(0.1.3)* `vote()`: not the post's own author, and the post is not deleted. |
+| `PostPolicy` | *(0.1.4)* Create: authenticated, verified, **a member of the group** (public or private — being able to read a public group's posts does not by itself grant posting rights in it) and not banned. *Supersedes the 0.1.3 "member, or group public" rule — a deliberate decision to always require membership, not a bug fix.* Delete: author or group moderator. *(0.1.3)* `vote()`: not the post's own author, and the post is not deleted. |
 | `CommentPolicy` | Create: authenticated, verified, not banned in the group. Delete: author or moderator. *(0.1.3)* `vote()`: not the comment's own author, and the comment is not deleted. |
 
 *(0.1.3)* There is no separate `VotePolicy` — voting authorization lives on the target's own policy (`PostPolicy::vote()` / `CommentPolicy::vote()`), invoked via `$this->authorize('vote', $target)` in `VoteController`, since "who may vote" only depends on the target, not on any vote-specific state.
