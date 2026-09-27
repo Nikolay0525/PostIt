@@ -6,4 +6,5 @@ enum PostSort: string
 {
     case Newest = 'newest';
     case Top = 'top';
+    case Controversy = 'controversy';
 }

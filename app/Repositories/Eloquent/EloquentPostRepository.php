@@ -41,9 +41,19 @@ class EloquentPostRepository implements PostRepositoryInterface
         match ($sort) {
             PostSort::Newest => $query->latest(),
             PostSort::Top => $this->orderByScore($query),
+            PostSort::Controversy => $this->orderByControversy($query),
         };
 
         return $query->paginate($perPage);
+    }
+
+    public function randomIdForGroup(string $groupId): ?string
+    {
+        return Post::query()
+            ->where('group_id', $groupId)
+            ->where('is_deleted', false)
+            ->inRandomOrder()
+            ->value('id');
     }
 
     public function paginateTrending(int $days, int $perPage, ?string $viewerId = null): LengthAwarePaginator
@@ -95,5 +105,20 @@ class EloquentPostRepository implements PostRepositoryInterface
     private function orderByScore(Builder $query): Builder
     {
         return $query->orderByRaw('(upvotes_count - downvotes_count) desc')->latest();
+    }
+
+    // A portable proxy for ComputesControversy's real (upvotes+downvotes)^(min/max) formula:
+    // exponentiation, and MySQL's GREATEST/LEAST vs. sqlite's multi-arg min/max, aren't available
+    // under one spelling that works both in production (MySQL) and in the test suite (sqlite).
+    // `sum * (sum - |diff|) / (sum + |diff|)` only needs +, -, *, / and abs/nullif, which both
+    // drivers support, and is monotonic in the same two ingredients as the real formula (bigger
+    // total, more balanced split ranks higher) — it only has to order posts the same way, not
+    // reproduce the exact number PostResource displays.
+    private function orderByControversy(Builder $query): Builder
+    {
+        return $query->orderByRaw(
+            '(upvotes_count + downvotes_count) * ((upvotes_count + downvotes_count) - abs(upvotes_count - downvotes_count))'
+            .' / nullif((upvotes_count + downvotes_count) + abs(upvotes_count - downvotes_count), 0) desc'
+        )->latest();
     }
 }

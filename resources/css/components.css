@@ -18,12 +18,12 @@
            hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100
            disabled:cursor-not-allowed disabled:opacity-60;
   }
-  /* Neutral: for a secondary action next to a primary one (e.g. "Cancel") — close to the page
+  /* Secondary: for a secondary action next to a primary one (e.g. "Cancel") — close to the page
      background rather than a color of its own, so it never competes with the primary button. */
-  .btn-neutral {
-    @apply rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm font-semibold text-ink
-           transition hover:bg-line focus:outline-none focus:ring-2 focus:ring-brand-100
-           disabled:cursor-not-allowed disabled:opacity-60;
+ 
+  .btn-secondary {
+    @apply rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition
+           hover:border-brand-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
   /* Danger: for a destructive action (delete, ban, remove). Base tone is intentionally the
      same red already used for errors elsewhere (not a louder/alarming shade); hover darkens it,
@@ -232,17 +232,13 @@
   .group-desc {
     @apply w-full text-sm leading-relaxed text-muted;
   }
-  .sort-tabs {
-    @apply flex gap-2;
+  .feed-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-3;
   }
-  .sort-tab {
-    @apply rounded-full border border-line bg-white px-4 py-1.5 text-sm text-muted transition
-           hover:text-ink;
+  .sort-select {
+    @apply rounded-full border border-line bg-white px-4 py-1.5 text-sm text-ink transition
+           hover:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
-  .sort-tab-active {
-    @apply border-brand-600 bg-brand-50 font-medium text-brand-600 hover:text-brand-600;
-  }
-
   .comments {
     @apply mt-2 flex flex-col gap-4;
   }
@@ -286,10 +282,6 @@
   }
   .hero-actions {
     @apply mt-8 flex flex-wrap items-center justify-center gap-3;
-  }
-  .btn-secondary {
-    @apply rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition
-           hover:border-brand-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
 
   .checkbox-row {

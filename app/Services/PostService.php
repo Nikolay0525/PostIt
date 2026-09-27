@@ -48,6 +48,11 @@ class PostService
         return $this->postRepository->create($groupId, $userId, $title, $article, $this->generateSlug($title, $article));
     }
 
+    public function getRandomPostId(string $groupId): ?string
+    {
+        return $this->postRepository->randomIdForGroup($groupId);
+    }
+
     // A random suffix sidesteps the missing uniqueness constraint on `posts.slug` (see tech
     // notes) without a lookup query; the fallback to 'post' covers a title/article that slugifies
     // to nothing, e.g. one written entirely in a non-Latin script.

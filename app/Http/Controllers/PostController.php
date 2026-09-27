@@ -58,4 +58,16 @@ class PostController extends Controller
 
         return redirect()->route('posts.show', $post->id);
     }
+
+    // Read-only, so it's public like show()/groups.show — not gated behind auth. Does not check
+    // private-group visibility: posts.show itself doesn't yet either (FR-COM-006 is still
+    // "Partial"), so this endpoint isn't the odd one out — closing that gap is a separate task.
+    public function random(string $groupId): RedirectResponse
+    {
+        $postId = $this->postService->getRandomPostId($groupId);
+
+        abort_if($postId === null, 404);
+
+        return redirect()->route('posts.show', $postId);
+    }
 }

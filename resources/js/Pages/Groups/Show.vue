@@ -17,6 +17,7 @@ const page = usePage();
 const sorts = [
     { key: 'newest', label: 'Newest' },
     { key: 'top', label: 'Top' },
+    { key: 'controversy', label: 'Controversy' },
 ];
 
 // Sorting happens on the server: reload only the posts and start their list over from page 1.
@@ -72,6 +73,7 @@ const toggleJoin = () => {
             >{{ buttonLabel }}</button>
 
             <p class="group-desc" dir="auto">{{ group.description }}</p>
+            <!-- TODO: rules will become an array instead of one string; render as a list then. -->
             <p class="group-rules" dir="auto"><span class="font-medium text-ink">Rules:</span> {{ group.rules }}</p>
 
             <p v-if="showLoginPrompt" class="post-login-prompt w-full">
@@ -88,16 +90,16 @@ const toggleJoin = () => {
         </p>
 
         <template v-else>
-            <div class="sort-tabs" role="tablist">
-                <button
-                    v-for="s in sorts"
-                    :key="s.key"
-                    type="button"
-                    role="tab"
-                    class="sort-tab"
-                    :class="{ 'sort-tab-active': sort === s.key }"
-                    @click="changeSort(s.key)"
-                >{{ s.label }}</button>
+            <div class="feed-toolbar">
+                <div class="flex flex-wrap gap-2">
+                    <!-- Not wired yet: the create-post page/route comes with the next step. -->
+                    <button type="button" class="btn-primary">+ Create post</button>
+                    <Link :href="route('groups.random_post', group.id)" class="btn-secondary">🎲 I'm feeling lucky</Link>
+                </div>
+
+                <select class="sort-select" :value="sort" aria-label="Sort posts by" @change="changeSort($event.target.value)">
+                    <option v-for="s in sorts" :key="s.key" :value="s.key">{{ s.label }}</option>
+                </select>
             </div>
 
             <p v-if="!posts.data.length" class="text-sm text-muted">No posts in this group yet.</p>

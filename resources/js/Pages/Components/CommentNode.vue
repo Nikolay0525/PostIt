@@ -108,7 +108,7 @@ const submitReply = async () => {
                         :disabled="replying"
                     ></textarea>
                     <span class="flex gap-2 self-end">
-                        <button type="button" class="btn-neutral" @click="cancelReply">Cancel</button>
+                        <button type="button" class="btn-secondary" @click="cancelReply">Cancel</button>
                         <button type="submit" class="btn-primary" :disabled="replying || !replyText.trim()">Reply</button>
                     </span>
                     <p v-if="replyError" class="vote-error" :title="replyError">⚠ Reply failed</p>

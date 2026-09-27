@@ -15,6 +15,8 @@ Route::get('/posts/{id}', [PostController::class, 'show'])
     ->whereUuid('id')->name('posts.show');
 Route::get('/groups/{id}', [GroupController::class, 'show'])
     ->whereUuid('id')->name('groups.show');
+Route::get('/groups/{id}/random-post', [PostController::class, 'random'])
+    ->whereUuid('id')->name('groups.random_post');
 
 Route::middleware(['guest'])->group(function () {
     Route::inertia('/login', 'Auth/Login')->name('login');
