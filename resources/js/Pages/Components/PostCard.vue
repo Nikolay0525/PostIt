@@ -43,7 +43,16 @@ const showLoginPrompt = ref(false);
         </p>
 
         <footer class="post-footer">
-            <VoteButtons :upvotes="post.upvotes" :downvotes="post.downvotes" @needs-login="showLoginPrompt = true" />
+            <VoteButtons
+                target-type="post"
+                :target-id="post.id"
+                :author-id="post.author.id"
+                :upvotes="post.upvotes"
+                :downvotes="post.downvotes"
+                :controversy="post.controversy"
+                :viewer-vote="post.viewer_vote"
+                @needs-login="showLoginPrompt = true"
+            />
 
             <Link :href="route('posts.show', post.id)" class="post-stat post-action">💬 {{ post.comments_count }}</Link>
 

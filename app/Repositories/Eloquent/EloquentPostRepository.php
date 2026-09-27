@@ -3,33 +3,62 @@
 namespace App\Repositories\Eloquent;
 
 use App\Enums\PostSort;
+use App\Enums\VoteParentType;
 use App\Models\Post;
+use App\Models\Vote;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
 class EloquentPostRepository implements PostRepositoryInterface
 {
-    public function findWithStats(string $id): ?Post
+    public function find(string $id): ?Post
     {
-        return $this->withStats()->find($id);
+        return Post::find($id);
     }
 
-    public function paginateForGroup(string $groupId, PostSort $sort, int $perPage): LengthAwarePaginator
+    public function create(string $groupId, string $userId, ?string $title, string $article, string $slug): Post
     {
-        $query = $this->withStats()->where('group_id', $groupId);
+        return Post::create([
+            'group_id' => $groupId,
+            'user_id' => $userId,
+            'title' => $title,
+            'article' => $article,
+            'slug' => $slug,
+            'is_deleted' => false,
+        ]);
+    }
+
+    public function findWithStats(string $id, ?string $viewerId = null): ?Post
+    {
+        return $this->withStats($viewerId)->find($id);
+    }
+
+    public function paginateForGroup(string $groupId, PostSort $sort, int $perPage, ?string $viewerId = null): LengthAwarePaginator
+    {
+        $query = $this->withStats($viewerId)->where('group_id', $groupId);
 
         match ($sort) {
             PostSort::Newest => $query->latest(),
             PostSort::Top => $this->orderByScore($query),
+            PostSort::Controversy => $this->orderByControversy($query),
         };
 
         return $query->paginate($perPage);
     }
 
-    public function paginateTrending(int $days, int $perPage): LengthAwarePaginator
+    public function randomIdForGroup(string $groupId): ?string
     {
-        $query = $this->withStats()
+        return Post::query()
+            ->where('group_id', $groupId)
+            ->where('is_deleted', false)
+            ->inRandomOrder()
+            ->value('id');
+    }
+
+    public function paginateTrending(int $days, int $perPage, ?string $viewerId = null): LengthAwarePaginator
+    {
+        $query = $this->withStats($viewerId)
             ->where('created_at', '>=', now()->subDays($days))
             ->whereHas('group', fn (Builder $group) => $group->where('is_private', false));
 
@@ -38,7 +67,8 @@ class EloquentPostRepository implements PostRepositoryInterface
 
     public function paginateForSubscriber(string $userId, int $perPage): LengthAwarePaginator
     {
-        return $this->withStats()
+        // The subscriber is also the viewer here: this feed always shows the current user's own votes.
+        return $this->withStats($userId)
             ->whereIn('group_id', fn ($groups) => $groups
                 ->select('group_id')
                 ->from('user_group_subscriptions')
@@ -47,9 +77,9 @@ class EloquentPostRepository implements PostRepositoryInterface
             ->paginate($perPage);
     }
 
-    private function withStats(): Builder
+    private function withStats(?string $viewerId = null): Builder
     {
-        return Post::query()
+        $query = Post::query()
             ->with(['author:id,name', 'group:id,name,is_private'])
             ->withCount([
                 'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true),
@@ -57,11 +87,38 @@ class EloquentPostRepository implements PostRepositoryInterface
                 'comments',
             ])
             ->where('is_deleted', false);
+
+        if ($viewerId !== null) {
+            $query->addSelect(['viewer_vote' => Vote::query()
+                ->select('positive')
+                ->whereColumn('parent_id', 'posts.id')
+                ->where('user_id', $viewerId)
+                ->where('parent_type', VoteParentType::Post)
+                ->limit(1),
+            ]);
+        }
+
+        return $query;
     }
 
     // Score = upvotes - downvotes; newest first among equal scores.
     private function orderByScore(Builder $query): Builder
     {
         return $query->orderByRaw('(upvotes_count - downvotes_count) desc')->latest();
+    }
+
+    // A portable proxy for ComputesControversy's real (upvotes+downvotes)^(min/max) formula:
+    // exponentiation, and MySQL's GREATEST/LEAST vs. sqlite's multi-arg min/max, aren't available
+    // under one spelling that works both in production (MySQL) and in the test suite (sqlite).
+    // `sum * (sum - |diff|) / (sum + |diff|)` only needs +, -, *, / and abs/nullif, which both
+    // drivers support, and is monotonic in the same two ingredients as the real formula (bigger
+    // total, more balanced split ranks higher) — it only has to order posts the same way, not
+    // reproduce the exact number PostResource displays.
+    private function orderByControversy(Builder $query): Builder
+    {
+        return $query->orderByRaw(
+            '(upvotes_count + downvotes_count) * ((upvotes_count + downvotes_count) - abs(upvotes_count - downvotes_count))'
+            .' / nullif((upvotes_count + downvotes_count) + abs(upvotes_count - downvotes_count), 0) desc'
+        )->latest();
     }
 }

@@ -18,6 +18,21 @@
            hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100
            disabled:cursor-not-allowed disabled:opacity-60;
   }
+  /* Secondary: for a secondary action next to a primary one (e.g. "Cancel") — close to the page
+     background rather than a color of its own, so it never competes with the primary button. */
+ 
+  .btn-secondary {
+    @apply rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition
+           hover:border-brand-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+  /* Danger: for a destructive action (delete, ban, remove). Base tone is intentionally the
+     same red already used for errors elsewhere (not a louder/alarming shade); hover darkens it,
+     same relationship as btn-primary's 600 → 700 hover step. */
+  .btn-danger {
+    @apply rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white transition
+           hover:bg-danger-700 focus:outline-none focus:ring-2 focus:ring-danger-soft
+           disabled:cursor-not-allowed disabled:opacity-60;
+  }
 
   .auth-shell {
     @apply flex justify-center pt-4 sm:pt-10;
@@ -163,6 +178,14 @@
   .vote-score {
     @apply min-w-6 text-center font-medium text-ink;
   }
+  /* Deliberately a different visual language from .vote-score (pill vs. plain number), so a
+     genuinely contested item never looks like a freshly-posted, unvoted one — both can show "0". */
+  .controversy-badge {
+    @apply ms-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700;
+  }
+  .vote-error {
+    @apply ms-1 inline-flex items-center rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger;
+  }
   .group-rules {
     @apply w-full text-sm leading-relaxed text-muted;
   }
@@ -209,17 +232,13 @@
   .group-desc {
     @apply w-full text-sm leading-relaxed text-muted;
   }
-  .sort-tabs {
-    @apply flex gap-2;
+  .feed-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-3;
   }
-  .sort-tab {
-    @apply rounded-full border border-line bg-white px-4 py-1.5 text-sm text-muted transition
-           hover:text-ink;
+  .sort-select {
+    @apply rounded-full border border-line bg-white px-4 py-1.5 text-sm text-ink transition
+           hover:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
-  .sort-tab-active {
-    @apply border-brand-600 bg-brand-50 font-medium text-brand-600 hover:text-brand-600;
-  }
-
   .comments {
     @apply mt-2 flex flex-col gap-4;
   }
@@ -232,6 +251,12 @@
 
   .post-action {
     @apply transition hover:text-brand-600;
+  }
+  .vote-active-up {
+    @apply text-brand-600;
+  }
+  .vote-active-down {
+    @apply text-danger;
   }
   .post-login-prompt {
     @apply mt-3 rounded-lg border border-brand-100 bg-brand-50 p-3 text-sm text-brand-700;
@@ -257,10 +282,6 @@
   }
   .hero-actions {
     @apply mt-8 flex flex-wrap items-center justify-center gap-3;
-  }
-  .btn-secondary {
-    @apply rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition
-           hover:border-brand-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
 
   .checkbox-row {

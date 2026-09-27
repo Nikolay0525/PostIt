@@ -1,11 +1,12 @@
 <?php
 
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\VoteController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -14,6 +15,8 @@ Route::get('/posts/{id}', [PostController::class, 'show'])
     ->whereUuid('id')->name('posts.show');
 Route::get('/groups/{id}', [GroupController::class, 'show'])
     ->whereUuid('id')->name('groups.show');
+Route::get('/groups/{id}/random-post', [PostController::class, 'random'])
+    ->whereUuid('id')->name('groups.random_post');
 
 Route::middleware(['guest'])->group(function () {
     Route::inertia('/login', 'Auth/Login')->name('login');
@@ -37,4 +40,13 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:6,1')->name('verification.send');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::post('/votes', [VoteController::class, 'store'])
+        ->middleware('throttle:60,1')->name('votes.store');
+
+    Route::post('/comments', [CommentController::class, 'store'])
+        ->middleware('throttle:60,1')->name('comments.store');
+
+    Route::post('/posts', [PostController::class, 'store'])
+        ->middleware('throttle:60,1')->name('posts.store');
 });

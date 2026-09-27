@@ -17,6 +17,7 @@ const page = usePage();
 const sorts = [
     { key: 'newest', label: 'Newest' },
     { key: 'top', label: 'Top' },
+    { key: 'controversy', label: 'Controversy' },
 ];
 
 // Sorting happens on the server: reload only the posts and start their list over from page 1.
@@ -36,6 +37,11 @@ const changeSort = (key) => {
 // guests are asked to log in. The real subscribe action comes with the write endpoints.
 const joined = ref(props.is_member);
 const showLoginPrompt = ref(false);
+
+// Posting requires membership in every group, public or private (PostPolicy::create()) — based
+// on the server-truth `is_member` prop, not the still-fake `joined` toggle above, so faking a
+// "Subscribed" click here never unlocks a button that would just fail once posting is wired up.
+const canPost = computed(() => Boolean(page.props.auth.user) && props.is_member);
 
 const buttonLabel = computed(() => {
     if (props.group.is_private) return joined.value ? 'Request sent' : 'Request to join';
@@ -72,6 +78,7 @@ const toggleJoin = () => {
             >{{ buttonLabel }}</button>
 
             <p class="group-desc" dir="auto">{{ group.description }}</p>
+            <!-- TODO: rules will become an array instead of one string; render as a list then. -->
             <p class="group-rules" dir="auto"><span class="font-medium text-ink">Rules:</span> {{ group.rules }}</p>
 
             <p v-if="showLoginPrompt" class="post-login-prompt w-full">
@@ -88,16 +95,26 @@ const toggleJoin = () => {
         </p>
 
         <template v-else>
-            <div class="sort-tabs" role="tablist">
-                <button
-                    v-for="s in sorts"
-                    :key="s.key"
-                    type="button"
-                    role="tab"
-                    class="sort-tab"
-                    :class="{ 'sort-tab-active': sort === s.key }"
-                    @click="changeSort(s.key)"
-                >{{ s.label }}</button>
+            <div class="feed-toolbar">
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Not wired yet: the create-post page/route comes with the next step. -->
+                    <button v-if="canPost" type="button" class="btn-primary">+ Create post</button>
+                    <p v-else-if="!page.props.auth.user" class="text-sm text-muted">
+                        <Link :href="route('login')" class="auth-link">Log in</Link>
+                        or
+                        <Link :href="route('register')" class="auth-link">sign up</Link>
+                        to post.
+                    </p>
+                    <p v-else class="text-sm text-muted">
+                        <button type="button" class="auth-link cursor-pointer border-0 bg-transparent p-0" @click="toggleJoin">Join</button> to post.
+                    </p>
+
+                    <Link :href="route('groups.random_post', group.id)" class="btn-secondary">🎲 I'm feeling lucky</Link>
+                </div>
+
+                <select class="sort-select" :value="sort" aria-label="Sort posts by" @change="changeSort($event.target.value)">
+                    <option v-for="s in sorts" :key="s.key" :value="s.key">{{ s.label }}</option>
+                </select>
             </div>
 
             <p v-if="!posts.data.length" class="text-sm text-muted">No posts in this group yet.</p>

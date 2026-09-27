@@ -18,6 +18,9 @@
         </include>
     </source>
     <php>
+        <!-- Default 128M is not enough once enough factory-heavy feature tests (Faker::realText()
+             in GroupFactory/PostFactory is the actual cost) accumulate in one PHP process. -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

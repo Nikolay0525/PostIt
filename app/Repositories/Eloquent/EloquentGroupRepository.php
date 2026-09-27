@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class EloquentGroupRepository implements GroupRepositoryInterface
 {
+    public function find(string $id): ?Group
+    {
+        return Group::find($id);
+    }
+
     public function findWithMembersCount(string $id): ?Group
     {
         return Group::withCount('members')->find($id);
