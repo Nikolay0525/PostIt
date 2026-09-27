@@ -44,4 +44,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/comments', [CommentController::class, 'store'])
         ->middleware('throttle:60,1')->name('comments.store');
+
+    Route::post('/posts', [PostController::class, 'store'])
+        ->middleware('throttle:60,1')->name('posts.store');
 });
