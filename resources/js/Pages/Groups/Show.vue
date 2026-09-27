@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { InfiniteScroll, router, usePage } from '@inertiajs/vue3';
 import PostCard from '@/Pages/Components/PostCard.vue';
 import { formatCount } from '@/utils/format';
+import { deleteJson, postJson } from '@/utils/http';
 
 const props = defineProps({
     group: Object,
@@ -33,27 +34,58 @@ const changeSort = (key) => {
     });
 };
 
-// Subscribing (or requesting to join a private group) is a local toggle for now;
-// guests are asked to log in. The real subscribe action comes with the write endpoints.
+// Requesting to join a private group is still a local toggle — GroupPolicy::subscribe()
+// deliberately rejects private groups, since membership there only comes from an approved
+// GroupJoinRequest, which doesn't exist yet. Subscribing to a public group is real.
 const joined = ref(props.is_member);
 const showLoginPrompt = ref(false);
+const subscribing = ref(false);
+const subscribeError = ref(null);
 
-// Posting requires membership in every group, public or private (PostPolicy::create()) — based
-// on the server-truth `is_member` prop, not the still-fake `joined` toggle above, so faking a
-// "Subscribed" click here never unlocks a button that would just fail once posting is wired up.
-const canPost = computed(() => Boolean(page.props.auth.user) && props.is_member);
+// Posting requires membership in every group, public or private (PostPolicy::create()). For a
+// public group `joined` now reflects a real subscribe/unsubscribe call, so it's trustworthy
+// immediately, without waiting on a reload; for a private group it's still a fake toggle, so
+// only the server-truth `is_member` prop is trusted there.
+const canPost = computed(() => {
+    if (!page.props.auth.user) return false;
+
+    return props.group.is_private ? props.is_member : joined.value;
+});
 
 const buttonLabel = computed(() => {
     if (props.group.is_private) return joined.value ? 'Request sent' : 'Request to join';
     return joined.value ? 'Subscribed' : 'Subscribe';
 });
 
-const toggleJoin = () => {
+const toggleJoin = async () => {
     if (!page.props.auth.user) {
         showLoginPrompt.value = true;
         return;
     }
-    joined.value = !joined.value;
+
+    if (props.group.is_private) {
+        joined.value = !joined.value;
+        return;
+    }
+
+    if (subscribing.value) return;
+
+    subscribing.value = true;
+    subscribeError.value = null;
+
+    try {
+        if (joined.value) {
+            await deleteJson(`/groups/${props.group.id}/subscribe`);
+        } else {
+            await postJson(`/groups/${props.group.id}/subscribe`);
+        }
+        joined.value = !joined.value;
+    } catch (error) {
+        console.error('Subscribe failed:', error);
+        subscribeError.value = error.message || 'Something went wrong.';
+    } finally {
+        subscribing.value = false;
+    }
 };
 </script>
 
@@ -74,12 +106,15 @@ const toggleJoin = () => {
             <button
                 type="button"
                 :class="joined ? 'btn-secondary' : 'btn-primary'"
+                :disabled="subscribing"
                 @click="toggleJoin"
             >{{ buttonLabel }}</button>
 
             <p class="group-desc" dir="auto">{{ group.description }}</p>
             <!-- TODO: rules will become an array instead of one string; render as a list then. -->
             <p class="group-rules" dir="auto"><span class="font-medium text-ink">Rules:</span> {{ group.rules }}</p>
+
+            <p v-if="subscribeError" class="vote-error w-full" :title="subscribeError">⚠ {{ subscribeError }}</p>
 
             <p v-if="showLoginPrompt" class="post-login-prompt w-full">
                 <Link :href="route('login')" class="auth-link">Log in</Link>

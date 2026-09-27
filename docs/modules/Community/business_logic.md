@@ -63,7 +63,7 @@ Two roles hold moderation power in a group, and neither may appoint, remove or o
 
 | Domain Policy | Description |
 |---|---|
-| `GroupPolicy` (Laravel) | Who can view a group's posts (public: anyone; private: members and an active Guardian/Owner), who can decide join requests (Guardian or Owner). |
+| `GroupPolicy` (Laravel) | *(0.1.5, implemented)* `subscribe()`: verified, the group is public (a private group is always rejected here — membership there only comes from an approved join request, not built yet), and not banned. *(Still planned)* Who can view a group's posts (public: anyone; private: members and an active Guardian/Owner), who can decide join requests (Guardian or Owner). |
 | `OwnerPolicy` *(0.1.1)* | Only the Owner edits rules/description/title and the Guardian-related parameters, within platform-set bounds; only the Owner initiates a voluntary transfer. |
 | `GuardianEligibilityPolicy` *(0.1.1)* | Who enters the candidate pool (`contribution_score` ≥ threshold) and who is eligible to be drawn; excludes users already active as Guardian in that group. |
 
@@ -72,7 +72,7 @@ Two roles hold moderation power in a group, and neither may appoint, remove or o
 | Service | Operation |
 |---|---|
 | `GroupService` | Create/update group (title, slug, description, rules — versioned); creator becomes Owner. |
-| `MembershipService` | Subscribe / unsubscribe; updates `user_counters.groups_connected`. |
+| `MembershipService` | *(0.1.5, implemented)* Subscribe / unsubscribe (`GroupRepositoryInterface::subscribe()`/`unsubscribe()` — idempotent insert/delete on `user_group_subscriptions`, which has a composite PK, same pattern as `Vote`). *(Still planned)* Does not yet update `user_counters.groups_connected`. |
 | `JoinRequestService` | Create request, approve, reject; on approve creates membership. |
 | `GuardianshipService` *(0.1.1)* | Maintain the candidate pool, make random offers, record accept/decline, evaluate `standing_score` periodically, warn, step down (auto or voluntary). |
 | `OwnershipService` *(0.1.1)* | Voluntary transfer; grants/revokes the Owner's fallback moderation ability based on whether the group currently has an active Guardian; executes a platform-admin-ordered transfer (`Moderation` FR-MOD-012). |
@@ -90,7 +90,7 @@ Two roles hold moderation power in a group, and neither may appoint, remove or o
 
 ## Application Commands & Queries *(planned)*
 
-**Commands:** subscribe, unsubscribe, request join, decide join request, assign/remove moderator, update group.
+**Commands:** *(0.1.5, implemented)* subscribe, unsubscribe (public groups only). *(Still planned)* request join, decide join request, assign/remove moderator, update group.
 **Queries:** group page (details + `members_count` via `withCount('members')`), list groups, list join requests for a group.
 
 ## Infrastructure
@@ -101,4 +101,4 @@ Two roles hold moderation power in a group, and neither may appoint, remove or o
 - `GuardianCandidacy`, `GuardianStanding` — 0.1.1, planned; no migration yet.
 
 ### UI
-- `Pages/Groups/Show.vue`: group header (avatar initial, members count, private badge), rules, join/subscribe button, Newest/Top sort tabs, private-group notice. Backed by `GroupController` via `GroupResource` (real `members_count`), with the post list paginated through `Inertia::scroll`. The join/subscribe button itself is still a local UI toggle — no write endpoint exists yet (tracked in *Tech debt*).
+- `Pages/Groups/Show.vue`: group header (avatar initial, members count, private badge, description, rules), a Newest/Top/Controversy sort **dropdown** (not tabs — corrected, see `Content` changelog), a "+ Create post" stub and an "I'm feeling lucky" random-post link, private-group notice. Backed by `GroupController` via `GroupResource` (real `members_count`), with the post list paginated through `Inertia::scroll`. *(0.1.5)* The Subscribe button is real for a public group (`postJson`/`deleteJson` to `POST`/`DELETE /groups/{id}/subscribe`, deliberately outside Inertia so the scrolled post list isn't reset — same reasoning as `Content`'s vote/comment endpoints); for a private group, "Request to join" is still a local-only toggle, since `JoinRequestService` doesn't exist yet.

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
@@ -49,4 +50,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/posts', [PostController::class, 'store'])
         ->middleware('throttle:60,1')->name('posts.store');
+
+    Route::post('/groups/{id}/subscribe', [MembershipController::class, 'subscribe'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('groups.subscribe');
+    Route::delete('/groups/{id}/subscribe', [MembershipController::class, 'unsubscribe'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('groups.unsubscribe');
 });

@@ -2,6 +2,14 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-27] [FEAT] Group subscription (repository → service → policy → controller/route)
+
+- Built `GroupRepositoryInterface::subscribe()`/`unsubscribe()` (`EloquentGroupRepository`, working around `UserGroupSubscription`'s composite PK the same way `Vote` already does), the new `MembershipService`, `GroupPolicy::subscribe()`, and `MembershipController` behind `POST`/`DELETE /groups/{id}/subscribe` — closes FR-COM-003.
+- Kept `MembershipService` as its own class rather than folding it into `GroupService`, matching how this doc already separated the two as distinct planned services.
+- `GroupPolicy::subscribe()` always rejects a private group — its membership still only comes from an approved `GroupJoinRequest` (`JoinRequestService`), which isn't built. "Request to join" on a private group stays a local-only toggle.
+- Like `Content`'s vote/comment endpoints, this is a plain JSON `fetch()` (`postJson`/`deleteJson`) rather than an Inertia visit, so subscribing doesn't reset the group page's `<InfiniteScroll>`-paginated post list back to page one.
+- Corrected two stale tech-debt lines found while touching this area: `JoinRequestStatus`/`GroupModeratorRole` enums already existed (the debt entry calling them "raw integers" was outdated), and the join/subscribe tech-debt item was half-resolved (public groups only) rather than fully open.
+
 ## [2026-09-26] [DOCS] Corrected stale dummy-data reference
 
 - `members_count` on the group page has come from `withCount('members')` via `GroupController`/`GroupResource` for a while; the docs still called it dummy data. Corrected in the *UI* infrastructure note and removed the matching tech-debt item. The join/subscribe button is still a genuine local-only toggle — that tech-debt item stays.

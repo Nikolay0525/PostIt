@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Document | Requirements Specification (style: ISO/IEC/IEEE 29148:2018) |
-| Version | 0.1.4 |
+| Version | 0.1.5 |
 | Status | Draft |
 | Last update | 2026-09-27 |
 | Owner | Project owner (Mykola Poberezhnyi) |
@@ -84,7 +84,7 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 |---|---|---|---|---|
 | FR-COM-001 | The system shall let a user create a group with a name (≤ 50 characters), description (≤ 250), rules (≤ 250), language and public/private visibility. | M | Planned | T |
 | FR-COM-002 | The system shall show a group page with name, description, rules, member count and visibility to any visitor. | M | Partial | D |
-| FR-COM-003 | The system shall let a logged-in user subscribe to and unsubscribe from a public group. | M | Partial | T |
+| FR-COM-003 | The system shall let a logged-in user subscribe to and unsubscribe from a public group. *(0.1.5)* Implemented end-to-end (`MembershipService`, `GroupPolicy::subscribe()`, `POST`/`DELETE /groups/{id}/subscribe`); a private group is rejected here — its membership only comes from an approved join request (FR-COM-004, still Partial). | M | Done | T |
 | FR-COM-004 | The system shall let a logged-in user send a join request to a private group and shall store it as pending. | M | Partial | T |
 | FR-COM-005 | The system shall let a moderator approve or reject join requests of their group; approval shall create the membership. | M | Planned | T |
 | FR-COM-006 | The system shall hide the posts of a private group from non-members, on the server and in the UI. | M | Partial | T |
