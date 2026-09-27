@@ -55,12 +55,25 @@ class PostService
 
     // A random suffix sidesteps the missing uniqueness constraint on `posts.slug` (see tech
     // notes) without a lookup query; the fallback to 'post' covers a title/article that slugifies
-    // to nothing, e.g. one written entirely in a non-Latin script.
+    // to nothing, e.g. one written entirely in emoji.
     private function generateSlug(?string $title, string $article): string
     {
         $source = $title ?: Str::words($article, 8, '');
-        $base = Str::slug($source) ?: 'post';
+        $base = $this->unicodeSlug($source) ?: 'post';
 
         return $base.'-'.Str::lower(Str::random(6));
+    }
+
+    // Unlike Str::slug(), which transliterates to ASCII and drops anything it can't map (empty
+    // result for Hebrew/Arabic/CJK, a near-unreadable mess for Arabic), this keeps any Unicode
+    // letter/number as-is and only replaces whitespace/punctuation with '-' — the same approach
+    // Reddit uses for non-Latin post slugs. A URL segment isn't restricted to ASCII (RFC 3987):
+    // the browser displays the native script directly, percent-encoding it as UTF-8 underneath,
+    // and Laravel's router decodes it back automatically.
+    private function unicodeSlug(string $title): string
+    {
+        $slug = preg_replace('/[^\p{L}\p{N}]+/u', '-', mb_strtolower($title, 'UTF-8'));
+
+        return trim($slug, '-');
     }
 }

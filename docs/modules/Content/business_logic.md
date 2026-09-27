@@ -53,7 +53,7 @@
 
 | Service | Operation |
 |---|---|
-| `PostService` | Create post (generates slug), soft-delete post, emits `PostCreated`. |
+| `PostService` | Create post. *(0.1.7)* Generates the slug via `unicodeSlug()` — keeps the title's own script (Cyrillic, Hebrew, Arabic, CJK, …) instead of transliterating to ASCII, since transliteration silently produced an empty or unreadable result for anything not Latin/Cyrillic/Greek. Soft-delete post, emits `PostCreated`. |
 | `CommentService` | Add comment / reply, soft-delete, emits `CommentCreated`. |
 | `VoteService` | *(0.1.3, implemented)* `castVote()`: creates a vote, changes its direction, or deletes it if the same direction is resubmitted (one vote per user per target); runs in a DB transaction and returns the updated `upvotes`/`downvotes` counts plus the viewer's resulting `viewer_vote` (`true`/`false`/`null`). Does not yet emit `VoteCast`. |
 | `FeedService` | Build feed for a viewer / group with sort (Newest, Top) and pagination. |

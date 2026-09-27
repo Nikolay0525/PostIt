@@ -2,6 +2,11 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-28] [FIX] Post slugs keep their own script instead of transliterating
+
+- Replaced `Str::slug()` in `PostService::generateSlug()` with a hand-written `unicodeSlug()`: verified `Str::slug()` returns an empty string for Hebrew/Chinese/Japanese/Korean titles, and a near-unreadable transliteration for Arabic. The replacement keeps any Unicode letter/number as-is and only turns whitespace/punctuation into `-` — the same technique Reddit uses for non-Latin post slugs, relying on URL paths supporting non-ASCII text (RFC 3987) rather than trying to force everything into `[a-z0-9-]`.
+- Decided this is specifically a **post** behaviour (auto-generated, keeps the post's own language) — a future group slug is a deliberately different decision, see `Community` changelog.
+
 ## [2026-09-27] [FEAT] Create-post page and Markdown formatting
 
 - Wired the "+ Create post" button on the group page to a real form: `GET /groups/{id}/posts/create` (`PostController::create()`, gated by the same `PostPolicy::create()` as the submit) renders `Pages/Posts/Create.vue` — a title field and an article `<textarea>` with Bold/Italic toolbar buttons that wrap the current selection in `**`/`*`.

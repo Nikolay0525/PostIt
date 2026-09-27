@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | Document | Requirements Specification (style: ISO/IEC/IEEE 29148:2018) |
-| Version | 0.1.6 |
+| Version | 0.1.7 |
 | Status | Draft |
-| Last update | 2026-09-27 |
+| Last update | 2026-09-28 |
 | Owner | Project owner (Mykola Poberezhnyi) |
 
 ## 1. Introduction
@@ -90,7 +90,7 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-COM-006 | The system shall hide the posts of a private group from non-members, on the server and in the UI. | M | Partial | T |
 | FR-COM-007 | The system shall grant the Guardian role only through community-driven eligibility (per-group contribution score, threshold-gated candidate pool, random offer, opt-in) — never by direct appointment by the Owner. *(Supersedes the earlier "creator assigns moderators" design; see business logic 0.1.1.)* | S | Planned | T |
 | FR-COM-008 | The system shall ask a guest to log in or register when the guest tries to join or subscribe. | M | Done | D |
-| FR-COM-009 | The system shall let a group have a title in any language, shown and searched by, separate from a Latin-script slug used only in its URL. | M | Planned | T |
+| FR-COM-009 | The system shall let a group have a title in any language, shown and searched by, separate from a Latin-script slug used only in its URL. *(0.1.7)* The slug is entered manually by the creator, not auto-generated — deliberately different from a post's slug (FR-CON-002), which is auto-generated and keeps the post's own script. | M | Planned | T |
 | FR-COM-010 | The system shall track a per-group contribution score for each member, separate from platform-wide karma, and shall use it only to determine eligibility for the Guardian candidate pool. | S | Planned | T |
 | FR-COM-011 | The system shall retain a Guardian based on responsiveness to the group's actual moderation workload and on the accuracy record from appeal verdicts (FR-MOD-010), not on the group's rating of the Guardian's other content; a Guardian who has no pending work shall not be penalised. | S | Planned | T |
 | FR-COM-012 | The system shall evaluate Guardian standing periodically (not continuously) and shall warn a Guardian, with a stated grace period, before automatically ending the role; a Guardian may also step down voluntarily at any time. | S | Planned | T |
@@ -104,7 +104,7 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | ID | Requirement | Pri | Status | Ver |
 |---|---|---|---|---|
 | FR-CON-001 | The system shall let a member publish a post in a group with an optional title (≤ 100 characters) and a required article. *(0.1.4)* Membership is required in every group, public or private — a public group's posts being readable by anyone does not by itself grant posting rights. *(0.1.6)* The article is authored as Markdown with a minimal Bold/Italic toolbar. | M | Done | T |
-| FR-CON-002 | The system shall generate a slug for every post. *(0.1.6)* Done — `PostService::generateSlug()` was already implemented (0.1.3-era work); this row was left stale. | S | Done | T |
+| FR-CON-002 | The system shall generate a slug for every post. *(0.1.7)* Keeps the post's own script (Cyrillic, Hebrew, Arabic, CJK, …) rather than transliterating to ASCII, which produced empty or unreadable results for non-Latin titles. | S | Done | T |
 | FR-CON-003 | The system shall let anyone read a post of a public group together with its comments. | M | Partial | D |
 | FR-CON-004 | The system shall let a logged-in user comment on a post (≤ 500 characters) or reply to a comment, forming a nested thread. | M | Partial | T |
 | FR-CON-005 | The system shall let a guest read comments but not write them, prompting the guest to log in or register. | M | Done | D |
