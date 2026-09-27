@@ -18,6 +18,21 @@
            hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100
            disabled:cursor-not-allowed disabled:opacity-60;
   }
+  /* Neutral: for a secondary action next to a primary one (e.g. "Cancel") — close to the page
+     background rather than a color of its own, so it never competes with the primary button. */
+  .btn-neutral {
+    @apply rounded-lg border border-line bg-canvas px-4 py-2.5 text-sm font-semibold text-ink
+           transition hover:bg-line focus:outline-none focus:ring-2 focus:ring-brand-100
+           disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  /* Danger: for a destructive action (delete, ban, remove). Base tone is intentionally the
+     same red already used for errors elsewhere (not a louder/alarming shade); hover darkens it,
+     same relationship as btn-primary's 600 → 700 hover step. */
+  .btn-danger {
+    @apply rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white transition
+           hover:bg-danger-700 focus:outline-none focus:ring-2 focus:ring-danger-soft
+           disabled:cursor-not-allowed disabled:opacity-60;
+  }
 
   .auth-shell {
     @apply flex justify-center pt-4 sm:pt-10;
