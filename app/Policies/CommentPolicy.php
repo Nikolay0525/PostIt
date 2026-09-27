@@ -3,12 +3,14 @@
 namespace App\Policies;
 
 use App\Models\Comment;
-use App\Models\GroupBan;
 use App\Models\Post;
 use App\Models\User;
+use App\Policies\Concerns\ChecksGroupBans;
 
 class CommentPolicy
 {
+    use ChecksGroupBans;
+
     /**
      * A user may comment on (or reply within) a post once verified and not banned from its
      * group. Unlike PostPolicy::create(), group membership is not checked here: if the post is
@@ -30,14 +32,5 @@ class CommentPolicy
     public function vote(User $user, Comment $comment): bool
     {
         return ! $comment->is_deleted && $user->id !== $comment->user_id;
-    }
-
-    private function isBannedFromGroup(User $user, string $groupId): bool
-    {
-        return GroupBan::query()
-            ->where('group_id', $groupId)
-            ->where('blamed_user_id', $user->id)
-            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-            ->exists();
     }
 }
