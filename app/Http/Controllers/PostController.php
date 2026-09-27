@@ -38,6 +38,19 @@ class PostController extends Controller
         ]);
     }
 
+    public function create(string $groupId): Response
+    {
+        $group = $this->groupRepository->find($groupId);
+
+        abort_if($group === null, 404);
+
+        $this->authorize('create', [Post::class, $group]);
+
+        return Inertia::render('Posts/Create', [
+            'group' => ['id' => $group->id, 'name' => $group->name],
+        ]);
+    }
+
     // A regular Inertia form submission, unlike VoteController/CommentController: there is no
     // already-scrolled list on the "create post" page to preserve, and the natural next step is
     // a full navigation to the new post anyway, so a normal redirect response fits here.

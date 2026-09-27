@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Document | Requirements Specification (style: ISO/IEC/IEEE 29148:2018) |
-| Version | 0.1.5 |
+| Version | 0.1.6 |
 | Status | Draft |
 | Last update | 2026-09-27 |
 | Owner | Project owner (Mykola Poberezhnyi) |
@@ -103,8 +103,8 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 
 | ID | Requirement | Pri | Status | Ver |
 |---|---|---|---|---|
-| FR-CON-001 | The system shall let a member publish a post in a group with an optional title (≤ 100 characters) and a required article. *(0.1.4)* Membership is required in every group, public or private — a public group's posts being readable by anyone does not by itself grant posting rights. | M | Partial | T |
-| FR-CON-002 | The system shall generate a slug for every post. | S | Planned | T |
+| FR-CON-001 | The system shall let a member publish a post in a group with an optional title (≤ 100 characters) and a required article. *(0.1.4)* Membership is required in every group, public or private — a public group's posts being readable by anyone does not by itself grant posting rights. *(0.1.6)* The article is authored as Markdown with a minimal Bold/Italic toolbar. | M | Done | T |
+| FR-CON-002 | The system shall generate a slug for every post. *(0.1.6)* Done — `PostService::generateSlug()` was already implemented (0.1.3-era work); this row was left stale. | S | Done | T |
 | FR-CON-003 | The system shall let anyone read a post of a public group together with its comments. | M | Partial | D |
 | FR-CON-004 | The system shall let a logged-in user comment on a post (≤ 500 characters) or reply to a comment, forming a nested thread. | M | Partial | T |
 | FR-CON-005 | The system shall let a guest read comments but not write them, prompting the guest to log in or register. | M | Done | D |

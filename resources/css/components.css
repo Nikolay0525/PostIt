@@ -203,7 +203,26 @@
     @apply hover:text-brand-600;
   }
   .post-content {
-    @apply mt-3 whitespace-pre-line text-base leading-relaxed text-ink;
+    @apply mt-3 text-base leading-relaxed text-ink;
+  }
+  /* Paragraphs come from real <p> tags now (server-rendered Markdown), not from preserved
+     whitespace — Tailwind's preflight zeroes <p> margins, so spacing needs restoring here. */
+  .post-content p {
+    @apply mb-3;
+  }
+  .post-content p:last-child {
+    @apply mb-0;
+  }
+  .post-form {
+    @apply flex flex-col gap-5 rounded-2xl border border-line bg-white p-6;
+  }
+  .markdown-toolbar {
+    @apply flex gap-2;
+  }
+  .markdown-toolbar-btn {
+    @apply flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-white text-sm
+           text-ink transition hover:border-brand-600 hover:text-brand-600 focus:outline-none
+           focus:ring-2 focus:ring-brand-100;
   }
   .post-more {
     @apply ms-auto text-sm font-medium text-brand-600 hover:text-brand-700;

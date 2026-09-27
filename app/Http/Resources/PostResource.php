@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Post;
 use App\Support\Concerns\ComputesControversy;
+use App\Support\Concerns\RendersMarkdown;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,6 +17,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class PostResource extends JsonResource
 {
     use ComputesControversy;
+    use RendersMarkdown;
 
     public function toArray(Request $request): array
     {
@@ -23,7 +25,10 @@ class PostResource extends JsonResource
             'id' => $this->id,
             'group_id' => $this->group_id,
             'title' => $this->title,
+            // Raw Markdown source, kept for a future edit form; display uses the two below.
             'article' => $this->article,
+            'article_html' => $this->markdownToHtml($this->article),
+            'article_text' => $this->markdownToPlainText($this->article),
             'created_at' => $this->created_at,
             'upvotes' => $this->upvotes_count,
             'downvotes' => $this->downvotes_count,

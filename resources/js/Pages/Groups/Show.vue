@@ -132,8 +132,7 @@ const toggleJoin = async () => {
         <template v-else>
             <div class="feed-toolbar">
                 <div class="flex flex-wrap items-center gap-3">
-                    <!-- Not wired yet: the create-post page/route comes with the next step. -->
-                    <button v-if="canPost" type="button" class="btn-primary">+ Create post</button>
+                    <Link v-if="canPost" :href="route('posts.create', group.id)" class="btn-primary">+ Create post</Link>
                     <p v-else-if="!page.props.auth.user" class="text-sm text-muted">
                         <Link :href="route('login')" class="auth-link">Log in</Link>
                         or

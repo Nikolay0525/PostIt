@@ -2,6 +2,15 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-27] [FEAT] Create-post page and Markdown formatting
+
+- Wired the "+ Create post" button on the group page to a real form: `GET /groups/{id}/posts/create` (`PostController::create()`, gated by the same `PostPolicy::create()` as the submit) renders `Pages/Posts/Create.vue` — a title field and an article `<textarea>` with Bold/Italic toolbar buttons that wrap the current selection in `**`/`*`.
+- **Decided the article's storage format is Markdown**, not plain text (the prior state) or a rich-text/WYSIWYG document: no client editor library, no schema change, a toolbar button is just "insert `**` around the selection." Trade-off: no live WYSIWYG feedback — the author sees `**bold**` while typing, not bold text.
+- Added `App\Support\Concerns\RendersMarkdown` (`Str::markdown()`, `html_input: strip`, `allow_unsafe_links: false`) and wired it into `PostResource`: `article` (raw Markdown, kept for a future edit form), `article_html` (rendered, used via `v-html` for the full post view), `article_text` (plain, tags stripped, used for the feed preview/excerpt so a preview never shows raw `**`/`*` syntax).
+- The HTML-stripping and unsafe-link options are a deliberate XSS defense, not defaults left untouched — this is the only place user-authored text becomes markup rendered with `v-html`.
+- Corrected two stale doc lines found while touching this area: the comment form was documented as "still a visual stub" (it hasn't been since comments were wired up earlier) and FR-CON-002 (slug generation) was still marked Planned despite `PostService::generateSlug()` already existing.
+- Verified live end-to-end (headless-browser login → group page → create-post form → Bold/Italic toolbar → submit → rendered `<strong>`/`<em>` on the resulting post), not just by reading the code.
+
 ## [2026-09-27] [FEAT] Post creation (repository → service → policy → controller/route)
 
 - Built `PostRepositoryInterface::create()`/`EloquentPostRepository`, `PostService::createPost()` (generates the slug — closes FR-CON-002, previously Planned), `PostPolicy::create()`, `StorePostRequest`, and `PostController::store()` behind `POST /posts` — the same repo → interface → service → policy → FormRequest → controller sequence used for comments.

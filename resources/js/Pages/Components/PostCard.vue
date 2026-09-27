@@ -10,7 +10,7 @@ const props = defineProps({
 });
 
 const initial = computed(() => props.post.author.name.charAt(0).toUpperCase());
-const preview = computed(() => excerpt(props.post.article));
+const preview = computed(() => excerpt(props.post.article_text));
 
 const showLoginPrompt = ref(false);
 </script>
@@ -35,7 +35,9 @@ const showLoginPrompt = ref(false);
             <Link v-else :href="route('posts.show', post.id)" class="post-link">{{ post.title }}</Link>
         </h2>
 
-        <p v-if="full" class="post-content" :class="{ 'mt-4': !post.title }" dir="auto">{{ post.article }}</p>
+        <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown) —
+             safe to render as markup, unlike the raw article source. -->
+        <div v-if="full" class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
         <!-- Without a title the preview itself is the link to the post. -->
         <p v-else class="post-body" :class="{ 'mt-4': !post.title }" dir="auto">
             <Link v-if="!post.title" :href="route('posts.show', post.id)" class="post-link">{{ preview }}</Link>
