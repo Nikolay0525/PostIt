@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
@@ -40,4 +41,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/votes', [VoteController::class, 'store'])
         ->middleware('throttle:60,1')->name('votes.store');
+
+    Route::post('/comments', [CommentController::class, 'store'])
+        ->middleware('throttle:60,1')->name('comments.store');
 });

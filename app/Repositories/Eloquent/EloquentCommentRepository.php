@@ -24,6 +24,7 @@ class EloquentCommentRepository implements CommentRepositoryInterface
             'parent_id' => $parentId,
             'user_id' => $userId,
             'text' => $text,
+            'is_deleted' => false,
         ]);
     }
 
