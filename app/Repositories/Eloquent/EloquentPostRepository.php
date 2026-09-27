@@ -17,6 +17,18 @@ class EloquentPostRepository implements PostRepositoryInterface
         return Post::find($id);
     }
 
+    public function create(string $groupId, string $userId, ?string $title, string $article, string $slug): Post
+    {
+        return Post::create([
+            'group_id' => $groupId,
+            'user_id' => $userId,
+            'title' => $title,
+            'article' => $article,
+            'slug' => $slug,
+            'is_deleted' => false,
+        ]);
+    }
+
     public function findWithStats(string $id, ?string $viewerId = null): ?Post
     {
         return $this->withStats($viewerId)->find($id);
