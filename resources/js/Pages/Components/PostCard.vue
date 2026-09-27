@@ -46,6 +46,7 @@ const showLoginPrompt = ref(false);
             <VoteButtons
                 target-type="post"
                 :target-id="post.id"
+                :author-id="post.author.id"
                 :upvotes="post.upvotes"
                 :downvotes="post.downvotes"
                 :controversy="post.controversy"

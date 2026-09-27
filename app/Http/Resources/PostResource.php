@@ -31,7 +31,7 @@ class PostResource extends JsonResource
             'comments_count' => $this->comments_count,
             // true = viewer upvoted, false = downvoted, null = no vote (or a guest).
             'viewer_vote' => $this->viewer_vote === null ? null : (bool) $this->viewer_vote,
-            'author' => ['name' => $this->author->name],
+            'author' => ['id' => $this->author->id, 'name' => $this->author->name],
             'group' => ['id' => $this->group->id, 'name' => $this->group->name],
         ];
     }

@@ -27,7 +27,10 @@ class CommentResource extends JsonResource
             'parent_id' => $this->parent_id,
             'is_deleted' => $this->is_deleted,
             'text' => $this->is_deleted ? '' : $this->text,
-            'author' => ['name' => $this->is_deleted ? 'Removed' : $this->author->name],
+            'author' => [
+                'id' => $this->is_deleted ? null : $this->author->id,
+                'name' => $this->is_deleted ? 'Removed' : $this->author->name,
+            ],
             'created_at' => $this->created_at,
             'upvotes' => $this->upvotes_count,
             'downvotes' => $this->downvotes_count,

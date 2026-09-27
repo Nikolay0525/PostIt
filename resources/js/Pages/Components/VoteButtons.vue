@@ -7,6 +7,7 @@ import { postJson } from '@/utils/http';
 const props = defineProps({
     targetType: { type: String, required: true }, // 'post' | 'comment'
     targetId: { type: String, required: true },
+    authorId: { type: String, default: null },
     upvotes: Number,
     downvotes: Number,
     // Rounded (2 significant figures) controversy score from the server; grows with both the
@@ -20,6 +21,8 @@ const props = defineProps({
 const emit = defineEmits(['needs-login']);
 
 const page = usePage();
+
+const isOwnContent = computed(() => props.authorId !== null && page.props.auth.user?.id === props.authorId);
 
 // A vote is sent outside Inertia (see utils/http.js), so these are local copies updated
 // directly from the vote response, and re-synced whenever a genuine fresh page load hands
@@ -51,7 +54,7 @@ const vote = async (positive) => {
         return;
     }
 
-    if (voting.value) {
+    if (voting.value || isOwnContent.value) {
         return;
     }
 
@@ -81,6 +84,7 @@ const vote = async (positive) => {
 <template>
     <span class="vote-group">
         <button
+            v-if="!isOwnContent"
             type="button"
             class="post-action"
             :class="{ 'vote-active-up': localViewerVote === true }"
@@ -91,6 +95,7 @@ const vote = async (positive) => {
         >▲</button>
         <span class="vote-score">{{ score }}</span>
         <button
+            v-if="!isOwnContent"
             type="button"
             class="post-action"
             :class="{ 'vote-active-down': localViewerVote === false }"

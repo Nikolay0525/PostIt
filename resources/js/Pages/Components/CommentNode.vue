@@ -27,6 +27,7 @@ const showLoginPrompt = ref(false);
                     <VoteButtons
                         target-type="comment"
                         :target-id="comment.id"
+                        :author-id="comment.author.id"
                         :upvotes="comment.upvotes"
                         :downvotes="comment.downvotes"
                         :controversy="comment.controversy"
