@@ -17,6 +17,16 @@ class EloquentCommentRepository implements CommentRepositoryInterface
         return Comment::find($id);
     }
 
+    public function create(string $postId, string $userId, string $text, ?string $parentId = null): Comment
+    {
+        return Comment::create([
+            'post_id' => $postId,
+            'parent_id' => $parentId,
+            'user_id' => $userId,
+            'text' => $text,
+        ]);
+    }
+
     public function paginateThreadsForPost(string $postId, int $perPage, ?string $viewerId = null): LengthAwarePaginator
     {
         $roots = $this->withStats($viewerId)

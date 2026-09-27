@@ -25,4 +25,10 @@ interface CommentRepositoryInterface
      * in the page has all of its descendants loaded in the nested `replies` relation.
      */
     public function paginateThreadsForPost(string $postId, int $perPage, ?string $viewerId = null): LengthAwarePaginator;
+
+    /**
+     * Creates a top-level comment on a post, or a reply when $parentId is given.
+     * Does not check that $parentId belongs to $postId — that invariant is the Service's job.
+     */
+    public function create(string $postId, string $userId, string $text, ?string $parentId = null): Comment;
 }
