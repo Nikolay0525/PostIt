@@ -53,6 +53,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/posts', [PostController::class, 'store'])
         ->middleware('throttle:60,1')->name('posts.store');
 
+    Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
+    Route::post('/groups', [GroupController::class, 'store'])
+        ->middleware('throttle:10,1')->name('groups.store');
+
     Route::post('/groups/{id}/subscribe', [MembershipController::class, 'subscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.subscribe');
     Route::delete('/groups/{id}/subscribe', [MembershipController::class, 'unsubscribe'])

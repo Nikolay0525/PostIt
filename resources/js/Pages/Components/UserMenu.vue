@@ -27,6 +27,7 @@ const initial = computed(() => name.value.charAt(0).toUpperCase());
         <template #default="{ close }">
             <p class="menu-heading" dir="auto">{{ name }}</p>
 
+            <Link :href="route('groups.create')" class="menu-item" @click="close">Create group</Link>
             <!-- No settings page yet. -->
             <Link href="#" class="menu-item" @click="close">Settings</Link>
             <Link :href="route('logout')" method="post" as="button" type="button" class="menu-item" @click="close">

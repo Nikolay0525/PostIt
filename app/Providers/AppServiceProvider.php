@@ -6,11 +6,13 @@ use App\Models\User;
 use App\Observers\UserObserver;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\VoteRepositoryInterface;
 use App\Repositories\Eloquent\EloquentCommentRepository;
 use App\Repositories\Eloquent\EloquentGroupRepository;
+use App\Repositories\Eloquent\EloquentLanguageRepository;
 use App\Repositories\Eloquent\EloquentPostRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Repositories\Eloquent\EloquentVoteRepository;
@@ -47,6 +49,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             VoteRepositoryInterface::class,
             EloquentVoteRepository::class
+        );
+
+        $this->app->bind(
+            LanguageRepositoryInterface::class,
+            EloquentLanguageRepository::class
         );
     }
 

@@ -23,7 +23,8 @@
  
   .btn-secondary {
     @apply rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition
-           hover:border-brand-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
+           hover:border-brand-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 
+           inline-flex items-center gap-2;
   }
   /* Danger: for a destructive action (delete, ban, remove). Base tone is intentionally the
      same red already used for errors elsewhere (not a louder/alarming shade); hover darkens it,
@@ -181,7 +182,7 @@
   /* Deliberately a different visual language from .vote-score (pill vs. plain number), so a
      genuinely contested item never looks like a freshly-posted, unvoted one — both can show "0". */
   .controversy-badge {
-    @apply ms-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700;
+    @apply ms-1 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700;
   }
   .vote-error {
     @apply ms-1 inline-flex items-center rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger;
@@ -224,6 +225,58 @@
   }
   .markdown-toolbar {
     @apply flex gap-2;
+  }
+  .field-hint {
+    @apply mt-1.5 text-xs text-muted;
+  }
+  /* Two-step form: both steps are rendered side by side in one track, and the track slides
+     left/right inside a clipped window. */
+  .wizard-header {
+    @apply flex flex-col gap-1;
+  }
+  .wizard-steps {
+    @apply flex items-center gap-1.5 text-sm text-muted;
+  }
+  .wizard-dot {
+    @apply h-2 w-2 rounded-full bg-line transition-colors;
+  }
+  .wizard-dot.is-active {
+    @apply bg-brand-600;
+  }
+  .wizard {
+    @apply overflow-hidden;
+  }
+  .wizard-track {
+    @apply flex items-start transition-transform duration-300 ease-in-out motion-reduce:transition-none;
+  }
+  .wizard-track.is-second {
+    @apply -translate-x-full;
+  }
+  /* The small padding keeps inputs' focus rings from being clipped by the window. */
+  .wizard-panel {
+    @apply flex w-full shrink-0 flex-col gap-5 p-1;
+  }
+  .wizard-panel.is-collapsed {
+    @apply h-0 overflow-hidden p-0;
+  }
+  .wizard-actions {
+    @apply flex items-center justify-between gap-3 border-t border-line pt-5;
+  }
+  .rule-editor-list {
+    @apply flex flex-col gap-4;
+  }
+  .rule-editor {
+    @apply rounded-xl border border-line bg-canvas p-3;
+  }
+  .rule-editor-head {
+    @apply mb-2 flex items-center justify-between;
+  }
+  .rule-editor-number {
+    @apply text-sm font-medium text-ink;
+  }
+  .rule-editor-remove {
+    @apply flex h-7 w-7 items-center justify-center rounded-lg text-xs text-muted transition
+           hover:bg-danger-soft hover:text-danger focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
   .markdown-toolbar-btn {
     @apply flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-white text-sm

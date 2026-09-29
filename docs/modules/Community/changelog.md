@@ -2,6 +2,17 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-29] [FEAT] Group creation — controller, routes and two-step page
+
+- `GroupController::create()`/`store()` behind `GET /groups/create` and `POST /groups` (`auth`, `throttle:10,1`), both gated by `GroupPolicy::create()`. `store()` is a regular Inertia redirect to the new group, like `PostController::store()`. Entry point: "Create group" in the account menu.
+- Added `LanguageRepositoryInterface`/`EloquentLanguageRepository` (`speakingLanguages()`) for the language picker, bound in `AppServiceProvider`. The page also receives the limits (slug length, rule count/lengths) from the backend constants, so the form's `maxlength`s can't drift from validation.
+- `Pages/Groups/Create.vue` is a two-step form on **one page**: step 1 = slug, name, description, language, private toggle; step 2 = rules (text + optional example, add/remove, up to 15). Both steps are rendered side by side in a track that slides left/right (`.wizard*` classes); nothing is reloaded between steps and the whole form is submitted once at the end.
+  - "Next" checks step 1 locally (required fields, slug pattern) before sliding. If the server still rejects a step-1 field — e.g. a slug taken meanwhile — the form slides back to step 1 so the error is visible.
+  - The hidden step is `inert` (not tabbable/announced) and collapses to zero height after the slide, so a long rules list doesn't leave blank space under step 1. The slide respects "reduce motion"; a timer (not `transitionend`, which never fires with transitions disabled) ends it.
+  - Focus moves into the step that just arrived; "+ Add rule" focuses the new rule. Completely empty rule rows are dropped on submit.
+- Verified in a headless browser against a throwaway DB: empty step 1 is blocked with errors, slide to step 2 and back, rules with examples saved and shown on the new group page, taken slug slides back with the server error, no horizontal overflow at phone width.
+- FR-COM-001 → Done (icon upload aside).
+
 ## [2026-09-29] [REFACTOR] Group language is a code
 
 - `groups.group_language_id` → `groups.language_code` (FK to `speaking_languages.code`, restrict on delete) — see `SharedKernel` changelog. `StoreGroupRequest` now validates `language_code` (must exist) instead of a UUID `group_language_id`; `GroupService::createGroup()`/`GroupRepositoryInterface::create()` take `$languageCode`.
