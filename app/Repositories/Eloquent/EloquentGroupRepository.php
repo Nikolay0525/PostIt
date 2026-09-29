@@ -27,13 +27,13 @@ class EloquentGroupRepository implements GroupRepositoryInterface
         return Group::where('slug', $slug)->exists();
     }
 
-    public function create(string $name, string $slug, string $description, string $languageId, bool $isPrivate): Group
+    public function create(string $name, string $slug, string $description, string $languageCode, bool $isPrivate): Group
     {
         return Group::create([
             'name' => $name,
             'slug' => $slug,
             'description' => $description,
-            'group_language_id' => $languageId,
+            'language_code' => $languageCode,
             'is_private' => $isPrivate,
         ]);
     }

@@ -53,15 +53,18 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Language tables are seeded reference data keyed by their standard code ('uk', 'en'),
+        // not a generated UUID: the code already identifies a language everywhere (browser
+        // Accept-Language, HTML lang, app locale) and stays the same on every machine.
         Schema::create('ui_languages', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('code', 10)->unique();
+            $table->string('code', 10)->primary();
             $table->string('name', 50)->unique();
             $table->boolean('is_active')->default(true);
         });
 
+        // ISO 639 code: 2 letters (639-1) where one exists, 3 letters (639-3) otherwise.
         Schema::create('speaking_languages', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->string('code', 3)->primary();
             $table->string('name', 50)->unique();
         });
 
@@ -69,8 +72,10 @@ return new class extends Migration
             $table->uuid('user_id')->primary();
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
 
-            $table->foreignUuid('ui_language_id')->constrained('ui_languages');
-            $table->foreignUuid('speaking_language_id')->constrained('speaking_languages');
+            $table->string('ui_language_code', 10);
+            $table->foreign('ui_language_code')->references('code')->on('ui_languages');
+            $table->string('speaking_language_code', 3);
+            $table->foreign('speaking_language_code')->references('code')->on('speaking_languages');
 
             $table->boolean('dark_theme')->default(false);
             $table->boolean('show_swear_words')->default(false);
@@ -149,7 +154,9 @@ return new class extends Migration
             $table->string('icon_url', 100)->nullable();
             $table->boolean('is_private')->default(false);
 
-            $table->foreignUuid('group_language_id')->constrained('speaking_languages')->cascadeOnDelete();
+            // Restrict, not cascade: removing a language must never silently delete its groups.
+            $table->string('language_code', 3);
+            $table->foreign('language_code')->references('code')->on('speaking_languages')->restrictOnDelete();
 
             $table->timestamps();
         });

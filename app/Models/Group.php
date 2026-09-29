@@ -18,7 +18,7 @@ class Group extends BaseEntity
         'name',
         'slug',
         'description',
-        'group_language_id',
+        'language_code',
         'icon_url',
         'is_private',
     ];
@@ -32,7 +32,7 @@ class Group extends BaseEntity
 
     public function language(): BelongsTo
     {
-        return $this->belongsTo(SpeakingLanguage::class, 'group_language_id');
+        return $this->belongsTo(SpeakingLanguage::class, 'language_code');
     }
 
     public function posts(): HasMany

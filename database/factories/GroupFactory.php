@@ -19,7 +19,7 @@ class GroupFactory extends Factory
             'description' => fake()->realText(100),
             'icon_url' => null,
             'is_private' => false,
-            'group_language_id' => SpeakingLanguage::factory(),
+            'language_code' => SpeakingLanguage::factory(),
         ];
     }
 

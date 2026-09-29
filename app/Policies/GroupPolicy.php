@@ -11,6 +11,15 @@ class GroupPolicy
     use ChecksGroupBans;
 
     /**
+     * Any verified user may found a group (and becomes its Owner). There is no group yet to be
+     * banned from; platform-wide bans aren't enforced by any policy yet.
+     */
+    public function create(User $user): bool
+    {
+        return $user->hasVerifiedEmail();
+    }
+
+    /**
      * A public group can be subscribed to directly; a private group only grants membership
      * through an approved GroupJoinRequest (not built yet), so subscribing to one is never
      * allowed here.

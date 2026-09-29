@@ -2,6 +2,25 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-29] [REFACTOR] Group language is a code
+
+- `groups.group_language_id` → `groups.language_code` (FK to `speaking_languages.code`, restrict on delete) — see `SharedKernel` changelog. `StoreGroupRequest` now validates `language_code` (must exist) instead of a UUID `group_language_id`; `GroupService::createGroup()`/`GroupRepositoryInterface::create()` take `$languageCode`.
+
+## [2026-09-29] [FEAT] Group creation — policy and form request
+
+- `GroupPolicy::create()`: any verified user. Platform-wide bans (`platform_bans`) aren't enforced by this or any other policy yet — a general gap, not specific to groups.
+- `StoreGroupRequest`: name ≤ 50, description ≤ 250, slug (required, ≤ 30, `GroupService::SLUG_PATTERN`, unique), `group_language_id` must exist, `is_private` boolean, `rules` optional list of `{text, example?}`. Like `StorePostRequest`, `authorize()` is shape-only; the controller will call the policy.
+- The slug is trimmed and lowercased before validation, so `" Retro-Gaming "` becomes `retro-gaming` instead of being rejected for casing; anything else outside the pattern (Cyrillic, `a--b`, leading hyphen) is still rejected.
+- **Provisional rule limits** (the "set with FR-COM-001" decision from earlier today): up to 15 rules, text ≤ 100, example ≤ 300 characters — 15 rules and a 100-character rule title match Reddit's own limits. Easy to change; they're constants on the request.
+
+## [2026-09-29] [DOCS] How a member actually becomes a Guardian
+
+- Recorded the wiring behind the 0.1.1 Guardian design as three separate stages: `VoteCast` → `contribution_score`/pool; a **scheduled** random draw → `GuardianOffer`; acceptance → `GuardianshipService::acceptOffer()` → `addModerator(Guardian)`. Points never grant the role directly.
+- Decided the offer is made by a scheduled job, not when a member crosses the threshold: offering on crossing would reward whoever crosses first (the popularity race the random draw is meant to prevent) and would offer the role even to groups that don't need more Guardians.
+- Added the planned `GuardianOffer` entity — the design needed a place to keep an offer's expiry and outcome, which also makes the open "re-offer after a decline?" question answerable later.
+- Guardianship data gets its own `GuardianshipRepositoryInterface`; `GroupRepositoryInterface::addModerator()` stays the only way a role row is written, with three intended callers (create group → Owner, transfer → Owner, accept offer → Guardian).
+- Noted the dependency: none of this can start until `VoteService` emits `VoteCast`.
+
 ## [2026-09-29] [FEAT] Group creation — repository and service
 
 - Added `groups.slug` to the initial migration (unique, ≤ 30): the slug decision from 0.1.7 is now in the schema, since group creation needs it as an input and adding it later would mean changing these signatures again. Routing still uses the UUID — switching URLs to the slug is a separate step. Seeded groups got hand-picked slugs (`laravel`, `hiking`, `home-cooking`, `retro-gaming`, `book-club`); the factory generates random valid ones.

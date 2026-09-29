@@ -43,7 +43,7 @@ class GroupService
         string $slug,
         string $description,
         array $rules,
-        string $languageId,
+        string $languageCode,
         bool $isPrivate,
     ): Group {
         if (strlen($slug) > self::SLUG_MAX_LENGTH || ! preg_match(self::SLUG_PATTERN, $slug)) {
@@ -54,8 +54,8 @@ class GroupService
             throw new InvalidArgumentException("Group slug [{$slug}] is already taken.");
         }
 
-        return DB::transaction(function () use ($ownerId, $name, $slug, $description, $rules, $languageId, $isPrivate) {
-            $group = $this->groupRepository->create($name, $slug, $description, $languageId, $isPrivate);
+        return DB::transaction(function () use ($ownerId, $name, $slug, $description, $rules, $languageCode, $isPrivate) {
+            $group = $this->groupRepository->create($name, $slug, $description, $languageCode, $isPrivate);
 
             $this->groupRepository->addRuleVersion($group->id, array_map(fn (array $rule) => [
                 'text' => $rule['text'],

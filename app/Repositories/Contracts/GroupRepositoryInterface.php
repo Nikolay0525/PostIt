@@ -21,7 +21,7 @@ interface GroupRepositoryInterface
 
     public function slugExists(string $slug): bool;
 
-    public function create(string $name, string $slug, string $description, string $languageId, bool $isPrivate): Group;
+    public function create(string $name, string $slug, string $description, string $languageCode, bool $isPrivate): Group;
 
     /**
      * Stores a new, immutable snapshot of the group's rules; it becomes the current version.

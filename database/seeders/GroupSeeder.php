@@ -13,7 +13,7 @@ class GroupSeeder extends Seeder
 {
     public function run(): void
     {
-        $languageIds = SpeakingLanguage::pluck('id');
+        $languageCodes = SpeakingLanguage::pluck('code');
         $userIds = User::pluck('id');
 
         $groups = [
@@ -45,7 +45,7 @@ class GroupSeeder extends Seeder
                     'slug' => $slug,
                     'description' => $description,
                     'is_private' => $isPrivate,
-                    'group_language_id' => $languageIds->random(),
+                    'language_code' => $languageCodes->random(),
                 ]);
 
             if (! $group->ruleVersions()->exists()) {
