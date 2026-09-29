@@ -23,12 +23,15 @@ class GroupController extends Controller
         protected LanguageRepositoryInterface $languageRepository
     ) {}
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
         $this->authorize('create', Group::class);
 
         return Inertia::render('Groups/Create', [
             'languages' => $this->languageRepository->speakingLanguages(),
+            // Pre-select a language the creator speaks rather than whatever sorts first.
+            'default_language_code' => $request->user()->speakingLanguages()->value('code')
+                ?? config('app.default_speaking_language_code', 'uk'),
             'limits' => [
                 'slug' => GroupService::SLUG_MAX_LENGTH,
                 'rules' => StoreGroupRequest::MAX_RULES,

@@ -5,6 +5,7 @@ import TextInput from '@/Pages/Components/TextInput.vue';
 
 const props = defineProps({
     languages: Array,
+    default_language_code: String,
     limits: Object,
 });
 
@@ -16,7 +17,7 @@ const form = useForm({
     slug: '',
     name: '',
     description: '',
-    language_code: props.languages[0]?.code ?? '',
+    language_code: props.default_language_code ?? '',
     is_private: false,
     rules: [{ text: '', example: '' }],
 });
@@ -175,7 +176,7 @@ const submit = () => {
                                 :class="{ 'has-error': form.errors.language_code }"
                             >
                                 <option v-for="language in languages" :key="language.code" :value="language.code">
-                                    {{ language.name }}
+                                    {{ language.native_name === language.name ? language.name : `${language.name} — ${language.native_name}` }}
                                 </option>
                             </select>
                             <p v-if="form.errors.language_code" class="field-error">{{ form.errors.language_code }}</p>

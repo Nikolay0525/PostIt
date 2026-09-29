@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\GroupService;
 use Database\Seeders\LanguageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -60,12 +61,23 @@ class GroupControllerTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Groups/Create')
-                ->has('languages', 2)
-                ->where('languages.0.code', 'en') // ordered by name: English, Ukrainian
+                ->has('languages', 183)
+                ->where('languages.0.name', 'Abkhazian') // ordered by English name
+                // A factory user speaks no language yet, so the configured default is pre-selected.
+                ->where('default_language_code', config('app.default_speaking_language_code'))
                 ->where('limits.slug', GroupService::SLUG_MAX_LENGTH)
                 ->where('limits.rules', StoreGroupRequest::MAX_RULES)
                 ->where('limits.rule_text', StoreGroupRequest::RULE_TEXT_MAX_LENGTH)
                 ->where('limits.rule_example', StoreGroupRequest::RULE_EXAMPLE_MAX_LENGTH));
+    }
+
+    public function test_the_create_page_pre_selects_a_language_the_user_speaks(): void
+    {
+        $user = User::factory()->create();
+        DB::table('user_speaking_languages')->insert(['user_id' => $user->id, 'language_code' => 'de']);
+
+        $this->actingAs($user)->get('/groups/-/create')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('default_language_code', 'de'));
     }
 
     public function test_a_verified_user_can_create_a_group_and_becomes_its_owner_and_member(): void

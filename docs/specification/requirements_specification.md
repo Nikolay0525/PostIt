@@ -72,8 +72,8 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-ACC-005 | The system shall allow a user to log out, invalidating the session. | M | Done | T |
 | FR-ACC-006 | The system shall allow a user to request a password reset link, limited to 5 requests per minute, with an identical response for existing and unknown emails. | M | Done | T |
 | FR-ACC-007 | The system shall allow a user to set a new password using a valid reset token. | M | Done | T |
-| FR-ACC-008 | The system shall let a user manage settings: UI language, speaking language, dark theme, swear-word filter, adult-content display, cookies, and whether direct messages are allowed. | S | Partial | D |
-| FR-ACC-009 | The system shall allow adult-content display to be enabled only for users aged 18 or older. | M | Planned | T |
+| FR-ACC-008 | The system shall let a user manage settings: UI language, speaking language, dark theme, swear-word filter, adult-content display, cookies, and whether direct messages are allowed. *(0.1.8)* Settings page built; a user may speak **several** languages (0–10), pre-filled at registration from the browser. Dark theme, swear-word filter, cookies and messages are stored but not yet acted on. | S | Done | T |
+| FR-ACC-009 | The system shall allow adult-content display to be enabled only for users aged 18 or older. *(0.1.8)* Enforced on save. | M | Done | T |
 | FR-ACC-010 | The system shall let a user follow and unfollow other users, but not themselves. | S | Partial | T |
 | FR-ACC-011 | The system shall let a user block and unblock other users, but not themselves, and shall hide blocked users' content from the blocker. | S | Partial | T |
 | FR-ACC-012 | The system shall maintain per-user counters (posts, comments, groups joined, reports sent, positive and negative votes) and karma. | S | Partial | T |

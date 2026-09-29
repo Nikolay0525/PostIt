@@ -19,7 +19,8 @@
 | Entity | Basic Fields | Description | Invariants |
 |---|---|---|---|
 | `User` *(Aggregate Root, extends `BaseEntity`)* | id, name, email, password, email_verified_at, date_of_birth, … | A registered account holder. | - Email is unique and must be verified before verified-only actions.<br>- Password is stored hashed only.<br>- `isAdult()` is true when age ≥ 18 (from `date_of_birth`).<br>- Deleting a user cascades to owned data (settings, counters, subscriptions). |
-| `UserSettings` *(owned by `User`, PK = `user_id`)* | user_id, ui_language_code, speaking_language_code, dark_theme, show_swear_words, show_adult_content, enable_cookies, allow_messages | Personal preferences. Exactly one per user. | - One row per user.<br>- Language codes must reference existing languages (*0.1.8:* codes, not UUIDs; defaults from `config('app.default_ui_language_code')`/`default_speaking_language_code`).<br>- *(0.1.8, planned)* A single required speaking language will become an optional **list** (link table), used to recommend groups in those languages.<br>- `show_adult_content` may only be enabled for adult users. |
+| `UserSettings` *(owned by `User`, PK = `user_id`)* | user_id, ui_language_code, dark_theme, show_swear_words, show_adult_content, enable_cookies, allow_messages | Personal preferences. Exactly one per user. | - One row per user.<br>- `ui_language_code` must reference an active UI language (default `config('app.default_ui_language_code')`).<br>- `show_adult_content` may only be enabled for adult users — *(0.1.8)* enforced by `UpdateSettingsRequest` (422) and `SettingsService` (invariant guard).<br>- *(0.1.8)* Dark theme, swear-word filter, cookies and direct messages are **stored but not yet acted on** — the features that read them don't exist yet. |
+| User speaking languages *(0.1.8, link `user_speaking_languages`)* | user_id, language_code | Languages the user speaks — used to recommend groups in them. | - Optional list, 0 … 10 languages, no duplicates, each must exist in `speaking_languages`.<br>- At registration pre-filled from the browser's `Accept-Language` (regions collapse onto the language: `en-US` → `en`; unknown codes skipped; at most 5), falling back to `config('app.default_speaking_language_code')`. Users created any other way (seeders, factories) start with none.<br>- Replaced as a whole on save. |
 | `UserCounters` *(owned by `User`, PK = `user_id`)* | user_id, posts_created, comments_created, groups_connected, reports_sent, positive_votes, negative_votes, karma | Denormalised activity statistics used for karma and achievements. Exactly one per user. | - One row per user.<br>- Counters are non-negative integers.<br>- Counters change only through application services reacting to activity. |
 | `UserUserSubscription` *(link)* | user_follower_id, user_author_id, created_at | "Follower follows author". | - Unique pair (follower, author).<br>- A user cannot follow themselves.<br>- No `updated_at`. |
 | `BlockedUser` *(link)* | user_id, blocked_user_id, created_at | "User blocks another user". | - Unique pair.<br>- A user cannot block themselves.<br>- Blocked user's content is hidden from the blocker. |
@@ -48,7 +49,8 @@
 | Service | Operation |
 |---|---|
 | `AuthService` | `register`, `attemptLogin`, `logout`, `sendResetLink`, `resetPassword`, `resendVerification`. Depends on `UserRepositoryInterface`. |
-| `UserRepositoryInterface` *(contract)* | `create`, `updatePassword` (persistence contract implemented in `Repositories/`). |
+| `UserRepositoryInterface` *(contract)* | `create`, `updatePassword`; *(0.1.8)* `findForSettings`, `updateSettings`, `syncSpeakingLanguages` (persistence contract implemented in `Repositories/`). |
+| `SettingsService` *(0.1.8)* | `getSettings`, `updateSettings` — saves preferences and replaces speaking languages in one transaction; rejects adult content for a minor. Behind `GET`/`PATCH /settings` (`SettingsController`, `UpdateSettingsRequest`), page `Pages/Settings/Edit.vue`, reachable from the account menu. |
 
 ## Domain Events
 
@@ -65,7 +67,7 @@ Currently implemented as controller actions on `AuthController`: `register`, `lo
 
 ### Models
 - `User` — relations: `followers`, `achievements`, `subscribedGroups`, `moderatedGroups`, `posts`, `comments`, `platformBans`, `groupBans`, `submittedReports`, `groupJoinRequests`.
-- `UserSettings` — PK `user_id` (string, non-incrementing); belongs to `UILanguage`, `SpeakingLanguage`.
+- `UserSettings` — PK `user_id` (string, non-incrementing); belongs to `UiLanguage`; boolean casts on the toggles. *(0.1.8)* No speaking-language column — see `User::speakingLanguages()` (`user_speaking_languages`).
 - `UserCounters` — PK `user_id`.
 - `UserUserSubscription`, `BlockedUser` — link tables, composite PK, `created_at` only.
 

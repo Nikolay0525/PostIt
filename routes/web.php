@@ -6,6 +6,7 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\VoteController;
 use App\Services\GroupService;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +46,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:6,1')->name('verification.send');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
+    Route::patch('/settings', [SettingsController::class, 'update'])
+        ->middleware('throttle:30,1')->name('settings.update');
 
     Route::post('/votes', [VoteController::class, 'store'])
         ->middleware('throttle:60,1')->name('votes.store');

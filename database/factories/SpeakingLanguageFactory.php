@@ -16,6 +16,7 @@ class SpeakingLanguageFactory extends Factory
         return [
             'code' => fake()->unique()->regexify('[a-z]{3}'),
             'name' => fake()->unique()->word(),
+            'native_name' => fake()->word(),
         ];
     }
 }

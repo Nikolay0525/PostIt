@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -26,11 +27,12 @@ class SpeakingLanguage extends Model
     protected $fillable = [
         'code',
         'name',
+        'native_name',
     ];
 
-    public function userSettings(): HasMany
+    public function speakers(): BelongsToMany
     {
-        return $this->hasMany(UserSettings::class, 'speaking_language_code');
+        return $this->belongsToMany(User::class, 'user_speaking_languages', 'language_code', 'user_id', 'code', 'id');
     }
 
     public function groups(): HasMany

@@ -63,9 +63,12 @@ return new class extends Migration
         });
 
         // ISO 639 code: 2 letters (639-1) where one exists, 3 letters (639-3) otherwise.
+        // Seeded from database/data/languages.json. `name` is English (sorting, search);
+        // `native_name` is the language's own name, readable to its speakers in any UI language.
         Schema::create('speaking_languages', function (Blueprint $table) {
             $table->string('code', 3)->primary();
             $table->string('name', 50)->unique();
+            $table->string('native_name', 50);
         });
 
         Schema::create('user_settings', function (Blueprint $table) {
@@ -74,8 +77,6 @@ return new class extends Migration
 
             $table->string('ui_language_code', 10);
             $table->foreign('ui_language_code')->references('code')->on('ui_languages');
-            $table->string('speaking_language_code', 3);
-            $table->foreign('speaking_language_code')->references('code')->on('speaking_languages');
 
             $table->boolean('dark_theme')->default(false);
             $table->boolean('show_swear_words')->default(false);
@@ -84,6 +85,15 @@ return new class extends Migration
             $table->boolean('allow_messages')->default(true);
 
             $table->timestamps();
+        });
+
+        // A user may speak several languages, or none; used to recommend groups in them.
+        Schema::create('user_speaking_languages', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('language_code', 3);
+            $table->foreign('language_code')->references('code')->on('speaking_languages')->cascadeOnDelete();
+
+            $table->primary(['user_id', 'language_code']);
         });
 
         Schema::create('user_user_subscriptions', function (Blueprint $table) {
@@ -302,6 +312,7 @@ return new class extends Migration
         Schema::dropIfExists('groups');
         Schema::dropIfExists('user_counters');
         Schema::dropIfExists('user_settings');
+        Schema::dropIfExists('user_speaking_languages');
         Schema::dropIfExists('speaking_languages');
         Schema::dropIfExists('ui_languages');
         Schema::dropIfExists('user_user_subscriptions');
