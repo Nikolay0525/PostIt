@@ -2,6 +2,18 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-29] [FEAT] Versioned group rules — step 3 (examples on the group page)
+
+- The group page shows a rule's `example`, when it has one, on its own line under the rule as smaller muted italic text (`Example: …`, `.group-rule-example`) — always visible rather than collapsed, since an example is a single line and hiding it behind a click would defeat its purpose of removing ambiguity. A rule without an example renders as before.
+- Remaining: moderation actions citing `(rule_version_id, index)` — deferred until moderation actions exist; editing rules (creating a new version) comes with group management (FR-COM-014).
+
+## [2026-09-29] [FEAT] Versioned group rules — step 2 (rules live only in versions)
+
+- Removed `groups.rules` from the initial migration and the `Group` model: a group's rules now exist only in `group_rule_versions`, so there is one source of truth instead of a column that could drift from the newest version.
+- `GroupSeeder` creates each seeded group's first rule version, with examples on the rules that benefit from one; `GroupFactory` no longer produces rules (a factory group has no rule version unless a test adds one).
+- Renamed `GroupRepositoryInterface::findWithMembersCount()` → `findForGroupPage()`, since it now also eager-loads `currentRuleVersion`; `GroupResource` returns `rules` as that version's `[{text, example}]` list, or `[]` for a group without one.
+- The group page shows only each rule's `text` for now — rendering `example` is step 3.
+
 ## [2026-09-29] [FEAT] Versioned group rules — step 1 (table + model)
 
 - **Correction to the entry below:** the separate `2026_09_29_000000_convert_group_rules_to_json_list` migration was deleted; `groups.rules` is now created as `json` directly in the initial migration. The project is still pre-release and the local DB gets rebuilt with `migrate:fresh --seed`, so a data-converting migration isn't needed.

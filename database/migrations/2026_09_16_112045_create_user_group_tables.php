@@ -143,7 +143,6 @@ return new class extends Migration
 
             $table->string('name', 50);
             $table->string('description', 250);
-            $table->json('rules');
             $table->string('icon_url', 100)->nullable();
             $table->boolean('is_private')->default(false);
 
@@ -152,6 +151,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // A group's rules live only here — its current rules are its newest version.
         // Immutable: editing a group's rules adds a new version instead of updating a row,
         // so an appealed moderation action can be judged against the rules it was taken under.
         Schema::create('group_rule_versions', function (Blueprint $table) {

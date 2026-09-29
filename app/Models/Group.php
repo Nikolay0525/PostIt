@@ -17,7 +17,6 @@ class Group extends BaseEntity
     protected $fillable = [
         'name',
         'description',
-        'rules',
         'group_language_id',
         'icon_url',
         'is_private',
@@ -27,7 +26,6 @@ class Group extends BaseEntity
     {
         return [
             'is_private' => 'boolean',
-            'rules' => 'array',
         ];
     }
 

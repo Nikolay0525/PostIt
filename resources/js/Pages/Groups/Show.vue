@@ -114,7 +114,10 @@ const toggleJoin = async () => {
             <div v-if="group.rules?.length" class="group-rules">
                 <p class="font-medium text-ink">Rules</p>
                 <ol class="group-rules-list">
-                    <li v-for="(rule, index) in group.rules" :key="index" dir="auto">{{ rule }}</li>
+                    <li v-for="(rule, index) in group.rules" :key="index" dir="auto">
+                        {{ rule.text }}
+                        <span v-if="rule.example" class="group-rule-example">Example: {{ rule.example }}</span>
+                    </li>
                 </ol>
             </div>
 

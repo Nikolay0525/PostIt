@@ -190,7 +190,10 @@
     @apply w-full text-sm leading-relaxed text-muted;
   }
   .group-rules-list {
-    @apply mt-1 list-decimal space-y-0.5 ps-5;
+    @apply mt-1 list-decimal space-y-1 ps-5;
+  }
+  .group-rule-example {
+    @apply block text-xs italic text-muted;
   }
   .comment-node {
     @apply flex flex-col gap-3;

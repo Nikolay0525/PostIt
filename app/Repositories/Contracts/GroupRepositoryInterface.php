@@ -7,15 +7,15 @@ use App\Models\Group;
 interface GroupRepositoryInterface
 {
     /**
-     * Plain lookup by id, without the members_count aggregate findWithMembersCount() loads.
+     * Plain lookup by id, without the display data findForGroupPage() loads.
      * Used where the group itself is needed (e.g. authorization checks), not its display data.
      */
     public function find(string $id): ?Group;
 
     /**
-     * The returned group carries the aggregate members_count.
+     * The returned group carries the aggregate members_count and its currentRuleVersion.
      */
-    public function findWithMembersCount(string $id): ?Group;
+    public function findForGroupPage(string $id): ?Group;
 
     public function isMember(string $groupId, string $userId): bool;
 

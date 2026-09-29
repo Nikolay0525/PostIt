@@ -17,7 +17,7 @@ class GroupService
      */
     public function getGroup(string $id): Group
     {
-        return $this->groupRepository->findWithMembersCount($id)
+        return $this->groupRepository->findForGroupPage($id)
             ?? throw (new ModelNotFoundException)->setModel(Group::class, [$id]);
     }
 

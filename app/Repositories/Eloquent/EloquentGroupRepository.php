@@ -14,9 +14,9 @@ class EloquentGroupRepository implements GroupRepositoryInterface
         return Group::find($id);
     }
 
-    public function findWithMembersCount(string $id): ?Group
+    public function findForGroupPage(string $id): ?Group
     {
-        return Group::withCount('members')->find($id);
+        return Group::withCount('members')->with('currentRuleVersion')->find($id);
     }
 
     public function isMember(string $groupId, string $userId): bool

@@ -17,11 +17,25 @@ class GroupSeeder extends Seeder
         $userIds = User::pluck('id');
 
         $groups = [
-            ['Laravel Developers', 'Tips, questions and showcases for people building with Laravel.', ['Be kind.', 'No spam.', 'Put the Laravel version in questions.'], false],
-            ['Hiking & Trails', 'Routes, photos and gear advice from people who love the outdoors.', ['Share your route details.', 'Leave no trace.'], false],
-            ['Home Cooking', 'Recipes and kitchen tricks from everyday cooks.', ['Credit the original author.', 'No ads.'], false],
-            ['Retro Gaming', 'Old consoles, cartridges and the games we still love.', ['No piracy links.'], false],
-            ['Private Book Club', 'A small invite-only group for monthly book discussions.', ['Keep spoilers behind a warning.'], true],
+            ['Laravel Developers', 'Tips, questions and showcases for people building with Laravel.', [
+                ['Be kind.', null],
+                ['No spam.', 'Posting the same link to your course in several threads.'],
+                ['Put the Laravel version in questions.', '"[Laravel 13] Queue job fails silently on Redis"'],
+            ], false],
+            ['Hiking & Trails', 'Routes, photos and gear advice from people who love the outdoors.', [
+                ['Share your route details.', 'Start point, distance, elevation gain and how long it took you.'],
+                ['Leave no trace.', null],
+            ], false],
+            ['Home Cooking', 'Recipes and kitchen tricks from everyday cooks.', [
+                ['Credit the original author.', '"Adapted from Grandma\'s notebook" or a link to the source recipe.'],
+                ['No ads.', null],
+            ], false],
+            ['Retro Gaming', 'Old consoles, cartridges and the games we still love.', [
+                ['No piracy links.', 'ROM download sites, torrent magnets or "DM me for the file".'],
+            ], false],
+            ['Private Book Club', 'A small invite-only group for monthly book discussions.', [
+                ['Keep spoilers behind a warning.', 'Start the post with "SPOILERS (ch. 1–12)" before discussing the plot.'],
+            ], true],
         ];
 
         foreach ($groups as [$name, $description, $rules, $isPrivate]) {
@@ -29,10 +43,15 @@ class GroupSeeder extends Seeder
                 ?? Group::factory()->create([
                     'name' => $name,
                     'description' => $description,
-                    'rules' => $rules,
                     'is_private' => $isPrivate,
                     'group_language_id' => $languageIds->random(),
                 ]);
+
+            if (! $group->ruleVersions()->exists()) {
+                $group->ruleVersions()->create([
+                    'rules' => array_map(fn (array $rule) => ['text' => $rule[0], 'example' => $rule[1]], $rules),
+                ]);
+            }
 
             // Members: a random subset of users. The first one also owns the group.
             $memberIds = $userIds->shuffle()->take(random_int(3, $userIds->count()));

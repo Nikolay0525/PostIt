@@ -16,7 +16,6 @@ class GroupFactory extends Factory
         return [
             'name' => fake()->unique()->words(3, true),
             'description' => fake()->realText(100),
-            'rules' => fake()->sentences(3),
             'icon_url' => null,
             'is_private' => false,
             'group_language_id' => SpeakingLanguage::factory(),
