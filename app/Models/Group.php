@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Group extends BaseEntity
 {
@@ -26,6 +27,7 @@ class Group extends BaseEntity
     {
         return [
             'is_private' => 'boolean',
+            'rules' => 'array',
         ];
     }
 
@@ -37,6 +39,16 @@ class Group extends BaseEntity
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class, 'group_id');
+    }
+
+    public function ruleVersions(): HasMany
+    {
+        return $this->hasMany(GroupRuleVersion::class, 'group_id');
+    }
+
+    public function currentRuleVersion(): HasOne
+    {
+        return $this->hasOne(GroupRuleVersion::class, 'group_id')->latestOfMany(['created_at', 'id']);
     }
 
     public function bans(): HasMany

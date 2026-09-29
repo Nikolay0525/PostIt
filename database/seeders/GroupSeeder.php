@@ -17,11 +17,11 @@ class GroupSeeder extends Seeder
         $userIds = User::pluck('id');
 
         $groups = [
-            ['Laravel Developers', 'Tips, questions and showcases for people building with Laravel.', 'Be kind. No spam. Put the Laravel version in questions.', false],
-            ['Hiking & Trails', 'Routes, photos and gear advice from people who love the outdoors.', 'Share your route details. Leave no trace.', false],
-            ['Home Cooking', 'Recipes and kitchen tricks from everyday cooks.', 'Credit the original author. No ads.', false],
-            ['Retro Gaming', 'Old consoles, cartridges and the games we still love.', 'No piracy links.', false],
-            ['Private Book Club', 'A small invite-only group for monthly book discussions.', 'Keep spoilers behind a warning.', true],
+            ['Laravel Developers', 'Tips, questions and showcases for people building with Laravel.', ['Be kind.', 'No spam.', 'Put the Laravel version in questions.'], false],
+            ['Hiking & Trails', 'Routes, photos and gear advice from people who love the outdoors.', ['Share your route details.', 'Leave no trace.'], false],
+            ['Home Cooking', 'Recipes and kitchen tricks from everyday cooks.', ['Credit the original author.', 'No ads.'], false],
+            ['Retro Gaming', 'Old consoles, cartridges and the games we still love.', ['No piracy links.'], false],
+            ['Private Book Club', 'A small invite-only group for monthly book discussions.', ['Keep spoilers behind a warning.'], true],
         ];
 
         foreach ($groups as [$name, $description, $rules, $isPrivate]) {

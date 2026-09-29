@@ -111,8 +111,12 @@ const toggleJoin = async () => {
             >{{ buttonLabel }}</button>
 
             <p class="group-desc" dir="auto">{{ group.description }}</p>
-            <!-- TODO: rules will become an array instead of one string; render as a list then. -->
-            <p class="group-rules" dir="auto"><span class="font-medium text-ink">Rules:</span> {{ group.rules }}</p>
+            <div v-if="group.rules?.length" class="group-rules">
+                <p class="font-medium text-ink">Rules</p>
+                <ol class="group-rules-list">
+                    <li v-for="(rule, index) in group.rules" :key="index" dir="auto">{{ rule }}</li>
+                </ol>
+            </div>
 
             <p v-if="subscribeError" class="vote-error w-full" :title="subscribeError">⚠ {{ subscribeError }}</p>
 

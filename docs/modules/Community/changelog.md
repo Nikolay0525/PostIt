@@ -2,6 +2,20 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-29] [FEAT] Versioned group rules — step 1 (table + model)
+
+- **Correction to the entry below:** the separate `2026_09_29_000000_convert_group_rules_to_json_list` migration was deleted; `groups.rules` is now created as `json` directly in the initial migration. The project is still pre-release and the local DB gets rebuilt with `migrate:fresh --seed`, so a data-converting migration isn't needed.
+- Decided how rule versioning (FR-MOD-011) is stored: a `group_rule_versions` table of **immutable** snapshots, each holding the whole list as JSON `[{text, example}]` — not one row per rule. Rules are only ever read as a whole list of one version, and immutability means every edit copies the whole list anyway, so per-rule rows would add JOINs and ordering for no benefit. A moderation action will cite `(rule_version_id, index)`, which stays valid because a snapshot never changes.
+- Added an optional `example` per rule, to make a rule's intent less ambiguous.
+- Built step 1 only: the table (in the initial migration), `GroupRuleVersion` model/factory, and `Group::ruleVersions()`/`currentRuleVersion()`. Nothing reads or writes versions yet — `groups.rules` is still what the group page shows. Next steps: seed versions and drop `groups.rules`; group page reads the current version (with examples); moderation actions cite a rule once moderation exists.
+
+## [2026-09-29] [FEAT] Group rules are a list of strings
+
+- `Group.rules` changed from a single `string(250)` to a JSON list of strings (`array` cast on the model), so each rule is its own item and the group page renders them as a numbered list instead of one run-on sentence.
+- New migration `2026_09_29_000000_convert_group_rules_to_json_list` converts existing rows in place: each old string becomes a **one-item** list — deliberately not split on sentence boundaries, which would be guessing. Reversible (`down()` joins the items back into one string).
+- `GroupFactory`/`GroupSeeder` now produce real lists. Seeded groups that already exist locally keep their one-item list, since the seeder skips existing groups.
+- The old 250-character limit applied to the whole text; a per-rule limit and a max number of rules are left open until group creation (FR-COM-001) adds validation.
+
 ## [2026-09-28] [DOCS] Group slug will be typed by the creator, not generated
 
 - Confirmed FR-COM-009's design: a group's slug is entered **manually**, in Latin script, at group-creation time — not auto-generated from `name` the way a post's slug now is (`Content` 0.1.7). Reasoning: a group's slug is a stable, chosen identity (closer to a subreddit name than to a post's incidental one), and `name` can be in any language/script, so an auto-generated slug would either mangle it (transliteration) or need the same non-Latin-preserving approach just built for posts — deliberately not reused here, since "readable in the post's own language" and "a deliberately chosen, stable, Latin identifier" are different goals.

@@ -189,6 +189,9 @@
   .group-rules {
     @apply w-full text-sm leading-relaxed text-muted;
   }
+  .group-rules-list {
+    @apply mt-1 list-decimal space-y-0.5 ps-5;
+  }
   .comment-node {
     @apply flex flex-col gap-3;
   }

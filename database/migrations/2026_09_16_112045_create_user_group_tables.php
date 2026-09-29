@@ -143,15 +143,28 @@ return new class extends Migration
 
             $table->string('name', 50);
             $table->string('description', 250);
-            $table->string('rules', 250);
+            $table->json('rules');
             $table->string('icon_url', 100)->nullable();
             $table->boolean('is_private')->default(false);
 
             $table->foreignUuid('group_language_id')->constrained('speaking_languages')->cascadeOnDelete();
-            
+
             $table->timestamps();
         });
-    
+
+        // Immutable: editing a group's rules adds a new version instead of updating a row,
+        // so an appealed moderation action can be judged against the rules it was taken under.
+        Schema::create('group_rule_versions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->foreignUuid('group_id')->constrained('groups')->cascadeOnDelete();
+            $table->json('rules');
+
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->index(['group_id', 'created_at']);
+        });
+
         Schema::create('images', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
@@ -173,7 +186,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('sender_id')->constrained('users')->cascadeOnDelete();
             $table->foreignUuid('receiver_id')->constrained('users')->cascadeOnDelete();
-            
+
             $table->uuid('group_id')->nullable();
             $table->foreign('group_id')->references('id')->on('groups')->nullOnDelete();
 
@@ -272,6 +285,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
+        Schema::dropIfExists('group_rule_versions');
         Schema::dropIfExists('groups');
         Schema::dropIfExists('user_counters');
         Schema::dropIfExists('user_settings');
