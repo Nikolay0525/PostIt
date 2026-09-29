@@ -2,7 +2,9 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Enums\GroupModeratorRole;
 use App\Models\Group;
+use App\Models\GroupRuleVersion;
 
 interface GroupRepositoryInterface
 {
@@ -16,6 +18,19 @@ interface GroupRepositoryInterface
      * The returned group carries the aggregate members_count and its currentRuleVersion.
      */
     public function findForGroupPage(string $id): ?Group;
+
+    public function slugExists(string $slug): bool;
+
+    public function create(string $name, string $slug, string $description, string $languageId, bool $isPrivate): Group;
+
+    /**
+     * Stores a new, immutable snapshot of the group's rules; it becomes the current version.
+     *
+     * @param  list<array{text: string, example: ?string}>  $rules
+     */
+    public function addRuleVersion(string $groupId, array $rules): GroupRuleVersion;
+
+    public function addModerator(string $groupId, string $userId, GroupModeratorRole $role): void;
 
     public function isMember(string $groupId, string $userId): bool;
 

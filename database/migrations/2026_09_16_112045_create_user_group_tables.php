@@ -142,6 +142,9 @@ return new class extends Migration
             $table->uuid('id')->primary();
 
             $table->string('name', 50);
+            // Typed by the creator in Latin script; the unique index is the last line of
+            // defence against two groups claiming the same slug at once.
+            $table->string('slug', 30)->unique();
             $table->string('description', 250);
             $table->string('icon_url', 100)->nullable();
             $table->boolean('is_private')->default(false);

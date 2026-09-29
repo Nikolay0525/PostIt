@@ -16,6 +16,7 @@ class Group extends BaseEntity
 
     protected $fillable = [
         'name',
+        'slug',
         'description',
         'group_language_id',
         'icon_url',

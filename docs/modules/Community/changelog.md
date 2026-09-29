@@ -2,6 +2,14 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-29] [FEAT] Group creation — repository and service
+
+- Added `groups.slug` to the initial migration (unique, ≤ 30): the slug decision from 0.1.7 is now in the schema, since group creation needs it as an input and adding it later would mean changing these signatures again. Routing still uses the UUID — switching URLs to the slug is a separate step. Seeded groups got hand-picked slugs (`laravel`, `hiking`, `home-cooking`, `retro-gaming`, `book-club`); the factory generates random valid ones.
+- `GroupRepositoryInterface`: `slugExists()`, `create()`, `addRuleVersion()`, `addModerator()` (composite PK → query-builder `insert()`, like `subscribe()`). `GroupRuleVersion` and `GroupModerator` live in this repository because they only exist under a group (repository per aggregate).
+- `GroupService::createGroup()` validates the slug (`SLUG_PATTERN`, `SLUG_MAX_LENGTH` — public constants so the upcoming form request can reuse them instead of duplicating the regex) and wraps group + first rule version + Owner + membership in one DB transaction. Verified the rollback: a failure on the Owner insert leaves no group behind.
+- The service-level slug checks are an invariant guard, not the user-facing validation: the form request (next step) is expected to catch a bad/taken slug first and return a 422, and the unique index catches a race between two simultaneous creations.
+- Icon upload is left out (`icon_url` stays null) — there is no image upload yet.
+
 ## [2026-09-29] [FEAT] Versioned group rules — step 3 (examples on the group page)
 
 - The group page shows a rule's `example`, when it has one, on its own line under the rule as smaller muted italic text (`Example: …`, `.group-rule-example`) — always visible rather than collapsed, since an example is a single line and hiding it behind a click would defeat its purpose of removing ambiguity. A rule without an example renders as before.

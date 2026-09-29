@@ -17,31 +17,32 @@ class GroupSeeder extends Seeder
         $userIds = User::pluck('id');
 
         $groups = [
-            ['Laravel Developers', 'Tips, questions and showcases for people building with Laravel.', [
+            ['Laravel Developers', 'laravel', 'Tips, questions and showcases for people building with Laravel.', [
                 ['Be kind.', null],
                 ['No spam.', 'Posting the same link to your course in several threads.'],
                 ['Put the Laravel version in questions.', '"[Laravel 13] Queue job fails silently on Redis"'],
             ], false],
-            ['Hiking & Trails', 'Routes, photos and gear advice from people who love the outdoors.', [
+            ['Hiking & Trails', 'hiking', 'Routes, photos and gear advice from people who love the outdoors.', [
                 ['Share your route details.', 'Start point, distance, elevation gain and how long it took you.'],
                 ['Leave no trace.', null],
             ], false],
-            ['Home Cooking', 'Recipes and kitchen tricks from everyday cooks.', [
+            ['Home Cooking', 'home-cooking', 'Recipes and kitchen tricks from everyday cooks.', [
                 ['Credit the original author.', '"Adapted from Grandma\'s notebook" or a link to the source recipe.'],
                 ['No ads.', null],
             ], false],
-            ['Retro Gaming', 'Old consoles, cartridges and the games we still love.', [
+            ['Retro Gaming', 'retro-gaming', 'Old consoles, cartridges and the games we still love.', [
                 ['No piracy links.', 'ROM download sites, torrent magnets or "DM me for the file".'],
             ], false],
-            ['Private Book Club', 'A small invite-only group for monthly book discussions.', [
+            ['Private Book Club', 'book-club', 'A small invite-only group for monthly book discussions.', [
                 ['Keep spoilers behind a warning.', 'Start the post with "SPOILERS (ch. 1–12)" before discussing the plot.'],
             ], true],
         ];
 
-        foreach ($groups as [$name, $description, $rules, $isPrivate]) {
-            $group = Group::where('name', $name)->first()
+        foreach ($groups as [$name, $slug, $description, $rules, $isPrivate]) {
+            $group = Group::where('slug', $slug)->first()
                 ?? Group::factory()->create([
                     'name' => $name,
+                    'slug' => $slug,
                     'description' => $description,
                     'is_private' => $isPrivate,
                     'group_language_id' => $languageIds->random(),

@@ -2,7 +2,10 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Enums\GroupModeratorRole;
 use App\Models\Group;
+use App\Models\GroupModerator;
+use App\Models\GroupRuleVersion;
 use App\Models\UserGroupSubscription;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +20,42 @@ class EloquentGroupRepository implements GroupRepositoryInterface
     public function findForGroupPage(string $id): ?Group
     {
         return Group::withCount('members')->with('currentRuleVersion')->find($id);
+    }
+
+    public function slugExists(string $slug): bool
+    {
+        return Group::where('slug', $slug)->exists();
+    }
+
+    public function create(string $name, string $slug, string $description, string $languageId, bool $isPrivate): Group
+    {
+        return Group::create([
+            'name' => $name,
+            'slug' => $slug,
+            'description' => $description,
+            'group_language_id' => $languageId,
+            'is_private' => $isPrivate,
+        ]);
+    }
+
+    public function addRuleVersion(string $groupId, array $rules): GroupRuleVersion
+    {
+        return GroupRuleVersion::create([
+            'group_id' => $groupId,
+            'rules' => $rules,
+        ]);
+    }
+
+    // Composite primary key, same workaround as subscribe() below.
+    public function addModerator(string $groupId, string $userId, GroupModeratorRole $role): void
+    {
+        GroupModerator::query()->insert([
+            'group_id' => $groupId,
+            'user_id' => $userId,
+            'role' => $role->value,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     public function isMember(string $groupId, string $userId): bool
