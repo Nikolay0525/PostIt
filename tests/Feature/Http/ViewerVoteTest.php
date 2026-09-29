@@ -27,13 +27,16 @@ class ViewerVoteTest extends TestCase
         $post = Post::factory()->create();
         Vote::factory()->onPost($post)->create(['user_id' => $voter->id, 'positive' => true]);
 
-        $this->actingAs($voter)->get("/posts/{$post->id}")
-            ->assertInertia(fn ($page) => $page->where('post.viewer_vote', true));
+        $url = route('posts.show', [$post->group->slug, $post->slug]);
 
-        $this->actingAs($otherUser)->get("/posts/{$post->id}")
+        // Guest first: actingAs() stays in effect for the rest of the test.
+        $this->get($url)
             ->assertInertia(fn ($page) => $page->where('post.viewer_vote', null));
 
-        $this->get("/posts/{$post->id}")
+        $this->actingAs($voter)->get($url)
+            ->assertInertia(fn ($page) => $page->where('post.viewer_vote', true));
+
+        $this->actingAs($otherUser)->get($url)
             ->assertInertia(fn ($page) => $page->where('post.viewer_vote', null));
     }
 
@@ -43,7 +46,7 @@ class ViewerVoteTest extends TestCase
         $post = Post::factory()->create();
         Vote::factory()->onPost($post)->create(['user_id' => $voter->id, 'positive' => false]);
 
-        $this->actingAs($voter)->get("/groups/{$post->group_id}")
+        $this->actingAs($voter)->get(route('groups.show', $post->group->slug))
             ->assertInertia(fn ($page) => $page->where('posts.data.0.viewer_vote', false));
     }
 

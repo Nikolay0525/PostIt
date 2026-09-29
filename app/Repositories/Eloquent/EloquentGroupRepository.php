@@ -17,9 +17,14 @@ class EloquentGroupRepository implements GroupRepositoryInterface
         return Group::find($id);
     }
 
-    public function findForGroupPage(string $id): ?Group
+    public function findBySlug(string $slug): ?Group
     {
-        return Group::withCount('members')->with('currentRuleVersion')->find($id);
+        return Group::where('slug', $slug)->first();
+    }
+
+    public function findForGroupPage(string $slug): ?Group
+    {
+        return Group::withCount('members')->with('currentRuleVersion')->where('slug', $slug)->first();
     }
 
     public function slugExists(string $slug): bool

@@ -2,6 +2,13 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-29] [FEAT] Post URLs use the post slug
+
+- A post's URL is now `/groups/{group slug}/posts/{post slug}` instead of `/posts/{uuid}`; the post slug keeps its random 6-char suffix (decided: no "-2, -3" numbering), e.g. `/groups/home-cooking/posts/борщ-з-пампушками-a1b2c3`.
+- Added `unique(group_id, slug)` to `posts` (initial migration): the slug now identifies the post in its group, so it must be unique there. `PostService::createPost()` retries with a new suffix if the index ever rejects a clash, instead of querying first.
+- `PostRepositoryInterface`: `findWithStats($id)` → `findWithStatsBySlug($groupId, $slug)`, `randomIdForGroup()` → `randomSlugForGroup()`; `PostService::getPost()` → `getPostBySlug()`, `getRandomPostId()` → `getRandomPostSlug()`. `PostResource` exposes `slug` and `group.slug`; all post links in `PostCard`/`Posts/Show`/`Posts/Create` build URLs from them.
+- The create-post page moved to `/groups/{slug}/-/create-post` (service pages under `/-/`, see `Community` changelog).
+
 ## [2026-09-28] [FIX] Post slugs keep their own script instead of transliterating
 
 - Replaced `Str::slug()` in `PostService::generateSlug()` with a hand-written `unicodeSlug()`: verified `Str::slug()` returns an empty string for Hebrew/Chinese/Japanese/Korean titles, and a near-unreadable transliteration for Arabic. The replacement keeps any Unicode letter/number as-is and only turns whitespace/punctuation into `-` — the same technique Reddit uses for non-Latin post slugs, relying on URL paths supporting non-ASCII text (RFC 3987) rather than trying to force everything into `[a-z0-9-]`.

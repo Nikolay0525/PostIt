@@ -174,7 +174,7 @@
     @apply inline-flex items-center gap-1.5;
   }
   .vote-group {
-    @apply inline-flex items-center gap-1.5;
+    @apply inline-flex items-center;
   }
   .vote-score {
     @apply min-w-6 text-center font-medium text-ink;

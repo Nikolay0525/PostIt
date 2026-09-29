@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Str;
 
 class PostService
@@ -15,17 +16,19 @@ class PostService
 
     private const TRENDING_DAYS = 7;
 
+    private const SLUG_ATTEMPTS = 3;
+
     public function __construct(
         protected PostRepositoryInterface $postRepository
     ) {}
 
     /**
-     * @throws ModelNotFoundException when the post does not exist or was deleted
+     * @throws ModelNotFoundException when the group has no such post, or it was deleted
      */
-    public function getPost(string $id, ?string $viewerId = null): Post
+    public function getPostBySlug(string $groupId, string $slug, ?string $viewerId = null): Post
     {
-        return $this->postRepository->findWithStats($id, $viewerId)
-            ?? throw (new ModelNotFoundException)->setModel(Post::class, [$id]);
+        return $this->postRepository->findWithStatsBySlug($groupId, $slug, $viewerId)
+            ?? throw (new ModelNotFoundException)->setModel(Post::class, [$slug]);
     }
 
     public function getGroupPosts(string $groupId, PostSort $sort = PostSort::Newest, ?string $viewerId = null): LengthAwarePaginator
@@ -43,19 +46,30 @@ class PostService
         return $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE, $viewerId);
     }
 
+    // `(group_id, slug)` is unique, since the slug addresses the post in its URL. A clash of the
+    // random suffix is practically impossible (36^6 per title), so rather than checking first we
+    // let the unique index reject it and simply try another suffix.
     public function createPost(string $groupId, string $userId, ?string $title, string $article): Post
     {
-        return $this->postRepository->create($groupId, $userId, $title, $article, $this->generateSlug($title, $article));
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                return $this->postRepository->create($groupId, $userId, $title, $article, $this->generateSlug($title, $article));
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt >= self::SLUG_ATTEMPTS) {
+                    throw $e;
+                }
+            }
+        }
     }
 
-    public function getRandomPostId(string $groupId): ?string
+    public function getRandomPostSlug(string $groupId): ?string
     {
-        return $this->postRepository->randomIdForGroup($groupId);
+        return $this->postRepository->randomSlugForGroup($groupId);
     }
 
-    // A random suffix sidesteps the missing uniqueness constraint on `posts.slug` (see tech
-    // notes) without a lookup query; the fallback to 'post' covers a title/article that slugifies
-    // to nothing, e.g. one written entirely in emoji.
+    // The random suffix keeps two posts with the same title in one group apart without a lookup
+    // query; the fallback to 'post' covers a title/article that slugifies to nothing, e.g. one
+    // written entirely in emoji.
     private function generateSlug(?string $title, string $article): string
     {
         $source = $title ?: Str::words($article, 8, '');

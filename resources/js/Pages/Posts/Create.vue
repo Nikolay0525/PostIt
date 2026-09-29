@@ -43,7 +43,7 @@ const submit = () => {
     <Head :title="` | New post`" />
 
     <section class="feed">
-        <Link :href="route('groups.show', group.id)" class="back-link" dir="auto">
+        <Link :href="route('groups.show', group.slug)" class="back-link" dir="auto">
             <span class="back-arrow" aria-hidden="true">←</span> Back to {{ group.name }}
         </Link>
 

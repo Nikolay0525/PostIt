@@ -49,7 +49,7 @@ const submitComment = async () => {
     <Head :title="` | ${post.title ?? post.author.name}`" />
 
     <section class="feed">
-        <Link :href="route('groups.show', post.group_id)" class="back-link" dir="auto">
+        <Link :href="route('groups.show', post.group.slug)" class="back-link" dir="auto">
             <span class="back-arrow" aria-hidden="true">←</span> Back to {{ post.group.name }}
         </Link>
 

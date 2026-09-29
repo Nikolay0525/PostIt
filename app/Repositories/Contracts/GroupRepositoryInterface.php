@@ -15,9 +15,14 @@ interface GroupRepositoryInterface
     public function find(string $id): ?Group;
 
     /**
-     * The returned group carries the aggregate members_count and its currentRuleVersion.
+     * Plain lookup by the slug used in page URLs.
      */
-    public function findForGroupPage(string $id): ?Group;
+    public function findBySlug(string $slug): ?Group;
+
+    /**
+     * By slug; the returned group carries the aggregate members_count and its currentRuleVersion.
+     */
+    public function findForGroupPage(string $slug): ?Group;
 
     public function slugExists(string $slug): bool;
 

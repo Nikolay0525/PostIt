@@ -54,13 +54,13 @@ class GroupController extends Controller
             $request->boolean('is_private'),
         );
 
-        return redirect()->route('groups.show', $group->id);
+        return redirect()->route('groups.show', $group->slug);
     }
 
-    public function show(Request $request, string $id): Response
+    public function show(Request $request, string $groupSlug): Response
     {
         // Throws ModelNotFoundException (rendered as 404) when the group does not exist.
-        $group = $this->groupService->getGroup($id);
+        $group = $this->groupService->getGroupBySlug($groupSlug);
 
         $viewerId = $request->user()?->id;
         $isMember = $this->groupService->isMember($group->id, $viewerId);

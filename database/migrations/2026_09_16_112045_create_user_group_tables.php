@@ -243,6 +243,9 @@ return new class extends Migration
             $table->boolean('is_deleted')->default(false);
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
+
+            // The post's URL is /groups/{group slug}/posts/{post slug}.
+            $table->unique(['group_id', 'slug']);
         });
 
         Schema::create('comments', function (Blueprint $table) {

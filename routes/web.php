@@ -7,17 +7,21 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\VoteController;
+use App\Services\GroupService;
 use Illuminate\Support\Facades\Route;
+
+// Page URLs use slugs: /groups/{groupSlug} and /groups/{groupSlug}/posts/{postSlug}. A group slug
+// can never be a bare "-", so service pages live under /groups/-/… (and /groups/{slug}/-/…) and
+// can't collide with a group, whatever it's named. Background JSON endpoints keep the UUID.
+Route::pattern('groupSlug', GroupService::SLUG_ROUTE_PATTERN);
+Route::pattern('postSlug', '[^/]+');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Public pages: anyone can read, interactions are gated in the UI (and later on the server).
-Route::get('/posts/{id}', [PostController::class, 'show'])
-    ->whereUuid('id')->name('posts.show');
-Route::get('/groups/{id}', [GroupController::class, 'show'])
-    ->whereUuid('id')->name('groups.show');
-Route::get('/groups/{id}/random-post', [PostController::class, 'random'])
-    ->whereUuid('id')->name('groups.random_post');
+Route::get('/groups/{groupSlug}', [GroupController::class, 'show'])->name('groups.show');
+Route::get('/groups/{groupSlug}/random-post', [PostController::class, 'random'])->name('groups.random_post');
+Route::get('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'show'])->name('posts.show');
 
 Route::middleware(['guest'])->group(function () {
     Route::inertia('/login', 'Auth/Login')->name('login');
@@ -48,12 +52,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/comments', [CommentController::class, 'store'])
         ->middleware('throttle:60,1')->name('comments.store');
 
-    Route::get('/groups/{id}/posts/create', [PostController::class, 'create'])
-        ->whereUuid('id')->name('posts.create');
+    Route::get('/groups/{groupSlug}/-/create-post', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])
         ->middleware('throttle:60,1')->name('posts.store');
 
-    Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
+    Route::get('/groups/-/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])
         ->middleware('throttle:10,1')->name('groups.store');
 

@@ -29,9 +29,9 @@ class EloquentPostRepository implements PostRepositoryInterface
         ]);
     }
 
-    public function findWithStats(string $id, ?string $viewerId = null): ?Post
+    public function findWithStatsBySlug(string $groupId, string $slug, ?string $viewerId = null): ?Post
     {
-        return $this->withStats($viewerId)->find($id);
+        return $this->withStats($viewerId)->where('group_id', $groupId)->where('slug', $slug)->first();
     }
 
     public function paginateForGroup(string $groupId, PostSort $sort, int $perPage, ?string $viewerId = null): LengthAwarePaginator
@@ -47,13 +47,13 @@ class EloquentPostRepository implements PostRepositoryInterface
         return $query->paginate($perPage);
     }
 
-    public function randomIdForGroup(string $groupId): ?string
+    public function randomSlugForGroup(string $groupId): ?string
     {
         return Post::query()
             ->where('group_id', $groupId)
             ->where('is_deleted', false)
             ->inRandomOrder()
-            ->value('id');
+            ->value('slug');
     }
 
     public function paginateTrending(int $days, int $perPage, ?string $viewerId = null): LengthAwarePaginator
@@ -80,7 +80,7 @@ class EloquentPostRepository implements PostRepositoryInterface
     private function withStats(?string $viewerId = null): Builder
     {
         $query = Post::query()
-            ->with(['author:id,name', 'group:id,name,is_private'])
+            ->with(['author:id,name', 'group:id,name,slug,is_private'])
             ->withCount([
                 'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true),
                 'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false),

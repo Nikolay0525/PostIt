@@ -24,6 +24,7 @@ class PostResource extends JsonResource
         return [
             'id' => $this->id,
             'group_id' => $this->group_id,
+            'slug' => $this->slug,
             'title' => $this->title,
             // Raw Markdown source, kept for a future edit form; display uses the two below.
             'article' => $this->article,
@@ -37,7 +38,7 @@ class PostResource extends JsonResource
             // true = viewer upvoted, false = downvoted, null = no vote (or a guest).
             'viewer_vote' => $this->viewer_vote === null ? null : (bool) $this->viewer_vote,
             'author' => ['id' => $this->author->id, 'name' => $this->author->name],
-            'group' => ['id' => $this->group->id, 'name' => $this->group->name],
+            'group' => ['id' => $this->group->id, 'slug' => $this->group->slug, 'name' => $this->group->name],
         ];
     }
 }

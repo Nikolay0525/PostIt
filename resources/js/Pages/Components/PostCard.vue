@@ -22,7 +22,7 @@ const showLoginPrompt = ref(false);
 
             <!-- dir="auto" lets each piece of user text align by its own language -->
             <p class="post-meta-text">
-                <Link :href="route('groups.show', post.group_id)" class="post-group" dir="auto">{{ post.group.name }}</Link>
+                <Link :href="route('groups.show', post.group.slug)" class="post-group" dir="auto">{{ post.group.name }}</Link>
                 <span aria-hidden="true"> · </span>
                 <time :datetime="post.created_at">{{ timeAgo(post.created_at) }}</time>
                 <br />
@@ -32,7 +32,7 @@ const showLoginPrompt = ref(false);
 
         <h2 v-if="post.title" class="post-title" dir="auto">
             <span v-if="full">{{ post.title }}</span>
-            <Link v-else :href="route('posts.show', post.id)" class="post-link">{{ post.title }}</Link>
+            <Link v-else :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ post.title }}</Link>
         </h2>
 
         <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown) —
@@ -40,7 +40,7 @@ const showLoginPrompt = ref(false);
         <div v-if="full" class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
         <!-- Without a title the preview itself is the link to the post. -->
         <p v-else class="post-body" :class="{ 'mt-4': !post.title }" dir="auto">
-            <Link v-if="!post.title" :href="route('posts.show', post.id)" class="post-link">{{ preview }}</Link>
+            <Link v-if="!post.title" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ preview }}</Link>
             <template v-else>{{ preview }}</template>
         </p>
 
@@ -57,7 +57,7 @@ const showLoginPrompt = ref(false);
             />
 
             <Link
-                :href="route('posts.show', post.id)"
+                :href="route('posts.show', [post.group.slug, post.slug])"
                 class="post-stat post-action"
             ><svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +75,7 @@ const showLoginPrompt = ref(false);
                 />
             </svg> {{ post.comments_count }}</Link>
 
-            <Link v-if="!full" :href="route('posts.show', post.id)" class="post-more">See full post</Link>
+            <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-more">See full post</Link>
         </footer>
 
         <p v-if="showLoginPrompt" class="post-login-prompt">

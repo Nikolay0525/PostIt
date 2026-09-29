@@ -25,7 +25,7 @@ const sorts = [
 const changeSort = (key) => {
     if (key === props.sort) return;
 
-    router.get(`/groups/${props.group.id}`, { sort: key }, {
+    router.get(route('groups.show', props.group.slug), { sort: key }, {
         only: ['posts', 'sort'],
         reset: ['posts'],
         preserveState: true,
@@ -139,7 +139,7 @@ const toggleJoin = async () => {
         <template v-else>
             <div class="feed-toolbar">
                 <div class="flex flex-wrap items-center gap-3">
-                    <Link v-if="canPost" :href="route('posts.create', group.id)" class="btn-primary">+ Create post</Link>
+                    <Link v-if="canPost" :href="route('posts.create', group.slug)" class="btn-primary">+ Create post</Link>
                     <p v-else-if="!page.props.auth.user" class="text-sm text-muted">
                         <Link :href="route('login')" class="auth-link">Log in</Link>
                         or
@@ -151,7 +151,7 @@ const toggleJoin = async () => {
                     </p>
 
                     <Link
-                        :href="route('groups.random_post', group.id)"
+                        :href="route('groups.random_post', group.slug)"
                         class="btn-secondary"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"

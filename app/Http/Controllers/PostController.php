@@ -22,32 +22,36 @@ class PostController extends Controller
         protected GroupRepositoryInterface $groupRepository
     ) {}
 
-    public function show(Request $request, string $id): Response
+    public function show(Request $request, string $groupSlug, string $postSlug): Response
     {
+        $group = $this->groupRepository->findBySlug($groupSlug);
+
+        abort_if($group === null, 404);
+
         $viewerId = $request->user()?->id;
 
-        // Throws ModelNotFoundException (rendered as 404) when the post does not exist.
-        $post = $this->postService->getPost($id, $viewerId);
+        // Throws ModelNotFoundException (rendered as 404) when the group has no such post.
+        $post = $this->postService->getPostBySlug($group->id, $postSlug, $viewerId);
 
         return Inertia::render('Posts/Show', [
             'post' => new PostResource($post),
             // Merged page by page by the <InfiniteScroll> component on the client.
             'comments' => Inertia::scroll(
-                fn () => CommentResource::collection($this->commentService->getPostThreads($id, $viewerId))
+                fn () => CommentResource::collection($this->commentService->getPostThreads($post->id, $viewerId))
             ),
         ]);
     }
 
-    public function create(string $groupId): Response
+    public function create(string $groupSlug): Response
     {
-        $group = $this->groupRepository->find($groupId);
+        $group = $this->groupRepository->findBySlug($groupSlug);
 
         abort_if($group === null, 404);
 
         $this->authorize('create', [Post::class, $group]);
 
         return Inertia::render('Posts/Create', [
-            'group' => ['id' => $group->id, 'name' => $group->name],
+            'group' => ['id' => $group->id, 'slug' => $group->slug, 'name' => $group->name],
         ]);
     }
 
@@ -69,18 +73,22 @@ class PostController extends Controller
             $request->validated('article')
         );
 
-        return redirect()->route('posts.show', $post->id);
+        return redirect()->route('posts.show', [$group->slug, $post->slug]);
     }
 
     // Read-only, so it's public like show()/groups.show — not gated behind auth. Does not check
     // private-group visibility: posts.show itself doesn't yet either (FR-COM-006 is still
     // "Partial"), so this endpoint isn't the odd one out — closing that gap is a separate task.
-    public function random(string $groupId): RedirectResponse
+    public function random(string $groupSlug): RedirectResponse
     {
-        $postId = $this->postService->getRandomPostId($groupId);
+        $group = $this->groupRepository->findBySlug($groupSlug);
 
-        abort_if($postId === null, 404);
+        abort_if($group === null, 404);
 
-        return redirect()->route('posts.show', $postId);
+        $postSlug = $this->postService->getRandomPostSlug($group->id);
+
+        abort_if($postSlug === null, 404);
+
+        return redirect()->route('posts.show', [$group->slug, $postSlug]);
     }
 }

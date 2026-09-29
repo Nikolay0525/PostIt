@@ -16,12 +16,15 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 interface PostRepositoryInterface
 {
     /**
-     * Plain lookup by id, without the author/group/aggregate loading findWithStats() does.
+     * Plain lookup by id, without the author/group/aggregate loading findWithStatsBySlug() does.
      * Used where the post itself is needed (e.g. authorization checks), not its display data.
      */
     public function find(string $id): ?Post;
 
-    public function findWithStats(string $id, ?string $viewerId = null): ?Post;
+    /**
+     * By the post's slug, which is unique within its group (used in page URLs).
+     */
+    public function findWithStatsBySlug(string $groupId, string $slug, ?string $viewerId = null): ?Post;
 
     public function paginateForGroup(string $groupId, PostSort $sort, int $perPage, ?string $viewerId = null): LengthAwarePaginator;
 
@@ -41,7 +44,7 @@ interface PostRepositoryInterface
     public function create(string $groupId, string $userId, ?string $title, string $article, string $slug): Post;
 
     /**
-     * A random, non-deleted post id from the group, or null when it has none. For "I'm feeling lucky".
+     * A random, non-deleted post's slug from the group, or null when it has none. For "I'm feeling lucky".
      */
-    public function randomIdForGroup(string $groupId): ?string;
+    public function randomSlugForGroup(string $groupId): ?string;
 }

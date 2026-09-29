@@ -2,6 +2,16 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-29] [FEAT] Page URLs use slugs; service pages under `/-/`
+
+- Groups are now addressed by slug: `/groups/home-cooking`, `/groups/home-cooking/random-post`; posts by group slug + post slug: `/groups/home-cooking/posts/борщ-з-пампушками-a1b2c3` (see `Content` changelog). Old `/groups/{uuid}` and `/posts/{uuid}` URLs are gone (404) — pre-release, no external links to preserve.
+- **Service pages live under a `-` segment**: `/groups/-/create` (create group), `/groups/{slug}/-/create-post`. A group slug can never be a bare `-` (`SLUG_PATTERN` requires a letter/digit at both ends), so a service page can't collide with a group *whatever* it is named — including a group literally called `create`, which now works at `/groups/create`. Chosen over a list of reserved slugs (easy to forget one) and over `/groups/actions/create` (`actions` itself is a valid slug, so that only postpones the collision). Same idea as GitLab's `/-/` separator.
+- The `{groupSlug}` route constraint is `GroupService::SLUG_ROUTE_PATTERN` — the same pattern the validation uses, so routing and validation can't drift apart.
+- Background JSON endpoints keep the UUID (`POST`/`DELETE /groups/{id}/subscribe`): they never appear in the address bar.
+- `GroupRepositoryInterface`: added `findBySlug()`; `findForGroupPage()` now takes the slug. `GroupService::getGroup($id)` → `getGroupBySlug($slug)`. `GroupResource` exposes `slug`.
+- Added `SlugRoutingTest` (9 cases): group/post pages by slug, unknown slug and old UUID URL → 404, a group named `create` vs. `/groups/-/create`, a Cyrillic post slug through a percent-encoded URL, a post slug only resolving inside its own group, deleted post → 404, random-post and post-creation redirects to slug URLs, the per-group uniqueness of post slugs. Updated `GroupControllerTest`/`ViewerVoteTest` to the new URLs (and fixed `ViewerVoteTest`'s guest check, which ran after `actingAs()` and so was never actually a guest).
+- Verified in a headless browser: post links on the group page carry the Cyrillic slug, clicking one opens the post, back link, sort and "I'm feeling lucky" all stay on slug URLs.
+
 ## [2026-09-29] [FEAT] Group creation — controller, routes and two-step page
 
 - `GroupController::create()`/`store()` behind `GET /groups/create` and `POST /groups` (`auth`, `throttle:10,1`), both gated by `GroupPolicy::create()`. `store()` is a regular Inertia redirect to the new group, like `PostController::store()`. Entry point: "Create group" in the account menu.
@@ -12,6 +22,7 @@ Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
   - Focus moves into the step that just arrived; "+ Add rule" focuses the new rule. Completely empty rule rows are dropped on submit.
 - Verified in a headless browser against a throwaway DB: empty step 1 is blocked with errors, slide to step 2 and back, rules with examples saved and shown on the new group page, taken slug slides back with the server error, no horizontal overflow at phone width.
 - FR-COM-001 → Done (icon upload aside).
+- Added `GroupControllerTest` (14 cases): create page for guest/unverified/verified (with languages and limits), successful creation (Owner, membership, first rule version, redirect, rules shown on the group page), slug trimming/lowercasing, private flag, optional rules, taken slug, slugs outside the Latin pattern or over 30 characters, required fields and unknown language, rule text/count/example limits, guest and unverified rejections. The limits are asserted through the same constants the code uses.
 
 ## [2026-09-29] [REFACTOR] Group language is a code
 

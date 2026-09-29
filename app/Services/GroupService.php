@@ -12,7 +12,11 @@ use InvalidArgumentException;
 class GroupService
 {
     // Lowercase Latin letters and digits, words joined by single hyphens: "retro-gaming".
-    public const SLUG_PATTERN = '/^[a-z0-9]+(?:-[a-z0-9]+)*$/';
+    // Also the route constraint for {groupSlug}: since a slug can never be a bare "-", service
+    // pages live under /groups/-/… and /groups/{slug}/-/… and can't collide with any group.
+    public const SLUG_ROUTE_PATTERN = '[a-z0-9]+(?:-[a-z0-9]+)*';
+
+    public const SLUG_PATTERN = '/^'.self::SLUG_ROUTE_PATTERN.'$/';
 
     public const SLUG_MAX_LENGTH = 30;
 
@@ -23,10 +27,10 @@ class GroupService
     /**
      * @throws ModelNotFoundException when the group does not exist
      */
-    public function getGroup(string $id): Group
+    public function getGroupBySlug(string $slug): Group
     {
-        return $this->groupRepository->findForGroupPage($id)
-            ?? throw (new ModelNotFoundException)->setModel(Group::class, [$id]);
+        return $this->groupRepository->findForGroupPage($slug)
+            ?? throw (new ModelNotFoundException)->setModel(Group::class, [$slug]);
     }
 
     /**
