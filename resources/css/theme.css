@@ -11,10 +11,41 @@
   --color-muted: #64748b;
   --color-line: #e4e9f2;
   --color-canvas: #f6f9fd;
+  /* Cards, inputs, menus: the layer above the canvas. */
+  --color-surface: #ffffff;
 
   --color-danger: #dc2626;
   --color-danger-700: #b91c1c;
   --color-danger-soft: #fef2f2;
+
+  --color-warning: #b45309;
+  --color-warning-soft: #fffbeb;
+}
+
+/* Dark theme: the same tokens, redefined. <html data-theme> is set before first paint by
+   resources/views/partials/theme-script.blade.php. Brand shades are lighter here, since
+   brand-600/700 are used as text on dark surfaces; brand-50/100 become tinted dark fills. */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-brand-50: #16233d;
+  --color-brand-100: #1f3358;
+  --color-brand-500: #5b8ef0;
+  --color-brand-600: #4479e6;
+  --color-brand-700: #8fb2f6;
+
+  --color-ink: #e6ebf3;
+  --color-muted: #94a3b8;
+  --color-line: #263246;
+  --color-canvas: #0d1320;
+  --color-surface: #151c2b;
+
+  --color-danger: #f87171;
+  --color-danger-700: #ef4444;
+  --color-danger-soft: #3a1618;
+
+  --color-warning: #fbbf24;
+  --color-warning-soft: #3a2a0c;
 }
 
 @layer base {

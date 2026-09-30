@@ -16,5 +16,7 @@ return [
     'sent' => 'Sent',
     'notifications' => 'Notifications',
     'unread' => 'Unread',
+    'theme_to_dark' => 'Switch to dark theme',
+    'theme_to_light' => 'Switch to light theme',
 
 ];

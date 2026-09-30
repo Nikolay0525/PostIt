@@ -1,12 +1,13 @@
 <script setup>
 import InboxMenu from '@/Pages/Components/InboxMenu.vue';
 import NotificationsMenu from '@/Pages/Components/NotificationsMenu.vue';
+import ThemeToggle from '@/Pages/Components/ThemeToggle.vue';
 import UserMenu from '@/Pages/Components/UserMenu.vue';
 </script>
 
 <template>
     <div class="min-h-screen bg-canvas text-ink">
-        <header class="border-b border-line bg-white">
+        <header class="border-b border-line bg-surface">
             <nav class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-8">
                     <Link :href="route('home')" class="brand-mark">
@@ -37,6 +38,7 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
                 </form>
 
                 <div class="flex items-center gap-4">
+                    <ThemeToggle />
                     <template v-if="$page.props.auth.user">
                         <InboxMenu />
                         <NotificationsMenu />
