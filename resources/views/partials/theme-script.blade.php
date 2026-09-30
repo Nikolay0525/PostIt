@@ -102,7 +102,14 @@
         window.PostItTheme = {
             isDark: isDark,
             toggle: toggle,
+            mode: function () {
+                return state.mode;
+            },
+            // Called by app.js after every visit with the user's saved settings.
             configure: function (mode, manualDark) {
+                if (mode === state.mode && manualDark === state.manualDark) return;
+                // A new mode starts clean: an override made under the old one no longer applies.
+                if (mode !== state.mode) writeOverride(null);
                 state.mode = mode;
                 state.manualDark = manualDark;
                 apply();

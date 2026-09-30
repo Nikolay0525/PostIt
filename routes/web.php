@@ -50,6 +50,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])
         ->middleware('throttle:30,1')->name('settings.update');
+    Route::patch('/settings/theme', [SettingsController::class, 'updateTheme'])
+        ->middleware('throttle:60,1')->name('settings.theme');
 
     Route::post('/votes', [VoteController::class, 'store'])
         ->middleware('throttle:60,1')->name('votes.store');

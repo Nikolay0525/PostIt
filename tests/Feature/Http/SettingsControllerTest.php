@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http;
 
+use App\Enums\ThemeMode;
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Models\User;
 use App\Models\UserSettings;
@@ -27,7 +28,7 @@ class SettingsControllerTest extends TestCase
         return array_merge([
             'ui_language_code' => 'en',
             'speaking_languages' => ['uk', 'de'],
-            'dark_theme' => true,
+            'theme_mode' => 'clock',
             'show_swear_words' => true,
             'show_adult_content' => false,
             'enable_cookies' => true,
@@ -65,6 +66,7 @@ class SettingsControllerTest extends TestCase
                 ->where('settings.ui_language_code', 'uk')
                 ->where('settings.speaking_languages', ['uk'])
                 ->where('settings.allow_messages', true)
+                ->where('settings.theme_mode', 'browser')
                 ->where('settings.show_adult_content', false)
                 ->where('can_enable_adult_content', true)
                 ->has('ui_languages', 2)
@@ -82,7 +84,7 @@ class SettingsControllerTest extends TestCase
 
         $settings = UserSettings::find($user->id);
         $this->assertSame('en', $settings->ui_language_code);
-        $this->assertTrue($settings->dark_theme);
+        $this->assertSame(ThemeMode::Clock, $settings->theme_mode);
         $this->assertTrue($settings->show_swear_words);
         $this->assertTrue($settings->enable_cookies);
         $this->assertFalse($settings->allow_messages);
@@ -176,5 +178,52 @@ class SettingsControllerTest extends TestCase
 
         $user = User::where('email', 'max@example.com')->firstOrFail();
         $this->assertSame([config('app.default_speaking_language_code')], $this->speakingCodes($user));
+    }
+
+    public function test_an_unknown_theme_mode_is_rejected(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->patch('/settings', $this->payload(['theme_mode' => 'sunset']))
+            ->assertSessionHasErrors('theme_mode');
+
+        $this->assertSame(ThemeMode::Browser, UserSettings::find($user->id)->theme_mode);
+    }
+
+    public function test_the_navbar_button_saves_the_manual_theme_without_changing_the_mode(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->patchJson('/settings/theme', ['dark' => true])->assertNoContent();
+
+        $settings = UserSettings::find($user->id);
+        $this->assertTrue($settings->dark_theme);
+        $this->assertSame(ThemeMode::Browser, $settings->theme_mode);
+
+        $this->actingAs($user)->patchJson('/settings/theme', [])->assertUnprocessable();
+    }
+
+    public function test_a_guest_cannot_save_a_theme(): void
+    {
+        $this->patchJson('/settings/theme', ['dark' => true])->assertUnauthorized();
+    }
+
+    public function test_the_saved_theme_reaches_the_page_before_and_after_first_paint(): void
+    {
+        $user = User::factory()->create();
+        $user->settings->update(['theme_mode' => ThemeMode::Manual, 'dark_theme' => true]);
+
+        // <html> attributes feed the inline theme script; the shared prop feeds later visits.
+        $this->actingAs($user)->get('/settings')
+            ->assertSee('data-theme-mode="manual"', false)
+            ->assertSee('data-theme-manual="dark"', false)
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('theme', ['mode' => 'manual', 'dark' => true]));
+    }
+
+    public function test_a_guest_gets_no_saved_theme(): void
+    {
+        $this->get('/login')
+            ->assertDontSee('data-theme-mode', false)
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('theme', null));
     }
 }

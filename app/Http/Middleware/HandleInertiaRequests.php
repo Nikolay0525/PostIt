@@ -41,6 +41,14 @@ class HandleInertiaRequests extends Middleware
                 ? $request->user()->only('id', 'name')
                 : null,
             'status' => fn () => $request->session()->get('status'),
+            // Read by app.js so a saved theme mode applies without a reload; guests get null
+            // (the 'browser' mode). The first paint uses the same values from <html> attributes.
+            'theme' => fn () => $request->user()
+                ? [
+                    'mode' => $request->user()->settings->theme_mode->value,
+                    'dark' => $request->user()->settings->dark_theme,
+                ]
+                : null,
         ]);
     }
 }

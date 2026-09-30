@@ -27,7 +27,7 @@ class SettingsService
      * Saves the preferences and replaces the speaking languages together, so a failure never
      * leaves one half saved.
      *
-     * @param  array{ui_language_code: string, dark_theme: bool, show_swear_words: bool, show_adult_content: bool, enable_cookies: bool, allow_messages: bool}  $settings
+     * @param  array{ui_language_code: string, theme_mode: string, show_swear_words: bool, show_adult_content: bool, enable_cookies: bool, allow_messages: bool}  $settings
      * @param  list<string>  $speakingLanguageCodes
      *
      * @throws InvalidArgumentException when a minor tries to enable adult content
@@ -42,5 +42,13 @@ class SettingsService
             $this->userRepository->updateSettings($user->id, $settings);
             $this->userRepository->syncSpeakingLanguages($user->id, $speakingLanguageCodes);
         });
+    }
+
+    /**
+     * The theme the user picked with the navbar button; it is what the 'manual' theme mode shows.
+     */
+    public function updateManualTheme(User $user, bool $dark): void
+    {
+        $this->userRepository->updateSettings($user->id, ['dark_theme' => $dark]);
     }
 }

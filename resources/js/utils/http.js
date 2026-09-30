@@ -40,6 +40,10 @@ export function postJson(url, body) {
     return request('POST', url, body);
 }
 
+export function patchJson(url, body) {
+    return request('PATCH', url, body);
+}
+
 export function deleteJson(url) {
     return request('DELETE', url);
 }

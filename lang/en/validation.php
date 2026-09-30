@@ -213,7 +213,7 @@ return [
         'ui_language_code' => 'interface language',
         'speaking_languages' => 'languages you speak',
         'speaking_languages.*' => 'language',
-        'dark_theme' => 'dark theme',
+        'theme_mode' => 'theme',
         'show_swear_words' => 'show swear words',
         'show_adult_content' => 'show adult content',
         'enable_cookies' => 'cookies',

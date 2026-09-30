@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ThemeMode;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,7 +23,7 @@ class UpdateSettingsRequest extends FormRequest
             'ui_language_code' => ['required', 'string', Rule::exists('ui_languages', 'code')->where('is_active', true)],
             'speaking_languages' => ['present', 'array', 'max:'.self::MAX_SPEAKING_LANGUAGES],
             'speaking_languages.*' => ['string', 'distinct', Rule::exists('speaking_languages', 'code')],
-            'dark_theme' => ['required', 'boolean'],
+            'theme_mode' => ['required', Rule::enum(ThemeMode::class)],
             'show_swear_words' => ['required', 'boolean'],
             'show_adult_content' => [
                 'required',
@@ -39,13 +40,13 @@ class UpdateSettingsRequest extends FormRequest
     }
 
     /**
-     * @return array{ui_language_code: string, dark_theme: bool, show_swear_words: bool, show_adult_content: bool, enable_cookies: bool, allow_messages: bool}
+     * @return array{ui_language_code: string, theme_mode: string, show_swear_words: bool, show_adult_content: bool, enable_cookies: bool, allow_messages: bool}
      */
     public function settings(): array
     {
         return [
             'ui_language_code' => $this->validated('ui_language_code'),
-            'dark_theme' => $this->boolean('dark_theme'),
+            'theme_mode' => $this->validated('theme_mode'),
             'show_swear_words' => $this->boolean('show_swear_words'),
             'show_adult_content' => $this->boolean('show_adult_content'),
             'enable_cookies' => $this->boolean('enable_cookies'),

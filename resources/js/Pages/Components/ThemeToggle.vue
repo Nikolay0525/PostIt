@@ -1,8 +1,11 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import { patchJson } from '@/utils/http';
 
 // The theme itself is picked and applied by the inline script in the page <head>
 // (resources/views/partials/theme-script.blade.php); this button only asks it to flip.
+const page = usePage();
 const dark = ref(window.PostItTheme.isDark());
 
 const onThemeChange = (event) => (dark.value = event.detail.dark);
@@ -10,7 +13,25 @@ const onThemeChange = (event) => (dark.value = event.detail.dark);
 onMounted(() => window.addEventListener('themechange', onThemeChange));
 onBeforeUnmount(() => window.removeEventListener('themechange', onThemeChange));
 
-const toggle = () => window.PostItTheme.toggle();
+// In the 'manual' mode the choice is the user's saved setting; in the others the script keeps a
+// temporary override in the browser, and nothing is sent.
+const toggle = async () => {
+    const theme = window.PostItTheme;
+    const nowDark = theme.toggle();
+
+    if (theme.mode() !== 'manual') return;
+
+    try {
+        await patchJson('/settings/theme', { dark: nowDark });
+        // Keep the shared prop in step: a partial reload keeps old props, and app.js would
+        // otherwise re-apply the stale value from them.
+        page.props.theme.dark = nowDark;
+    } catch (error) {
+        console.error('Saving the theme failed:', error);
+        // Not saved: switch back so the page doesn't show a choice that is lost on reload.
+        theme.toggle();
+    }
+};
 </script>
 
 <template>

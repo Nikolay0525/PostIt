@@ -2,6 +2,12 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-30] [FEAT] Dark theme with three modes
+
+- New `user_settings.theme_mode` (`App\Enums\ThemeMode`: `clock`, `browser`, `manual`; default `browser`), added by its own migration `2026_09_30_202436_add_theme_mode_to_user_settings_table` rather than in the initial one, so existing local databases keep their data. `dark_theme` stays as the choice shown in `manual`.
+- Settings: the "Dark theme" checkbox is replaced by the three modes (Appearance). The navbar button saves via `PATCH /settings/theme` (`{dark}`, 204) only in `manual`; in `clock`/`browser` it sets a temporary browser-side override — until the next clock switch, or 12 hours / a system theme change.
+- The mode and manual choice reach the page twice: as `<html data-theme-mode data-theme-manual>` for the inline script that sets the theme before first paint, and as the shared `theme` prop (`null` for guests) that `app.js` applies after each visit, so a saved change or logging in/out takes effect without a reload.
+
 ## [2026-09-30] [FIX] Interface language kept at sign-up
 
 - Registration now saves the interface language the guest was seeing (the locale `SetLocale` picked from `Accept-Language` among active interface languages) instead of `default_ui_language_code`. Before, a guest with e.g. a Russian browser saw English (the first supported language in their browser list) and was switched to Ukrainian the moment they signed up. `default_ui_language_code` still applies to users created any other way (seeders, tinker).

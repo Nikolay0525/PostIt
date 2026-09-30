@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateSettingsRequest;
+use App\Http\Requests\UpdateThemeRequest;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Services\SettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -25,7 +27,7 @@ class SettingsController extends Controller
             'settings' => [
                 'ui_language_code' => $user->settings->ui_language_code,
                 'speaking_languages' => $user->speakingLanguages->pluck('code'),
-                'dark_theme' => $user->settings->dark_theme,
+                'theme_mode' => $user->settings->theme_mode->value,
                 'show_swear_words' => $user->settings->show_swear_words,
                 'show_adult_content' => $user->settings->show_adult_content,
                 'enable_cookies' => $user->settings->enable_cookies,
@@ -47,5 +49,13 @@ class SettingsController extends Controller
         );
 
         return redirect()->route('settings.edit')->with('status', 'settings-saved');
+    }
+
+    // Called with fetch by the navbar theme button in the 'manual' mode, so no page visit.
+    public function updateTheme(UpdateThemeRequest $request): HttpResponse
+    {
+        $this->settingsService->updateManualTheme($request->user(), $request->boolean('dark'));
+
+        return response()->noContent();
     }
 }

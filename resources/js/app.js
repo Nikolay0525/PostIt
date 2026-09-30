@@ -40,16 +40,19 @@ createInertiaApp({
     }
 })
 
-// The locale changes without a full reload when the user saves another interface language.
-// Both events are needed: 'navigate' is skipped when a visit replaces the history entry (saving
-// settings redirects back to the same URL), and 'success' does not fire on back/forward.
-const syncLocale = event => {
-    const locale = event.detail.page.props.locale
+// The locale and theme change without a full reload when the user saves other settings (or logs
+// in or out). Both events are needed: 'navigate' is skipped when a visit replaces the history
+// entry (saving settings redirects back to the same URL), and 'success' does not fire on back/forward.
+const syncSettings = event => {
+    const { locale, theme } = event.detail.page.props
 
     if (locale && locale !== getActiveLanguage()) {
         loadLanguageAsync(locale)
     }
+
+    // Guests have no saved theme: they get the 'browser' mode, as on first paint.
+    window.PostItTheme.configure(theme?.mode ?? 'browser', theme?.dark ?? false)
 }
 
-router.on('success', syncLocale)
-router.on('navigate', syncLocale)
+router.on('success', syncSettings)
+router.on('navigate', syncSettings)
