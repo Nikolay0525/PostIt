@@ -55,11 +55,4 @@ class StoreGroupRequest extends FormRequest
             'is_private' => ['required', 'boolean'],
         ];
     }
-
-    public function messages(): array
-    {
-        return [
-            'slug.regex' => 'The slug may only contain lowercase Latin letters, digits and single hyphens between words (e.g. "retro-gaming").',
-        ];
-    }
 }

@@ -29,7 +29,7 @@ class UpdateSettingsRequest extends FormRequest
                 'boolean',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (filter_var($value, FILTER_VALIDATE_BOOLEAN) && ! $this->user()->isAdult()) {
-                        $fail('Adult content can only be enabled if you are 18 or older.');
+                        $fail(__('validation.custom.show_adult_content.adult_only'));
                     }
                 },
             ],

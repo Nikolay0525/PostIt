@@ -177,8 +177,13 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        // Global per field name: only groups have a slug for now.
+        'slug' => [
+            'regex' => 'Адреса групи може містити лише малі латинські літери, цифри й одинарні дефіси між словами (наприклад, «retro-gaming»).',
+        ],
+        // Not a rule name: UpdateSettingsRequest's closure rule fails with this line.
+        'show_adult_content' => [
+            'adult_only' => 'Вміст 18+ можна ввімкнути, лише якщо вам виповнилося 18 років.',
         ],
     ],
 

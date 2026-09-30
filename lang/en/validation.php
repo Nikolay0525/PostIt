@@ -181,8 +181,13 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        // Global per field name: only groups have a slug for now.
+        'slug' => [
+            'regex' => 'The group address may only contain lowercase Latin letters, digits and single hyphens between words (e.g. "retro-gaming").',
+        ],
+        // Not a rule name: UpdateSettingsRequest's closure rule fails with this line.
+        'show_adult_content' => [
+            'adult_only' => 'Adult content can only be enabled if you are 18 or older.',
         ],
     ],
 

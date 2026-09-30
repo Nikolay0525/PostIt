@@ -71,4 +71,16 @@ class LocaleTest extends TestCase
         $this->actingAs($user)->post('/groups', ['name' => ''])
             ->assertSessionHasErrors(['name' => 'Поле назва групи обов’язкове.']);
     }
+
+    public function test_custom_validation_messages_are_translated(): void
+    {
+        $user = User::factory()->create(['date_of_birth' => now()->subYears(16)]);
+        $user->settings->update(['ui_language_code' => 'uk']);
+
+        $this->actingAs($user)->post('/groups', ['slug' => 'Retro Gaming'])
+            ->assertSessionHasErrors(['slug' => __('validation.custom.slug.regex', locale: 'uk')]);
+
+        $this->actingAs($user)->patch('/settings', ['show_adult_content' => true])
+            ->assertSessionHasErrors(['show_adult_content' => __('validation.custom.show_adult_content.adult_only', locale: 'uk')]);
+    }
 }
