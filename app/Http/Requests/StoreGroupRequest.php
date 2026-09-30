@@ -2,17 +2,22 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\HasEntityAttributes;
 use App\Services\GroupService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreGroupRequest extends FormRequest
 {
+    use HasEntityAttributes;
+
     public const MAX_RULES = 15;
 
     public const RULE_TEXT_MAX_LENGTH = 100;
 
     public const RULE_EXAMPLE_MAX_LENGTH = 300;
+
+    protected string $attributeEntity = 'group';
 
     /**
      * Shape only. Whether this user may create a group at all is checked in the controller via

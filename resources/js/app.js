@@ -1,6 +1,7 @@
 import '../css/app.css';
 import { createApp, h } from 'vue'
-import { createInertiaApp, Head, Link } from '@inertiajs/vue3'
+import { createInertiaApp, Head, Link, router } from '@inertiajs/vue3'
+import { i18nVue, getActiveLanguage, loadLanguageAsync } from 'laravel-vue-i18n'
 import Layout from './Layouts/Layout.vue'
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
@@ -16,6 +17,15 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(i18nVue, {
+                lang: props.initialPage.props.locale,
+                fallbackLang: 'en',
+                fallbackMissingTranslations: true,
+                resolve: async lang => {
+                    const langs = import.meta.glob('../../lang/php_*.json')
+                    return await langs[`../../lang/php_${lang}.json`]()
+                },
+            })
             .component('Head', Head) 
             .component('Link', Link)
             .mount(el)
@@ -24,5 +34,15 @@ createInertiaApp({
         color: '#4B5563',
         showSpinner: true,
         includeCSS: true,
+    }
+})
+
+// The locale changes without a full reload when the user saves another interface language.
+router.on('navigate', event => {
+    const locale = event.detail.page.props.locale
+
+    if (locale && locale !== getActiveLanguage()) {
+        loadLanguageAsync(locale)
+        document.documentElement.lang = locale
     }
 })

@@ -2,6 +2,14 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-30] [FEAT] Interface localization groundwork
+
+- New `SetLocale` web middleware picks the request locale: the user's `ui_language_code`, otherwise the best active `ui_languages` match for the browser's `Accept-Language` (`uk-UA` matches `uk`), otherwise `config('app.default_ui_language_code')`. Shared to Inertia as the `locale` prop and set as `<html lang>`.
+- Translations live in `lang/{locale}/*.php` with semantic keys (`auth.login.heading`, `nav.home`) — one source for `__()` in PHP and `$t()` in Vue. The frontend uses `laravel-vue-i18n`; its Vite plugin compiles the PHP files to `lang/php_{locale}.json` (git-ignored), loaded lazily per locale, and the app switches language without a reload when `locale` changes after saving settings.
+- Translated so far: the login page, the top navigation and the failed-login message (was a hard-coded "Invalid credentials"). Other pages are still English-only.
+- Laravel's `validation`, `passwords` and `pagination` files are translated to Ukrainian in full. Validation messages use readable field names: entity-neutral ones in `validation.attributes`; names that differ per entity (a user's `name` is "ім’я", a group's is "назва групи") in `lang/*/attributes.php`, picked up by FormRequests using the `HasEntityAttributes` trait (`protected string $attributeEntity = 'group';`). Field names stay as they are in forms and the DB.
+- `TranslationKeysTest` fails when a locale's lang file is missing keys present in `lang/en` or has extra ones.
+
 ## [2026-09-29] [FEAT] Full ISO 639-1 language list
 
 - `speaking_languages` is now seeded from `database/data/languages.json`: all 183 ISO 639-1 languages with `code`, English `name` and `native_name` (new column — the language's own name, e.g. "українська", "עברית", "日本語", readable to its speakers whatever the interface language). Hand-written rather than a Composer package, to avoid a large dependency for one seeder; validated for 183 unique, sorted two-letter codes and unique names. Native names of rarer languages are worth a glance if anything looks off.

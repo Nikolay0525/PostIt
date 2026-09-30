@@ -18,7 +18,7 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
                             :href="route('home')"
                             class="nav-link"
                             :class="{ 'nav-link-active': $page.component === 'Home' }"
-                        >Home</Link>
+                        >{{ $t('nav.home') }}</Link>
                     </div>
                 </div>
 
@@ -31,8 +31,8 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
                         type="search"
                         dir="auto"
                         class="search-input"
-                        placeholder="Search posts, groups and people"
-                        aria-label="Search"
+                        :placeholder="$t('nav.search_placeholder')"
+                        :aria-label="$t('nav.search')"
                     />
                 </form>
 
@@ -47,8 +47,8 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
                             :href="route('login')"
                             class="nav-link"
                             :class="{ 'nav-link-active': $page.component === 'Auth/Login' }"
-                        >Log in</Link>
-                        <Link :href="route('register')" class="btn-primary">Sign up</Link>
+                        >{{ $t('nav.log_in') }}</Link>
+                        <Link :href="route('register')" class="btn-primary">{{ $t('nav.sign_up') }}</Link>
                     </template>
                 </div>
             </nav>

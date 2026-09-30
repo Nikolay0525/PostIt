@@ -19,6 +19,11 @@ interface LanguageRepositoryInterface
     public function uiLanguages(): Collection;
 
     /**
+     * @return list<string> codes of the active interface languages
+     */
+    public function activeUiCodes(): array;
+
+    /**
      * Which of these codes exist as speaking languages, in the given order.
      *
      * @param  list<string>  $codes

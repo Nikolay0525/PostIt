@@ -19,6 +19,11 @@ class EloquentLanguageRepository implements LanguageRepositoryInterface
         return UiLanguage::where('is_active', true)->orderBy('name')->get(['code', 'name']);
     }
 
+    public function activeUiCodes(): array
+    {
+        return UiLanguage::where('is_active', true)->pluck('code')->all();
+    }
+
     public function existingSpeakingCodes(array $codes): array
     {
         if ($codes === []) {
