@@ -12,7 +12,7 @@ const unreadCount = notifications.filter((n) => n.unread).length;
 </script>
 
 <template>
-    <Dropdown label="Notifications">
+    <Dropdown :label="$t('nav.notifications')">
         <template #trigger>
             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
                 <path d="M5 8a5 5 0 0 1 10 0c0 4 1.5 5.5 1.5 5.5h-13S5 12 5 8Z" stroke-linejoin="round" />
@@ -21,11 +21,11 @@ const unreadCount = notifications.filter((n) => n.unread).length;
             <span v-if="unreadCount" class="icon-badge">{{ unreadCount }}</span>
         </template>
 
-        <p class="menu-heading">Notifications</p>
+        <p class="menu-heading">{{ $t('nav.notifications') }}</p>
 
         <ul class="menu-list">
             <li v-for="n in notifications" :key="n.id" class="menu-row">
-                <span v-if="n.unread" class="unread-dot" aria-label="Unread"></span>
+                <span v-if="n.unread" class="unread-dot" :aria-label="$t('nav.unread')"></span>
                 <span v-else class="unread-dot-space" aria-hidden="true"></span>
                 <p class="min-w-0 flex-1 text-sm text-ink" dir="auto">{{ n.text }}</p>
                 <span class="shrink-0 text-xs text-muted">{{ n.time }}</span>

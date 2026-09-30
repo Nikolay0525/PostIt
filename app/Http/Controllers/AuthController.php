@@ -21,7 +21,7 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $this->authService->register($request->validated());
+        $this->authService->register($request->validated(), $request->getLanguages());
 
         return Redirect::route('verification.notice');
     }
@@ -34,7 +34,7 @@ class AuthController extends Controller
             return Redirect::intended(route('home'));
         }
 
-        return Redirect::back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
+        return Redirect::back()->withErrors(['email' => __('auth.failed')])->onlyInput('email');
     }
 
     public function logout(Request $request)

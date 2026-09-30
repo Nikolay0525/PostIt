@@ -5,27 +5,29 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements MustVerifyEmailContract
 {
     use HasFactory, Notifiable;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = ['name', 'email', 'password', 'avatar_url', 'date_of_birth', 'role'];
+
     protected $hidden = ['password', 'remember_token'];
 
     protected function casts(): array
     {
         return [
-            'password' => 'hashed', 
+            'password' => 'hashed',
             'email_verified_at' => 'datetime',
             'date_of_birth' => 'date',
             'role' => UserRole::class,
@@ -48,7 +50,12 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     public function counters(): HasOne
     {
-        return $this->hasOne(UserCounter::class, 'user_id');
+        return $this->hasOne(UserCounters::class, 'user_id');
+    }
+
+    public function speakingLanguages(): BelongsToMany
+    {
+        return $this->belongsToMany(SpeakingLanguage::class, 'user_speaking_languages', 'user_id', 'language_code', 'id', 'code');
     }
 
     public function blockedUsers(): BelongsToMany
@@ -99,7 +106,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'user_id',
             'achievement_id'
         )->withPivot('current_value', 'is_completed')
-         ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function subscribedGroups(): BelongsToMany
@@ -109,7 +116,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'user_group_subscriptions',
             'user_id',
             'group_id'
-        )->withTimestamps();
+        )->withPivot('created_at');
     }
 
     public function moderatedGroups(): BelongsToMany
@@ -120,7 +127,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'user_id',
             'group_id'
         )->withPivot('role')
-         ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function posts(): HasMany
@@ -132,7 +139,6 @@ class User extends Authenticatable implements MustVerifyEmailContract
     {
         return $this->hasMany(Comment::class, 'user_id');
     }
-
 
     public function platformBans(): HasMany
     {

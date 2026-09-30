@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import TransSlots from '@/Pages/Components/TransSlots.vue';
 
 defineProps({
     status: String,
@@ -38,28 +39,28 @@ const resendEmail = () => {
 </script>
 
 <template>
-    <Head title=" | Verify email" />
+    <Head :title="` | ${$t('auth.verify.title')}`" />
 
     <div class="auth-shell">
         <div class="auth-card">
             <p class="brand-mark">Post<span class="brand-mark-accent">It.</span></p>
 
-            <h1 class="auth-title mt-6">Verify your email</h1>
-            <p class="auth-subtitle">
-                We've sent a verification link to your email address. Click the link to activate your account.
-            </p>
+            <h1 class="auth-title mt-6">{{ $t('auth.verify.heading') }}</h1>
+            <p class="auth-subtitle">{{ $t('auth.verify.subtitle') }}</p>
 
             <p v-if="status === 'verification-link-sent'" class="mt-4 rounded-lg border border-brand-100 bg-brand-50 p-3 text-sm text-brand-700">
-                A new verification link has been sent to your email address.
+                {{ $t('auth.verify.link_sent') }}
             </p>
 
             <p class="auth-footer">
                 <span v-if="cooldown > 0">
-                    Resend available in <span class="font-medium text-danger">{{ formattedCooldown }}</span>
+                    <TransSlots :text="$t('auth.verify.resend_in')">
+                        <template #time><span class="font-medium text-danger">{{ formattedCooldown }}</span></template>
+                    </TransSlots>
                 </span>
                 <span v-else>
-                    Didn't get the email?
-                    <button type="button" class="auth-link" @click="resendEmail">Resend verification link</button>
+                    {{ $t('auth.verify.no_email') }}
+                    <button type="button" class="auth-link" @click="resendEmail">{{ $t('auth.verify.resend') }}</button>
                 </span>
             </p>
         </div>

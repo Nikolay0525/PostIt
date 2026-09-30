@@ -107,7 +107,7 @@ Modules: each module (Account, Community, Content, Moderation, Engagement, Share
 
 Database rules:
 
-- Primary keys are UUIDs (models extend `BaseEntity`, which uses `HasUuids`).
+- Primary keys are UUIDs (models extend `BaseEntity`, which uses `HasUuids`). Exception: seeded reference data that already has a standard code (e.g. languages, ISO 639) is keyed by that code instead.
 - Join tables use composite primary keys; pivot access goes through relations (`belongsToMany`) or a dedicated model with explicit handling of the composite key.
 - Type/status/role integers are always backed by a PHP `Enum` (see anti-patterns).
 - Every schema change is a new migration; existing migrations are not edited after being shared.

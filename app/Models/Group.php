@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Group extends BaseEntity
 {
@@ -15,9 +16,9 @@ class Group extends BaseEntity
 
     protected $fillable = [
         'name',
+        'slug',
         'description',
-        'rules',
-        'group_language_id',
+        'language_code',
         'icon_url',
         'is_private',
     ];
@@ -31,12 +32,22 @@ class Group extends BaseEntity
 
     public function language(): BelongsTo
     {
-        return $this->belongsTo(SpeakingLanguage::class, 'group_language_id');
+        return $this->belongsTo(SpeakingLanguage::class, 'language_code');
     }
 
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class, 'group_id');
+    }
+
+    public function ruleVersions(): HasMany
+    {
+        return $this->hasMany(GroupRuleVersion::class, 'group_id');
+    }
+
+    public function currentRuleVersion(): HasOne
+    {
+        return $this->hasOne(GroupRuleVersion::class, 'group_id')->latestOfMany(['created_at', 'id']);
     }
 
     public function bans(): HasMany

@@ -1,9 +1,9 @@
 # Community — Tech Notes
 
 ## Tech debt
-- Models `UserGroupSubscription`, `GroupJoinRequest`, `GroupModerator` declare an **array `$primaryKey`**. Eloquent does not support composite keys natively; `save()`/`find()` on these models will not behave correctly. Use the relation methods (`attach`/`sync`) or add a composite-key package/query-builder access.
-- `GroupJoinRequest.status` and `GroupModerator.role` are raw integers with no enum. Create `JoinRequestStatus` and `GroupRole` enums (values to be agreed).
-- Join / subscribe on the group page is a local toggle only; no server endpoint exists.
+- Models `UserGroupSubscription`, `GroupJoinRequest`, `GroupModerator` declare an **array `$primaryKey`**. Eloquent does not support composite keys natively; `save()`/`find()` on these models will not behave correctly. *(0.1.5)* `EloquentGroupRepository::subscribe()`/`unsubscribe()` demonstrate the workaround for `UserGroupSubscription` — `insertOrIgnore()`/a WHERE-scoped `delete()` via `Model::query()`, same pattern as `Vote` in `Content`. `GroupJoinRequest`/`GroupModerator` still need it when their services are built.
+- ~~`GroupJoinRequest.status` and `GroupModerator.role` are raw integers with no enum.~~ *(0.1.5, corrected)* Already resolved before this was last touched — both are cast via real enums (`JoinRequestStatus`, `GroupModeratorRole`), just not wired into any service yet. This line was stale.
+- *(0.1.5)* Subscribing to a **public** group now has a real server endpoint (`MembershipService`, `POST`/`DELETE /groups/{id}/subscribe`). "Request to join" a **private** group is still a local UI toggle only — `JoinRequestService` doesn't exist yet, tracked separately.
 - `Group` has no soft delete; deleting a group cascades and destroys its posts.
 
 ## Non-obvious decisions

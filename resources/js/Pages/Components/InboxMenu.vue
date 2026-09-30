@@ -21,7 +21,7 @@ const unreadCount = messages.received.filter((m) => m.unread).length;
 </script>
 
 <template>
-    <Dropdown label="Inbox">
+    <Dropdown :label="$t('nav.inbox')">
         <template #trigger>
             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
                 <rect x="2.5" y="4.5" width="15" height="11" rx="2" />
@@ -37,19 +37,19 @@ const unreadCount = messages.received.filter((m) => m.unread).length;
                 class="menu-tab"
                 :class="{ 'menu-tab-active': tab === 'received' }"
                 @click="tab = 'received'"
-            >Received</button>
+            >{{ $t('nav.received') }}</button>
             <button
                 type="button"
                 role="tab"
                 class="menu-tab"
                 :class="{ 'menu-tab-active': tab === 'sent' }"
                 @click="tab = 'sent'"
-            >Sent</button>
+            >{{ $t('nav.sent') }}</button>
         </div>
 
         <ul class="menu-list">
             <li v-for="m in list" :key="m.id" class="menu-row">
-                <span v-if="m.unread" class="unread-dot" aria-label="Unread"></span>
+                <span v-if="m.unread" class="unread-dot" :aria-label="$t('nav.unread')"></span>
                 <span v-else class="unread-dot-space" aria-hidden="true"></span>
                 <div class="min-w-0 flex-1">
                     <p class="truncate text-sm font-medium text-ink" dir="auto">{{ m.person }}</p>

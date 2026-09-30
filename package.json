@@ -18,6 +18,7 @@
     },
     "dependencies": {
         "@inertiajs/vue3": "^3.7.1",
-        "@vitejs/plugin-vue": "^6.0.9"
+        "@vitejs/plugin-vue": "^6.0.9",
+        "laravel-vue-i18n": "^2.9.0"
     }
 }

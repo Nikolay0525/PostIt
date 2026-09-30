@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | Document | Requirements Specification (style: ISO/IEC/IEEE 29148:2018) |
-| Version | 0.1.4 |
+| Version | 0.1.8 |
 | Status | Draft |
-| Last update | 2026-09-27 |
+| Last update | 2026-09-29 |
 | Owner | Project owner (Mykola Poberezhnyi) |
 
 ## 1. Introduction
@@ -72,8 +72,8 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-ACC-005 | The system shall allow a user to log out, invalidating the session. | M | Done | T |
 | FR-ACC-006 | The system shall allow a user to request a password reset link, limited to 5 requests per minute, with an identical response for existing and unknown emails. | M | Done | T |
 | FR-ACC-007 | The system shall allow a user to set a new password using a valid reset token. | M | Done | T |
-| FR-ACC-008 | The system shall let a user manage settings: UI language, speaking language, dark theme, swear-word filter, adult-content display, cookies, and whether direct messages are allowed. | S | Partial | D |
-| FR-ACC-009 | The system shall allow adult-content display to be enabled only for users aged 18 or older. | M | Planned | T |
+| FR-ACC-008 | The system shall let a user manage settings: UI language, speaking language, dark theme, swear-word filter, adult-content display, cookies, and whether direct messages are allowed. *(0.1.8)* Settings page built; a user may speak **several** languages (0–10), pre-filled at registration from the browser. Dark theme, swear-word filter, cookies and messages are stored but not yet acted on. | S | Done | T |
+| FR-ACC-009 | The system shall allow adult-content display to be enabled only for users aged 18 or older. *(0.1.8)* Enforced on save. | M | Done | T |
 | FR-ACC-010 | The system shall let a user follow and unfollow other users, but not themselves. | S | Partial | T |
 | FR-ACC-011 | The system shall let a user block and unblock other users, but not themselves, and shall hide blocked users' content from the blocker. | S | Partial | T |
 | FR-ACC-012 | The system shall maintain per-user counters (posts, comments, groups joined, reports sent, positive and negative votes) and karma. | S | Partial | T |
@@ -82,15 +82,15 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 
 | ID | Requirement | Pri | Status | Ver |
 |---|---|---|---|---|
-| FR-COM-001 | The system shall let a user create a group with a name (≤ 50 characters), description (≤ 250), rules (≤ 250), language and public/private visibility. | M | Planned | T |
+| FR-COM-001 | The system shall let a user create a group with a name (≤ 50 characters), description (≤ 250), rules *(0.1.8: an ordered list of rules, each with an optional example, stored as an immutable version; *provisional limits:* up to 15 rules, text ≤ 100, example ≤ 300)*, slug (FR-COM-009), language and public/private visibility; the creator becomes the group's Owner and a member. *(0.1.8)* Built end to end: `GET /groups/create` (two-step page: basics, then rules) and `POST /groups`, reachable from the account menu. Icon upload not built. | M | Done | T |
 | FR-COM-002 | The system shall show a group page with name, description, rules, member count and visibility to any visitor. | M | Partial | D |
-| FR-COM-003 | The system shall let a logged-in user subscribe to and unsubscribe from a public group. | M | Partial | T |
+| FR-COM-003 | The system shall let a logged-in user subscribe to and unsubscribe from a public group. *(0.1.5)* Implemented end-to-end (`MembershipService`, `GroupPolicy::subscribe()`, `POST`/`DELETE /groups/{id}/subscribe`); a private group is rejected here — its membership only comes from an approved join request (FR-COM-004, still Partial). | M | Done | T |
 | FR-COM-004 | The system shall let a logged-in user send a join request to a private group and shall store it as pending. | M | Partial | T |
 | FR-COM-005 | The system shall let a moderator approve or reject join requests of their group; approval shall create the membership. | M | Planned | T |
 | FR-COM-006 | The system shall hide the posts of a private group from non-members, on the server and in the UI. | M | Partial | T |
 | FR-COM-007 | The system shall grant the Guardian role only through community-driven eligibility (per-group contribution score, threshold-gated candidate pool, random offer, opt-in) — never by direct appointment by the Owner. *(Supersedes the earlier "creator assigns moderators" design; see business logic 0.1.1.)* | S | Planned | T |
 | FR-COM-008 | The system shall ask a guest to log in or register when the guest tries to join or subscribe. | M | Done | D |
-| FR-COM-009 | The system shall let a group have a title in any language, shown and searched by, separate from a Latin-script slug used only in its URL. | M | Planned | T |
+| FR-COM-009 | The system shall let a group have a title in any language, shown and searched by, separate from a Latin-script slug used only in its URL. *(0.1.7)* The slug is entered manually by the creator, not auto-generated — deliberately different from a post's slug (FR-CON-002), which is auto-generated and keeps the post's own script. *(0.1.8)* `groups.slug` exists (unique, ≤ 30, `[a-z0-9]` words joined by single hyphens) and page URLs use it: `/groups/{slug}`, `/groups/{slug}/posts/{post slug}`; service pages live under `/-/` (e.g. `/groups/-/create`), which no slug can match. | M | Done | T |
 | FR-COM-010 | The system shall track a per-group contribution score for each member, separate from platform-wide karma, and shall use it only to determine eligibility for the Guardian candidate pool. | S | Planned | T |
 | FR-COM-011 | The system shall retain a Guardian based on responsiveness to the group's actual moderation workload and on the accuracy record from appeal verdicts (FR-MOD-010), not on the group's rating of the Guardian's other content; a Guardian who has no pending work shall not be penalised. | S | Planned | T |
 | FR-COM-012 | The system shall evaluate Guardian standing periodically (not continuously) and shall warn a Guardian, with a stated grace period, before automatically ending the role; a Guardian may also step down voluntarily at any time. | S | Planned | T |
@@ -103,8 +103,8 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 
 | ID | Requirement | Pri | Status | Ver |
 |---|---|---|---|---|
-| FR-CON-001 | The system shall let a member publish a post in a group with an optional title (≤ 100 characters) and a required article. *(0.1.4)* Membership is required in every group, public or private — a public group's posts being readable by anyone does not by itself grant posting rights. | M | Partial | T |
-| FR-CON-002 | The system shall generate a slug for every post. | S | Planned | T |
+| FR-CON-001 | The system shall let a member publish a post in a group with an optional title (≤ 100 characters) and a required article. *(0.1.4)* Membership is required in every group, public or private — a public group's posts being readable by anyone does not by itself grant posting rights. *(0.1.6)* The article is authored as Markdown with a minimal Bold/Italic toolbar. | M | Done | T |
+| FR-CON-002 | The system shall generate a slug for every post. *(0.1.7)* Keeps the post's own script (Cyrillic, Hebrew, Arabic, CJK, …) rather than transliterating to ASCII, which produced empty or unreadable results for non-Latin titles. | S | Done | T |
 | FR-CON-003 | The system shall let anyone read a post of a public group together with its comments. | M | Partial | D |
 | FR-CON-004 | The system shall let a logged-in user comment on a post (≤ 500 characters) or reply to a comment, forming a nested thread. | M | Partial | T |
 | FR-CON-005 | The system shall let a guest read comments but not write them, prompting the guest to log in or register. | M | Done | D |

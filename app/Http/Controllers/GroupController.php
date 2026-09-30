@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PostSort;
+use App\Http\Requests\StoreGroupRequest;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\PostResource;
+use App\Models\Group;
+use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Services\GroupService;
 use App\Services\PostService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,13 +19,51 @@ class GroupController extends Controller
 {
     public function __construct(
         protected GroupService $groupService,
-        protected PostService $postService
+        protected PostService $postService,
+        protected LanguageRepositoryInterface $languageRepository
     ) {}
 
-    public function show(Request $request, string $id): Response
+    public function create(Request $request): Response
+    {
+        $this->authorize('create', Group::class);
+
+        return Inertia::render('Groups/Create', [
+            'languages' => $this->languageRepository->speakingLanguages(),
+            // Pre-select a language the creator speaks rather than whatever sorts first.
+            'default_language_code' => $request->user()->speakingLanguages()->value('code')
+                ?? config('app.default_speaking_language_code', 'uk'),
+            'limits' => [
+                'slug' => GroupService::SLUG_MAX_LENGTH,
+                'rules' => StoreGroupRequest::MAX_RULES,
+                'rule_text' => StoreGroupRequest::RULE_TEXT_MAX_LENGTH,
+                'rule_example' => StoreGroupRequest::RULE_EXAMPLE_MAX_LENGTH,
+            ],
+        ]);
+    }
+
+    // A regular Inertia form submission, like PostController::store(): the next step is a full
+    // navigation to the new group, so there's no list on this page to preserve.
+    public function store(StoreGroupRequest $request): RedirectResponse
+    {
+        $this->authorize('create', Group::class);
+
+        $group = $this->groupService->createGroup(
+            $request->user()->id,
+            $request->validated('name'),
+            $request->validated('slug'),
+            $request->validated('description'),
+            $request->validated('rules') ?? [],
+            $request->validated('language_code'),
+            $request->boolean('is_private'),
+        );
+
+        return redirect()->route('groups.show', $group->slug);
+    }
+
+    public function show(Request $request, string $groupSlug): Response
     {
         // Throws ModelNotFoundException (rendered as 404) when the group does not exist.
-        $group = $this->groupService->getGroup($id);
+        $group = $this->groupService->getGroupBySlug($groupSlug);
 
         $viewerId = $request->user()?->id;
         $isMember = $this->groupService->isMember($group->id, $viewerId);

@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import { trans } from 'laravel-vue-i18n';
+import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
 import { timeAgo } from '@/utils/format';
 import { postJson } from '@/utils/http';
@@ -58,7 +60,7 @@ const submitReply = async () => {
         showReplyForm.value = false;
     } catch (error) {
         console.error('Reply failed:', error);
-        replyError.value = error.message || 'Something went wrong.';
+        replyError.value = error.message || trans('common.something_went_wrong');
     } finally {
         replying.value = false;
     }
@@ -68,7 +70,7 @@ const submitReply = async () => {
 <template>
     <article class="comment-node">
         <div class="comment-card">
-            <p v-if="comment.is_deleted" class="comment-deleted">[deleted]</p>
+            <p v-if="comment.is_deleted" class="comment-deleted">{{ $t('comments.deleted') }}</p>
 
             <template v-else>
                 <p class="post-meta-text">
@@ -88,13 +90,10 @@ const submitReply = async () => {
                         :viewer-vote="comment.viewer_vote"
                         @needs-login="showLoginPrompt = true"
                     />
-                    <button type="button" class="post-action" @click="toggleReplyForm">Reply</button>
+                    <button type="button" class="post-action" @click="toggleReplyForm">{{ $t('comments.reply') }}</button>
                 </p>
                 <p v-if="showLoginPrompt" class="post-login-prompt">
-                    <Link :href="route('login')" class="auth-link">Log in</Link>
-                    or
-                    <Link :href="route('register')" class="auth-link">sign up</Link>
-                    to vote.
+                    <AuthPrompt action="vote" />
                 </p>
 
                 <form v-if="showReplyForm" class="comment-form mt-3" @submit.prevent="submitReply">
@@ -104,14 +103,14 @@ const submitReply = async () => {
                         rows="2"
                         maxlength="500"
                         dir="auto"
-                        placeholder="Write a reply"
+                        :placeholder="$t('comments.reply_placeholder')"
                         :disabled="replying"
                     ></textarea>
                     <span class="flex gap-2 self-end">
-                        <button type="button" class="btn-secondary" @click="cancelReply">Cancel</button>
-                        <button type="submit" class="btn-primary" :disabled="replying || !replyText.trim()">Reply</button>
+                        <button type="button" class="btn-secondary" @click="cancelReply">{{ $t('common.cancel') }}</button>
+                        <button type="submit" class="btn-primary" :disabled="replying || !replyText.trim()">{{ $t('comments.reply') }}</button>
                     </span>
-                    <p v-if="replyError" class="vote-error" :title="replyError">⚠ Reply failed</p>
+                    <p v-if="replyError" class="vote-error" :title="replyError">⚠ {{ $t('comments.reply_failed') }}</p>
                 </form>
             </template>
         </div>

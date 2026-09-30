@@ -15,11 +15,11 @@ class GroupFactory extends Factory
     {
         return [
             'name' => fake()->unique()->words(3, true),
+            'slug' => fake()->unique()->regexify('[a-z]{8,12}-[a-z0-9]{4}'),
             'description' => fake()->realText(100),
-            'rules' => fake()->realText(100),
             'icon_url' => null,
             'is_private' => false,
-            'group_language_id' => SpeakingLanguage::factory(),
+            'language_code' => SpeakingLanguage::factory(),
         ];
     }
 

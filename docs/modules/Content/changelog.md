@@ -2,6 +2,27 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-29] [FEAT] Post URLs use the post slug
+
+- A post's URL is now `/groups/{group slug}/posts/{post slug}` instead of `/posts/{uuid}`; the post slug keeps its random 6-char suffix (decided: no "-2, -3" numbering), e.g. `/groups/home-cooking/posts/борщ-з-пампушками-a1b2c3`.
+- Added `unique(group_id, slug)` to `posts` (initial migration): the slug now identifies the post in its group, so it must be unique there. `PostService::createPost()` retries with a new suffix if the index ever rejects a clash, instead of querying first.
+- `PostRepositoryInterface`: `findWithStats($id)` → `findWithStatsBySlug($groupId, $slug)`, `randomIdForGroup()` → `randomSlugForGroup()`; `PostService::getPost()` → `getPostBySlug()`, `getRandomPostId()` → `getRandomPostSlug()`. `PostResource` exposes `slug` and `group.slug`; all post links in `PostCard`/`Posts/Show`/`Posts/Create` build URLs from them.
+- The create-post page moved to `/groups/{slug}/-/create-post` (service pages under `/-/`, see `Community` changelog).
+
+## [2026-09-28] [FIX] Post slugs keep their own script instead of transliterating
+
+- Replaced `Str::slug()` in `PostService::generateSlug()` with a hand-written `unicodeSlug()`: verified `Str::slug()` returns an empty string for Hebrew/Chinese/Japanese/Korean titles, and a near-unreadable transliteration for Arabic. The replacement keeps any Unicode letter/number as-is and only turns whitespace/punctuation into `-` — the same technique Reddit uses for non-Latin post slugs, relying on URL paths supporting non-ASCII text (RFC 3987) rather than trying to force everything into `[a-z0-9-]`.
+- Decided this is specifically a **post** behaviour (auto-generated, keeps the post's own language) — a future group slug is a deliberately different decision, see `Community` changelog.
+
+## [2026-09-27] [FEAT] Create-post page and Markdown formatting
+
+- Wired the "+ Create post" button on the group page to a real form: `GET /groups/{id}/posts/create` (`PostController::create()`, gated by the same `PostPolicy::create()` as the submit) renders `Pages/Posts/Create.vue` — a title field and an article `<textarea>` with Bold/Italic toolbar buttons that wrap the current selection in `**`/`*`.
+- **Decided the article's storage format is Markdown**, not plain text (the prior state) or a rich-text/WYSIWYG document: no client editor library, no schema change, a toolbar button is just "insert `**` around the selection." Trade-off: no live WYSIWYG feedback — the author sees `**bold**` while typing, not bold text.
+- Added `App\Support\Concerns\RendersMarkdown` (`Str::markdown()`, `html_input: strip`, `allow_unsafe_links: false`) and wired it into `PostResource`: `article` (raw Markdown, kept for a future edit form), `article_html` (rendered, used via `v-html` for the full post view), `article_text` (plain, tags stripped, used for the feed preview/excerpt so a preview never shows raw `**`/`*` syntax).
+- The HTML-stripping and unsafe-link options are a deliberate XSS defense, not defaults left untouched — this is the only place user-authored text becomes markup rendered with `v-html`.
+- Corrected two stale doc lines found while touching this area: the comment form was documented as "still a visual stub" (it hasn't been since comments were wired up earlier) and FR-CON-002 (slug generation) was still marked Planned despite `PostService::generateSlug()` already existing.
+- Verified live end-to-end (headless-browser login → group page → create-post form → Bold/Italic toolbar → submit → rendered `<strong>`/`<em>` on the resulting post), not just by reading the code.
+
 ## [2026-09-27] [FEAT] Post creation (repository → service → policy → controller/route)
 
 - Built `PostRepositoryInterface::create()`/`EloquentPostRepository`, `PostService::createPost()` (generates the slug — closes FR-CON-002, previously Planned), `PostPolicy::create()`, `StorePostRequest`, and `PostController::store()` behind `POST /posts` — the same repo → interface → service → policy → FormRequest → controller sequence used for comments.

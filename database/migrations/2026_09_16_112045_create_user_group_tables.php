@@ -53,24 +53,30 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Language tables are seeded reference data keyed by their standard code ('uk', 'en'),
+        // not a generated UUID: the code already identifies a language everywhere (browser
+        // Accept-Language, HTML lang, app locale) and stays the same on every machine.
         Schema::create('ui_languages', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('code', 10)->unique();
+            $table->string('code', 10)->primary();
             $table->string('name', 50)->unique();
             $table->boolean('is_active')->default(true);
         });
 
+        // ISO 639 code: 2 letters (639-1) where one exists, 3 letters (639-3) otherwise.
+        // Seeded from database/data/languages.json. `name` is English (sorting, search);
+        // `native_name` is the language's own name, readable to its speakers in any UI language.
         Schema::create('speaking_languages', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->string('code', 3)->primary();
             $table->string('name', 50)->unique();
+            $table->string('native_name', 50);
         });
 
         Schema::create('user_settings', function (Blueprint $table) {
             $table->uuid('user_id')->primary();
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
 
-            $table->foreignUuid('ui_language_id')->constrained('ui_languages');
-            $table->foreignUuid('speaking_language_id')->constrained('speaking_languages');
+            $table->string('ui_language_code', 10);
+            $table->foreign('ui_language_code')->references('code')->on('ui_languages');
 
             $table->boolean('dark_theme')->default(false);
             $table->boolean('show_swear_words')->default(false);
@@ -79,6 +85,15 @@ return new class extends Migration
             $table->boolean('allow_messages')->default(true);
 
             $table->timestamps();
+        });
+
+        // A user may speak several languages, or none; used to recommend groups in them.
+        Schema::create('user_speaking_languages', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('language_code', 3);
+            $table->foreign('language_code')->references('code')->on('speaking_languages')->cascadeOnDelete();
+
+            $table->primary(['user_id', 'language_code']);
         });
 
         Schema::create('user_user_subscriptions', function (Blueprint $table) {
@@ -142,16 +157,34 @@ return new class extends Migration
             $table->uuid('id')->primary();
 
             $table->string('name', 50);
+            // Typed by the creator in Latin script; the unique index is the last line of
+            // defence against two groups claiming the same slug at once.
+            $table->string('slug', 30)->unique();
             $table->string('description', 250);
-            $table->string('rules', 250);
             $table->string('icon_url', 100)->nullable();
             $table->boolean('is_private')->default(false);
 
-            $table->foreignUuid('group_language_id')->constrained('speaking_languages')->cascadeOnDelete();
-            
+            // Restrict, not cascade: removing a language must never silently delete its groups.
+            $table->string('language_code', 3);
+            $table->foreign('language_code')->references('code')->on('speaking_languages')->restrictOnDelete();
+
             $table->timestamps();
         });
-    
+
+        // A group's rules live only here — its current rules are its newest version.
+        // Immutable: editing a group's rules adds a new version instead of updating a row,
+        // so an appealed moderation action can be judged against the rules it was taken under.
+        Schema::create('group_rule_versions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->foreignUuid('group_id')->constrained('groups')->cascadeOnDelete();
+            $table->json('rules');
+
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->index(['group_id', 'created_at']);
+        });
+
         Schema::create('images', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
@@ -173,7 +206,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('sender_id')->constrained('users')->cascadeOnDelete();
             $table->foreignUuid('receiver_id')->constrained('users')->cascadeOnDelete();
-            
+
             $table->uuid('group_id')->nullable();
             $table->foreign('group_id')->references('id')->on('groups')->nullOnDelete();
 
@@ -220,6 +253,9 @@ return new class extends Migration
             $table->boolean('is_deleted')->default(false);
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
+
+            // The post's URL is /groups/{group slug}/posts/{post slug}.
+            $table->unique(['group_id', 'slug']);
         });
 
         Schema::create('comments', function (Blueprint $table) {
@@ -272,9 +308,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
+        Schema::dropIfExists('group_rule_versions');
         Schema::dropIfExists('groups');
         Schema::dropIfExists('user_counters');
         Schema::dropIfExists('user_settings');
+        Schema::dropIfExists('user_speaking_languages');
         Schema::dropIfExists('speaking_languages');
         Schema::dropIfExists('ui_languages');
         Schema::dropIfExists('user_user_subscriptions');

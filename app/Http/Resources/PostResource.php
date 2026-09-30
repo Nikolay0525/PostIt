@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Post;
 use App\Support\Concerns\ComputesControversy;
+use App\Support\Concerns\RendersMarkdown;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,14 +17,19 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class PostResource extends JsonResource
 {
     use ComputesControversy;
+    use RendersMarkdown;
 
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'group_id' => $this->group_id,
+            'slug' => $this->slug,
             'title' => $this->title,
+            // Raw Markdown source, kept for a future edit form; display uses the two below.
             'article' => $this->article,
+            'article_html' => $this->markdownToHtml($this->article),
+            'article_text' => $this->markdownToPlainText($this->article),
             'created_at' => $this->created_at,
             'upvotes' => $this->upvotes_count,
             'downvotes' => $this->downvotes_count,
@@ -32,7 +38,7 @@ class PostResource extends JsonResource
             // true = viewer upvoted, false = downvoted, null = no vote (or a guest).
             'viewer_vote' => $this->viewer_vote === null ? null : (bool) $this->viewer_vote,
             'author' => ['id' => $this->author->id, 'name' => $this->author->name],
-            'group' => ['id' => $this->group->id, 'name' => $this->group->name],
+            'group' => ['id' => $this->group->id, 'slug' => $this->group->slug, 'name' => $this->group->name],
         ];
     }
 }

@@ -2,10 +2,15 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Requests\Concerns\HasEntityAttributes;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
 {
+    use HasEntityAttributes;
+
+    protected string $attributeEntity = 'user';
+
     public function rules(): array
     {
         return [
