@@ -18,8 +18,13 @@ return [
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
 
     'fields' => [
+        'name' => 'Name',
+        'date_of_birth' => 'Date of birth',
         'email' => 'Email',
         'password' => 'Password',
+        'password_confirmation' => 'Confirm password',
+        'new_password' => 'New password',
+        'new_password_confirmation' => 'Confirm new password',
         'remember' => 'Remember me',
     ],
 
@@ -33,6 +38,44 @@ return [
         'register_link' => 'Create an account',
         'forgot_password' => 'Forgot your password?',
         'reset_link' => 'Reset it',
+    ],
+
+    'register' => [
+        'title' => 'Register',
+        'heading' => 'Create your account',
+        'subtitle' => 'Join communities built around long-form writing and open discussion.',
+        'submit' => 'Create account',
+        'submitting' => 'Creating account…',
+        'has_account' => 'Already have an account?',
+        'login_link' => 'Log in',
+    ],
+
+    'forgot' => [
+        'title' => 'Forgot password',
+        'heading' => 'Reset your password',
+        'subtitle' => 'Enter your email and we\'ll send you a link to reset your password.',
+        'submit' => 'Send reset link',
+        'submitting' => 'Sending link…',
+        'remembered' => 'Remembered your password?',
+        'login_link' => 'Log in',
+    ],
+
+    'reset' => [
+        'title' => 'Reset password',
+        'heading' => 'Choose a new password',
+        'subtitle' => 'Make it something you haven\'t used here before.',
+        'submit' => 'Change password',
+        'submitting' => 'Changing password…',
+    ],
+
+    'verify' => [
+        'title' => 'Verify email',
+        'heading' => 'Verify your email',
+        'subtitle' => 'We\'ve sent a verification link to your email address. Click the link to activate your account.',
+        'link_sent' => 'A new verification link has been sent to your email address.',
+        'resend_in' => 'Resend available in :time',
+        'no_email' => 'Didn\'t get the email?',
+        'resend' => 'Resend verification link',
     ],
 
 ];

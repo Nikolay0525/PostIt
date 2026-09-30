@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { trans } from 'laravel-vue-i18n';
 import TextInput from '@/Pages/Components/TextInput.vue';
 
 const props = defineProps({
@@ -57,12 +58,14 @@ const goToRules = () => {
     normalizeSlug();
     form.clearErrors(...STEP_ONE_FIELDS);
 
+    // Same wording as the server's messages for these rules (lang/*/validation.php, attributes.php).
+    const required = (attribute) => trans('validation.required', { attribute: trans(attribute) });
     const errors = {};
-    if (!form.slug) errors.slug = 'The slug is required.';
-    else if (!SLUG_PATTERN.test(form.slug)) errors.slug = 'Only lowercase Latin letters, digits and single hyphens between words (e.g. "retro-gaming").';
-    if (!form.name.trim()) errors.name = 'The name is required.';
-    if (!form.description.trim()) errors.description = 'The description is required.';
-    if (!form.language_code) errors.language_code = 'Pick a language.';
+    if (!form.slug) errors.slug = required('attributes.group.slug');
+    else if (!SLUG_PATTERN.test(form.slug)) errors.slug = trans('validation.custom.slug.regex');
+    if (!form.name.trim()) errors.name = required('attributes.group.name');
+    if (!form.description.trim()) errors.description = required('validation.attributes.description');
+    if (!form.language_code) errors.language_code = required('validation.attributes.language_code');
 
     if (Object.keys(errors).length) {
         form.setError(errors);
@@ -107,16 +110,16 @@ const submit = () => {
 </script>
 
 <template>
-    <Head :title="` | New group`" />
+    <Head :title="` | ${$t('groups.create.title')}`" />
 
     <section class="feed">
         <form class="post-form" @submit.prevent="submit">
             <div class="wizard-header">
-                <h1 class="feed-title">New group</h1>
+                <h1 class="feed-title">{{ $t('groups.create.title') }}</h1>
                 <p class="wizard-steps" aria-live="polite">
                     <span class="wizard-dot" :class="{ 'is-active': step === 1 }" aria-hidden="true"></span>
                     <span class="wizard-dot" :class="{ 'is-active': step === 2 }" aria-hidden="true"></span>
-                    Step {{ step }} of 2 · {{ step === 1 ? 'Basics' : 'Rules' }}
+                    {{ $t('groups.create.step', { step, name: $t(step === 1 ? 'groups.create.basics' : 'groups.create.rules') }) }}
                 </p>
             </div>
 
@@ -131,7 +134,7 @@ const submit = () => {
                         :aria-hidden="step !== 1"
                     >
                         <div>
-                            <label class="field-label" for="group-slug">Slug</label>
+                            <label class="field-label" for="group-slug">{{ $t('groups.create.slug') }}</label>
                             <input
                                 id="group-slug"
                                 v-model="form.slug"
@@ -144,15 +147,13 @@ const submit = () => {
                                 @blur="normalizeSlug"
                             />
                             <p v-if="form.errors.slug" class="field-error">{{ form.errors.slug }}</p>
-                            <p v-else class="field-hint">
-                                The group's permanent short name, in Latin letters: lowercase letters, digits and hyphens, up to {{ limits.slug }} characters.
-                            </p>
+                            <p v-else class="field-hint">{{ $t('groups.create.slug_hint', { max: limits.slug }) }}</p>
                         </div>
 
-                        <TextInput name="Name" v-model="form.name" :message="form.errors.name" />
+                        <TextInput :name="$t('groups.create.name')" v-model="form.name" :message="form.errors.name" />
 
                         <div>
-                            <label class="field-label" for="group-description">Description</label>
+                            <label class="field-label" for="group-description">{{ $t('groups.create.description') }}</label>
                             <textarea
                                 id="group-description"
                                 v-model="form.description"
@@ -161,14 +162,14 @@ const submit = () => {
                                 rows="3"
                                 maxlength="250"
                                 dir="auto"
-                                placeholder="What is this group about?"
+                                :placeholder="$t('groups.create.description_placeholder')"
                             ></textarea>
                             <p v-if="form.errors.description" class="field-error">{{ form.errors.description }}</p>
                             <p v-else class="field-hint text-end">{{ form.description.length }}/250</p>
                         </div>
 
                         <div>
-                            <label class="field-label" for="group-language">Language</label>
+                            <label class="field-label" for="group-language">{{ $t('groups.create.language') }}</label>
                             <select
                                 id="group-language"
                                 v-model="form.language_code"
@@ -184,11 +185,11 @@ const submit = () => {
 
                         <label class="flex items-center gap-2 text-sm text-ink">
                             <input v-model="form.is_private" type="checkbox" class="checkbox-input" />
-                            Private group — only members can see its posts
+                            {{ $t('groups.create.private') }}
                         </label>
 
                         <button type="button" class="btn-primary self-end" @click="goToRules">
-                            Next: rules <span aria-hidden="true">→</span>
+                            {{ $t('groups.create.next') }} <span aria-hidden="true">→</span>
                         </button>
                     </div>
 
@@ -200,9 +201,7 @@ const submit = () => {
                         :inert="step !== 2 || undefined"
                         :aria-hidden="step !== 2"
                     >
-                        <p class="field-hint mt-0">
-                            Optional. One rule per item; add an example where the rule alone could be read more than one way.
-                        </p>
+                        <p class="field-hint mt-0">{{ $t('groups.create.rules_hint') }}</p>
 
                         <ol class="rule-editor-list">
                             <li v-for="(rule, index) in form.rules" :key="index" class="rule-editor">
@@ -211,8 +210,8 @@ const submit = () => {
                                     <button
                                         type="button"
                                         class="rule-editor-remove"
-                                        :aria-label="`Remove rule ${index + 1}`"
-                                        title="Remove rule"
+                                        :aria-label="$t('groups.create.remove_rule_n', { n: index + 1 })"
+                                        :title="$t('groups.create.remove_rule')"
                                         @click="removeRule(index)"
                                     >✕</button>
                                 </div>
@@ -223,8 +222,8 @@ const submit = () => {
                                     :class="{ 'has-error': form.errors[`rules.${index}.text`] }"
                                     :maxlength="limits.rule_text"
                                     dir="auto"
-                                    :aria-label="`Rule ${index + 1}`"
-                                    placeholder="Rule, e.g. No spam."
+                                    :aria-label="$t('groups.create.rule_n', { n: index + 1 })"
+                                    :placeholder="$t('groups.create.rule_placeholder')"
                                 />
                                 <p v-if="form.errors[`rules.${index}.text`]" class="field-error">{{ form.errors[`rules.${index}.text`] }}</p>
 
@@ -234,8 +233,8 @@ const submit = () => {
                                     :class="{ 'has-error': form.errors[`rules.${index}.example`] }"
                                     :maxlength="limits.rule_example"
                                     dir="auto"
-                                    :aria-label="`Example for rule ${index + 1}`"
-                                    placeholder="Example (optional), e.g. Posting the same link in several threads."
+                                    :aria-label="$t('groups.create.example_n', { n: index + 1 })"
+                                    :placeholder="$t('groups.create.example_placeholder')"
                                 />
                                 <p v-if="form.errors[`rules.${index}.example`]" class="field-error">{{ form.errors[`rules.${index}.example`] }}</p>
                             </li>
@@ -244,16 +243,16 @@ const submit = () => {
                         <p v-if="form.errors.rules" class="field-error">{{ form.errors.rules }}</p>
 
                         <button type="button" class="btn-secondary self-start" :disabled="!canAddRule" @click="addRule">
-                            + Add rule
+                            {{ $t('groups.create.add_rule') }}
                         </button>
-                        <p v-if="!canAddRule" class="field-hint mt-0">A group can have up to {{ limits.rules }} rules.</p>
+                        <p v-if="!canAddRule" class="field-hint mt-0">{{ $t('groups.create.rules_limit', { max: limits.rules }) }}</p>
 
                         <div class="wizard-actions">
                             <button type="button" class="btn-secondary" @click="step = 1">
-                                <span aria-hidden="true">←</span> Back
+                                <span aria-hidden="true">←</span> {{ $t('common.back') }}
                             </button>
                             <button type="submit" class="btn-primary" :disabled="form.processing">
-                                {{ form.processing ? 'Creating…' : 'Create group' }}
+                                {{ form.processing ? $t('groups.create.submitting') : $t('groups.create.submit') }}
                             </button>
                         </div>
                     </div>

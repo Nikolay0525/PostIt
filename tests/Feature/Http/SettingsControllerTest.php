@@ -78,7 +78,7 @@ class SettingsControllerTest extends TestCase
 
         $this->actingAs($user)->patch('/settings', $this->payload())
             ->assertRedirect('/settings')
-            ->assertSessionHas('status', 'Settings saved.');
+            ->assertSessionHas('status', 'settings-saved');
 
         $settings = UserSettings::find($user->id);
         $this->assertSame('en', $settings->ui_language_code);

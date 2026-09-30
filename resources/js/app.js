@@ -38,11 +38,15 @@ createInertiaApp({
 })
 
 // The locale changes without a full reload when the user saves another interface language.
-router.on('navigate', event => {
+// Both events are needed: 'navigate' is skipped when a visit replaces the history entry (saving
+// settings redirects back to the same URL), and 'success' does not fire on back/forward.
+const syncLocale = event => {
     const locale = event.detail.page.props.locale
 
     if (locale && locale !== getActiveLanguage()) {
         loadLanguageAsync(locale)
-        document.documentElement.lang = locale
     }
-})
+}
+
+router.on('success', syncLocale)
+router.on('navigate', syncLocale)

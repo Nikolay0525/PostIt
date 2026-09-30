@@ -14,20 +14,18 @@ defineProps({
     <!-- Guests get a welcome hero; members go straight to the feed. -->
     <section v-if="!$page.props.auth.user" class="hero">
         <p class="hero-brand">Post<span class="brand-mark-accent">It.</span></p>
-        <h1 class="hero-title">Find the conversations that matter to you</h1>
-        <p class="hero-subtitle">
-            Browse open posts from groups and people around the world. Joining is free.
-        </p>
+        <h1 class="hero-title">{{ $t('home.hero_title') }}</h1>
+        <p class="hero-subtitle">{{ $t('home.hero_subtitle') }}</p>
 
         <div class="hero-actions">
-            <Link :href="route('register')" class="btn-primary">Sign up</Link>
-            <Link :href="route('login')" class="btn-secondary">Log in</Link>
+            <Link :href="route('register')" class="btn-primary">{{ $t('nav.sign_up') }}</Link>
+            <Link :href="route('login')" class="btn-secondary">{{ $t('nav.log_in') }}</Link>
         </div>
     </section>
 
     <PostFeed
-        :title="feed === 'subscriptions' ? 'Your feed' : 'Trending posts'"
-        :hint="$page.props.auth.user && feed === 'trending' ? 'You have not joined any groups yet, so here is what is trending.' : ''"
+        :title="feed === 'subscriptions' ? $t('home.your_feed') : $t('home.trending')"
+        :hint="$page.props.auth.user && feed === 'trending' ? $t('home.trending_hint') : ''"
         :posts="posts"
     />
 </template>

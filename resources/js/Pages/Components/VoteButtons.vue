@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import { trans } from 'laravel-vue-i18n';
 import { formatCount } from '@/utils/format';
 import { postJson } from '@/utils/http';
 
@@ -74,7 +75,7 @@ const vote = async (positive) => {
         localViewerVote.value = result.viewer_vote;
     } catch (error) {
         console.error('Vote failed:', error);
-        voteError.value = error.message || 'Something went wrong.';
+        voteError.value = error.message || trans('common.something_went_wrong');
     } finally {
         voting.value = false;
     }
@@ -88,7 +89,7 @@ const vote = async (positive) => {
             type="button"
             class="post-action"
             :class="{ 'vote-active-up': localViewerVote === true }"
-            aria-label="Upvote"
+            :aria-label="$t('votes.upvote')"
             :aria-pressed="localViewerVote === true"
             :disabled="voting"
             @click="vote(true)"
@@ -111,7 +112,7 @@ const vote = async (positive) => {
             type="button"
             class="post-action"
             :class="{ 'vote-active-down': localViewerVote === false }"
-            aria-label="Downvote"
+            :aria-label="$t('votes.downvote')"
             :aria-pressed="localViewerVote === false"
             :disabled="voting"
             @click="vote(false)"
@@ -132,7 +133,7 @@ const vote = async (positive) => {
         <span
             v-if="localControversy !== null"
             class="controversy-badge"
-            title="People are split roughly evenly between upvotes and downvotes here — the higher this number, the bigger the disagreement"
+            :title="$t('votes.controversy_hint')"
         ><svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -146,6 +147,6 @@ const vote = async (positive) => {
                 />
             </svg> {{ formatCount(localControversy) }}</span>
 
-        <span v-if="voteError" class="vote-error" :title="voteError">⚠ Vote failed</span>
+        <span v-if="voteError" class="vote-error" :title="voteError">⚠ {{ $t('votes.failed') }}</span>
     </span>
 </template>

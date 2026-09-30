@@ -46,6 +46,6 @@ class SettingsController extends Controller
             $request->validated('speaking_languages'),
         );
 
-        return redirect()->route('settings.edit')->with('status', 'Settings saved.');
+        return redirect()->route('settings.edit')->with('status', 'settings-saved');
     }
 }

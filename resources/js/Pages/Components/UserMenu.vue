@@ -12,7 +12,7 @@ const initial = computed(() => name.value.charAt(0).toUpperCase());
 </script>
 
 <template>
-    <Dropdown label="Account menu" trigger-class="avatar-btn">
+    <Dropdown :label="$t('nav.account_menu')" trigger-class="avatar-btn">
         <template #trigger>
             <!-- Initial shows until the default picture file exists, then the image covers it. -->
             <span aria-hidden="true">{{ initial }}</span>
@@ -27,10 +27,10 @@ const initial = computed(() => name.value.charAt(0).toUpperCase());
         <template #default="{ close }">
             <p class="menu-heading" dir="auto">{{ name }}</p>
 
-            <Link :href="route('groups.create')" class="menu-item" @click="close">Create group</Link>
-            <Link :href="route('settings.edit')" class="menu-item" @click="close">Settings</Link>
+            <Link :href="route('groups.create')" class="menu-item" @click="close">{{ $t('nav.create_group') }}</Link>
+            <Link :href="route('settings.edit')" class="menu-item" @click="close">{{ $t('nav.settings') }}</Link>
             <Link :href="route('logout')" method="post" as="button" type="button" class="menu-item" @click="close">
-                Log out
+                {{ $t('nav.log_out') }}
             </Link>
         </template>
     </Dropdown>

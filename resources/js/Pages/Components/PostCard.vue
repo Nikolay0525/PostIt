@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
 import { excerpt, timeAgo } from '@/utils/format';
 
@@ -75,14 +76,11 @@ const showLoginPrompt = ref(false);
                 />
             </svg> {{ post.comments_count }}</Link>
 
-            <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-more">See full post</Link>
+            <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-more">{{ $t('posts.see_full') }}</Link>
         </footer>
 
         <p v-if="showLoginPrompt" class="post-login-prompt">
-            <Link :href="route('login')" class="auth-link">Log in</Link>
-            or
-            <Link :href="route('register')" class="auth-link">sign up</Link>
-            to vote and comment.
+            <AuthPrompt action="vote_and_comment" />
         </p>
     </article>
 </template>

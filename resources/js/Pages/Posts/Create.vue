@@ -40,34 +40,34 @@ const submit = () => {
 </script>
 
 <template>
-    <Head :title="` | New post`" />
+    <Head :title="` | ${$t('posts.create.title')}`" />
 
     <section class="feed">
         <Link :href="route('groups.show', group.slug)" class="back-link" dir="auto">
-            <span class="back-arrow" aria-hidden="true">←</span> Back to {{ group.name }}
+            <span class="back-arrow" aria-hidden="true">←</span> {{ $t('common.back_to', { name: group.name }) }}
         </Link>
 
         <form class="post-form" @submit.prevent="submit">
-            <h1 class="feed-title">New post in {{ group.name }}</h1>
+            <h1 class="feed-title">{{ $t('posts.create.heading', { group: group.name }) }}</h1>
 
-            <TextInput name="Title (optional)" v-model="form.title" :message="form.errors.title" />
+            <TextInput :name="$t('posts.create.title_label')" v-model="form.title" :message="form.errors.title" />
 
             <div>
-                <label class="field-label">Article</label>
+                <label class="field-label">{{ $t('posts.create.article') }}</label>
 
                 <div class="markdown-toolbar mb-2">
                     <button
                         type="button"
                         class="markdown-toolbar-btn font-bold"
-                        aria-label="Bold"
-                        title="Bold"
+                        :aria-label="$t('posts.create.bold')"
+                        :title="$t('posts.create.bold')"
                         @click="wrapSelection('**')"
                     >B</button>
                     <button
                         type="button"
                         class="markdown-toolbar-btn italic"
-                        aria-label="Italic"
-                        title="Italic"
+                        :aria-label="$t('posts.create.italic')"
+                        :title="$t('posts.create.italic')"
                         @click="wrapSelection('*')"
                     >I</button>
                 </div>
@@ -79,13 +79,13 @@ const submit = () => {
                     :class="{ 'has-error': form.errors.article }"
                     rows="12"
                     dir="auto"
-                    placeholder="Write your post. Use **bold** and *italic*, and leave a blank line between paragraphs."
+                    :placeholder="$t('posts.create.placeholder')"
                 ></textarea>
                 <p v-if="form.errors.article" class="field-error">{{ form.errors.article }}</p>
             </div>
 
             <button type="submit" class="btn-primary self-start" :disabled="form.processing">
-                {{ form.processing ? 'Posting…' : 'Post' }}
+                {{ form.processing ? $t('posts.create.submitting') : $t('posts.create.submit') }}
             </button>
         </form>
     </section>
