@@ -23,10 +23,16 @@ class AuthService
      * @param  list<string>  $browserLanguages  the browser's preferred locales, best first
      *                                          (e.g. ['uk', 'en_US', 'en']); pre-selects the
      *                                          user's speaking languages, editable in settings
+     * @param  string|null  $uiLanguageCode  the interface language the guest was seeing, so it
+     *                                       doesn't switch at sign-up; null keeps the default
      */
-    public function register(array $data, array $browserLanguages = []): User
+    public function register(array $data, array $browserLanguages = [], ?string $uiLanguageCode = null): User
     {
         $user = $this->userRepository->create($data);
+
+        if ($uiLanguageCode !== null) {
+            $this->userRepository->updateSettings($user->id, ['ui_language_code' => $uiLanguageCode]);
+        }
 
         $this->userRepository->syncSpeakingLanguages($user->id, $this->detectSpeakingLanguages($browserLanguages));
 

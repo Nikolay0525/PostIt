@@ -14,7 +14,7 @@ createInertiaApp({
         return page
     },
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
             .use(i18nVue, {
@@ -28,7 +28,10 @@ createInertiaApp({
             })
             .component('Head', Head) 
             .component('Link', Link)
-            .mount(el)
+
+        // Mount only once the page language is loaded, so the first render never shows raw keys
+        // ("auth.login.heading"). `finally`: if the file can't be loaded, show the page anyway.
+        loadLanguageAsync(props.initialPage.props.locale).finally(() => app.mount(el))
     },
     progress: {
         color: '#4B5563',

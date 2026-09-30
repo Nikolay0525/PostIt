@@ -2,6 +2,10 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-09-30] [FIX] Interface language kept at sign-up
+
+- Registration now saves the interface language the guest was seeing (the locale `SetLocale` picked from `Accept-Language` among active interface languages) instead of `default_ui_language_code`. Before, a guest with e.g. a Russian browser saw English (the first supported language in their browser list) and was switched to Ukrainian the moment they signed up. `default_ui_language_code` still applies to users created any other way (seeders, tinker).
+
 ## [2026-09-29] [FEAT] Settings page and several speaking languages
 
 - Added `GET`/`PATCH /settings` (`SettingsController`, `UpdateSettingsRequest`, `SettingsService`) and `Pages/Settings/Edit.vue`, linked from the account menu (was `href="#"`). Sections: Languages (interface language; languages you speak — searchable picker over all 183 languages, matching the English name, the native name or the code, best match first), Content, Privacy, Appearance.

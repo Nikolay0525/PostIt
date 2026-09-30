@@ -83,4 +83,22 @@ class LocaleTest extends TestCase
         $this->actingAs($user)->patch('/settings', ['show_adult_content' => true])
             ->assertSessionHasErrors(['show_adult_content' => __('validation.custom.show_adult_content.adult_only', locale: 'uk')]);
     }
+
+    public function test_registration_keeps_the_interface_language_the_guest_was_seeing(): void
+    {
+        // A Russian browser: no Russian interface, so the guest sees English — and keeps it.
+        $this->post('/register', [
+            'name' => 'Ivan',
+            'email' => 'ivan@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'date_of_birth' => '1995-05-05',
+        ], ['Accept-Language' => 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'])->assertSessionHasNoErrors();
+
+        $user = User::where('email', 'ivan@example.com')->firstOrFail();
+        $this->assertSame('en', $user->settings->ui_language_code);
+
+        $this->actingAs($user)->get('/settings')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('locale', 'en'));
+    }
 }

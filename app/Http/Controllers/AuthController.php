@@ -21,7 +21,8 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $this->authService->register($request->validated(), $request->getLanguages());
+        // The locale SetLocale picked for this guest request: an active interface language.
+        $this->authService->register($request->validated(), $request->getLanguages(), app()->getLocale());
 
         return Redirect::route('verification.notice');
     }
