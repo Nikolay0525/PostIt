@@ -15,10 +15,10 @@ return [
         'people' => 'People',
     ],
     'recommended_hint' => [
-        'guest' => 'Popular posts from open groups this week.',
-        'member' => 'Popular this week in groups you haven\'t joined yet, in your languages first.',
+        'guest' => 'Popular posts from open groups, freshest first.',
+        'member' => 'Popular in groups you haven\'t joined yet: your languages first, then the freshest.',
     ],
-    'recommended_empty' => 'Nothing new this week — check back later or look at your Following tab.',
+    'recommended_empty' => 'Nothing new for you yet — check back later or look at your Following tab.',
     'empty' => [
         'groups' => 'No posts from your groups yet. Join a group to see its posts here.',
         'people' => 'No posts from people you follow yet. Follow someone from their profile to see their posts here.',

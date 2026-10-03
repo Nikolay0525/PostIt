@@ -14,7 +14,8 @@ class PostService
 {
     private const PER_PAGE = 20;
 
-    private const TRENDING_DAYS = 7;
+    // Recommended tab: this week first, then this month, then older (see orderByFreshness()).
+    private const FRESHNESS_DAYS = [7, 30];
 
     private const SLUG_ATTEMPTS = 3;
 
@@ -48,8 +49,8 @@ class PostService
     public function getRecommendedPosts(?string $userId): LengthAwarePaginator
     {
         return $userId === null
-            ? $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE)
-            : $this->postRepository->paginateRecommended($userId, self::TRENDING_DAYS, self::PER_PAGE);
+            ? $this->postRepository->paginateTrending(self::FRESHNESS_DAYS, self::PER_PAGE)
+            : $this->postRepository->paginateRecommended($userId, self::FRESHNESS_DAYS, self::PER_PAGE);
     }
 
     public function getFollowedAuthorsPosts(string $followerId): LengthAwarePaginator

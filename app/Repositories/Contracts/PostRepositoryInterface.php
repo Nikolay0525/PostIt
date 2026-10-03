@@ -29,16 +29,22 @@ interface PostRepositoryInterface
     public function paginateForGroup(string $groupId, PostSort $sort, int $perPage, ?string $viewerId = null): LengthAwarePaginator;
 
     /**
-     * Posts from public groups created within the last $days days, best score first.
+     * Posts from public groups, freshest bucket first, best score first within a bucket.
+     * $freshnessDays are ascending bucket bounds: [7, 30] = this week, this month, older.
+     *
+     * @param  list<int>  $freshnessDays
      */
-    public function paginateTrending(int $days, int $perPage, ?string $viewerId = null): LengthAwarePaginator;
+    public function paginateTrending(array $freshnessDays, int $perPage, ?string $viewerId = null): LengthAwarePaginator;
 
     /**
      * Trending, made personal for one user: only what is new to them (not their own posts, not
      * groups they're already in), and posts in groups of a language they speak come first —
-     * a priority, not a filter, so the list isn't empty while there are few posts.
+     * a priority, not a filter, so the list isn't empty while there are few posts. Then by
+     * freshness bucket and score, as in paginateTrending().
+     *
+     * @param  list<int>  $freshnessDays
      */
-    public function paginateRecommended(string $userId, int $days, int $perPage): LengthAwarePaginator;
+    public function paginateRecommended(string $userId, array $freshnessDays, int $perPage): LengthAwarePaginator;
 
     /**
      * Posts from every group the user is subscribed to, newest first.

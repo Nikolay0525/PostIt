@@ -56,19 +56,17 @@ class EloquentPostRepository implements PostRepositoryInterface
             ->value('slug');
     }
 
-    public function paginateTrending(int $days, int $perPage, ?string $viewerId = null): LengthAwarePaginator
+    public function paginateTrending(array $freshnessDays, int $perPage, ?string $viewerId = null): LengthAwarePaginator
     {
         $query = $this->withStats($viewerId)
-            ->where('created_at', '>=', now()->subDays($days))
             ->whereHas('group', fn (Builder $group) => $group->where('is_private', false));
 
-        return $this->orderByScore($query)->paginate($perPage);
+        return $this->orderByScore($this->orderByFreshness($query, $freshnessDays))->paginate($perPage);
     }
 
-    public function paginateRecommended(string $userId, int $days, int $perPage): LengthAwarePaginator
+    public function paginateRecommended(string $userId, array $freshnessDays, int $perPage): LengthAwarePaginator
     {
         $query = $this->withStats($userId)
-            ->where('created_at', '>=', now()->subDays($days))
             ->whereHas('group', fn (Builder $group) => $group->where('is_private', false))
             ->where('user_id', '!=', $userId)
             ->whereNotIn('group_id', fn ($groups) => $groups
@@ -84,7 +82,26 @@ class EloquentPostRepository implements PostRepositoryInterface
                 [$userId]
             );
 
-        return $this->orderByScore($query)->paginate($perPage);
+        return $this->orderByScore($this->orderByFreshness($query, $freshnessDays))->paginate($perPage);
+    }
+
+    // Freshness buckets instead of a hard cut-off: with [7, 30], this week's posts come first,
+    // then this month's, then everything older — so the list only runs out when the site does,
+    // while new posts still lead. Buckets rather than a smooth decay (score / age^1.5): the power
+    // function isn't spelled the same on MySQL and sqlite, same reason as orderByControversy().
+    private function orderByFreshness(Builder $query, array $freshnessDays): Builder
+    {
+        $cases = '';
+        $bindings = [];
+
+        foreach (array_values($freshnessDays) as $bucket => $days) {
+            $cases .= ' when `posts`.`created_at` >= ? then '.$bucket;
+            $bindings[] = now()->subDays($days);
+        }
+
+        return $cases === ''
+            ? $query
+            : $query->orderByRaw('case'.$cases.' else '.count($bindings).' end', $bindings);
     }
 
     public function paginateForSubscriber(string $userId, int $perPage): LengthAwarePaginator

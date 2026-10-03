@@ -59,21 +59,39 @@ class RecommendationsTest extends TestCase
         $this->assertSame([$popular->id, $quiet->id], $this->recommendedFor($user));
     }
 
-    public function test_private_groups_and_old_posts_are_never_recommended(): void
+    public function test_private_groups_are_never_recommended(): void
     {
         $user = User::factory()->create();
         Post::factory()->create(['group_id' => Group::factory()->private(), 'created_at' => now()]);
-        Post::factory()->create(['created_at' => now()->subDays(8)]);
 
         $this->assertSame([], $this->recommendedFor($user));
     }
 
-    public function test_a_guest_gets_plain_trending(): void
+    public function test_fresher_posts_come_first_and_old_ones_still_follow(): void
     {
-        $post = Post::factory()->create(['created_at' => now()]);
+        $user = User::factory()->create();
 
+        // Popularity only decides within the same freshness bucket: week, month, older.
+        $old = $this->postIn('ja', score: 9, daysAgo: 60);
+        $thisMonth = $this->postIn('ja', score: 5, daysAgo: 20);
+        $thisWeek = $this->postIn('ja', score: 0, daysAgo: 1);
+        $thisWeekPopular = $this->postIn('ja', score: 2, daysAgo: 2);
+
+        $this->assertSame([$thisWeekPopular->id, $thisWeek->id, $thisMonth->id, $old->id], $this->recommendedFor($user));
+    }
+
+    public function test_a_guest_gets_trending_by_freshness_then_score(): void
+    {
+        $old = $this->postIn('ja', score: 5, daysAgo: 40);
+        $fresh = $this->postIn('ja', score: 0, daysAgo: 1);
+
+        $ids = [];
         $this->get('/')
-            ->assertInertia(fn (AssertableInertia $page) => $page->where('posts.data.0.id', $post->id));
+            ->assertInertia(function (AssertableInertia $page) use (&$ids) {
+                $ids = array_column($page->toArray()['props']['posts']['data'], 'id');
+            });
+
+        $this->assertSame([$fresh->id, $old->id], $ids);
     }
 
     /** @return list<string> */
@@ -89,12 +107,12 @@ class RecommendationsTest extends TestCase
         return $ids;
     }
 
-    // A recent post in a public group of that language, with `score` upvotes from other users.
-    private function postIn(string $languageCode, int $score): Post
+    // A post in a public group of that language, with `score` upvotes from other users.
+    private function postIn(string $languageCode, int $score, int $daysAgo = 0): Post
     {
         $post = Post::factory()->create([
             'group_id' => Group::factory()->create(['language_code' => $languageCode]),
-            'created_at' => now(),
+            'created_at' => now()->subDays($daysAgo),
         ]);
 
         Vote::factory()->onPost($post)->count($score)->create(['positive' => true]);

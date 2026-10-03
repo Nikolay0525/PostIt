@@ -47,8 +47,10 @@
 - People feed visibility: a post in a private group only if the follower is a member of that group (same rule as the author's profile).
 
 ### Recommendations roadmap
-- **v1:** trending — public groups, last 7 days, by score. Still what **guests** get.
-- **v1.1 (done, members):** only *new* to the viewer — no own posts, no groups they're already in — and posts in groups of a language they speak (`user_speaking_languages`, pre-filled from the browser at sign-up) come **first**, then the rest; by score within each part. Languages are a priority, not a filter, on purpose: with few posts (and seed groups in random languages) a strict filter would leave the tab empty. Switch to a filter once there is enough content.
+- **v1:** trending — public groups, by freshness bucket then score (see v1.2). Still what **guests** get.
+- **v1.1 (done, members):** only *new* to the viewer — no own posts, no groups they're already in — and posts in groups of a language they speak (`user_speaking_languages`, pre-filled from the browser at sign-up) come **first**, then the rest; then by freshness bucket and score (v1.2). Languages are a priority, not a filter, on purpose: with few posts (and seed groups in random languages) a strict filter would leave the tab empty. Switch to a filter once there is enough content.
+- **v1.2 (done):** no hard 7-day cut-off: freshness buckets — this week, this month, older (`PostService::FRESHNESS_DAYS = [7, 30]`) — with score deciding within a bucket. The tab only runs out when there is nothing left to show, yet new posts still lead. Buckets rather than a smooth decay (`score / age^1.5`) because the power function isn't spelled the same on MySQL and sqlite.
+- **Planned next:** `post_views` (opened posts) and a copy-link share button with a share count; then a Filters dropdown on the Recommended tab — "Only new" (hide posts you opened or voted on), "Only my languages" (strict), period. Kept in the URL like the tabs. Own posts and posts from your groups stay excluded always (they are in Following). 18+ is out of scope until adult groups exist.
 - **v2:** collaborative — "people who upvoted what you upvoted are also in these groups" (`votes` + `user_group_subscriptions`). Useful once there is real vote volume.
 - **Later:** topics/tags or text embeddings.
 
