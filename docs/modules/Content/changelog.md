@@ -2,6 +2,13 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [FEAT] Recommendations v1.1: new to you, your languages first
+
+- `PostRepositoryInterface::paginateRecommended()` / `PostService::getRecommendedPosts()`: for a member, the Recommended tab skips their own posts and groups they're already in, and orders posts in groups of a language they speak first (an `EXISTS` on `user_speaking_languages`, same on MySQL and sqlite), then by score. Guests still get plain trending.
+- Decided: languages are a **priority, not a filter** — a strict filter would empty the tab on a small site (and in dev, where seed groups get random languages). One condition to change later.
+- `PostService::getTrendingPosts()` removed (replaced). The hint under the tab now differs for guests and members; an empty list says to check back or look at Following.
+- Added `RecommendationsTest` (5 cases).
+
 ## [2026-10-03] [FEAT] Home feed tabs: Recommended / Following (Groups, People)
 
 - `HomeController` reads `feed` (`FeedType`: `recommended` default, `following`) and `source` (`FeedSource`: `groups` default, `people`) from the query; unknown values fall back to the defaults. A guest on Following gets `posts: null` and a log-in prompt. Decided: Recommended is the default for everyone, members included — previously members with group subscriptions landed on their feed.

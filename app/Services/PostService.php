@@ -41,6 +41,17 @@ class PostService
         return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE);
     }
 
+    /**
+     * The Recommended tab. A guest has no languages or groups to go by yet, so gets plain
+     * trending; a member gets it made personal (PostRepositoryInterface::paginateRecommended()).
+     */
+    public function getRecommendedPosts(?string $userId): LengthAwarePaginator
+    {
+        return $userId === null
+            ? $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE)
+            : $this->postRepository->paginateRecommended($userId, self::TRENDING_DAYS, self::PER_PAGE);
+    }
+
     public function getFollowedAuthorsPosts(string $followerId): LengthAwarePaginator
     {
         return $this->postRepository->paginateForFollower($followerId, self::PER_PAGE);
@@ -49,11 +60,6 @@ class PostService
     public function getAuthorPosts(string $authorId, ?string $viewerId = null): LengthAwarePaginator
     {
         return $this->postRepository->paginateForAuthor($authorId, self::PER_PAGE, $viewerId);
-    }
-
-    public function getTrendingPosts(?string $viewerId = null): LengthAwarePaginator
-    {
-        return $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE, $viewerId);
     }
 
     // `(group_id, slug)` is unique, since the slug addresses the post in its URL. A clash of the

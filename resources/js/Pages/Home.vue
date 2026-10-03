@@ -78,7 +78,8 @@ const show = (feed, source = props.source) => {
 
         <PostFeed
             v-else-if="feed === 'recommended'"
-            :hint="$t('home.recommended_hint')"
+            :hint="$t($page.props.auth.user ? 'home.recommended_hint.member' : 'home.recommended_hint.guest')"
+            :empty="$t('home.recommended_empty')"
             :posts="posts"
         />
         <PostFeed

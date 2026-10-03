@@ -34,6 +34,13 @@ interface PostRepositoryInterface
     public function paginateTrending(int $days, int $perPage, ?string $viewerId = null): LengthAwarePaginator;
 
     /**
+     * Trending, made personal for one user: only what is new to them (not their own posts, not
+     * groups they're already in), and posts in groups of a language they speak come first —
+     * a priority, not a filter, so the list isn't empty while there are few posts.
+     */
+    public function paginateRecommended(string $userId, int $days, int $perPage): LengthAwarePaginator;
+
+    /**
      * Posts from every group the user is subscribed to, newest first.
      */
     public function paginateForSubscriber(string $userId, int $perPage): LengthAwarePaginator;

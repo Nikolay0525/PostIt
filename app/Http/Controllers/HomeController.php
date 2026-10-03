@@ -33,9 +33,7 @@ class HomeController extends Controller
             'posts' => $feed === FeedType::Following && $userId === null
                 ? null
                 : Inertia::scroll(fn () => PostResource::collection(match (true) {
-                    // Recommendations v1 is still "trending in public groups"; personalising it
-                    // is the next step.
-                    $feed === FeedType::Recommended => $this->postService->getTrendingPosts($userId),
+                    $feed === FeedType::Recommended => $this->postService->getRecommendedPosts($userId),
                     $source === FeedSource::People => $this->postService->getFollowedAuthorsPosts($userId),
                     default => $this->postService->getSubscribedPosts($userId),
                 })),

@@ -47,8 +47,8 @@
 - People feed visibility: a post in a private group only if the follower is a member of that group (same rule as the author's profile).
 
 ### Recommendations roadmap
-- **v1 (now):** trending — public groups, last 7 days, by score. Not personal yet.
-- **v1.1 (next):** only in the viewer's speaking languages (`groups.language_code` ∈ the user's languages, pre-filled from the browser at sign-up), and only *new* to the viewer — exclude groups they're already in and their own posts.
+- **v1:** trending — public groups, last 7 days, by score. Still what **guests** get.
+- **v1.1 (done, members):** only *new* to the viewer — no own posts, no groups they're already in — and posts in groups of a language they speak (`user_speaking_languages`, pre-filled from the browser at sign-up) come **first**, then the rest; by score within each part. Languages are a priority, not a filter, on purpose: with few posts (and seed groups in random languages) a strict filter would leave the tab empty. Switch to a filter once there is enough content.
 - **v2:** collaborative — "people who upvoted what you upvoted are also in these groups" (`votes` + `user_group_subscriptions`). Useful once there is real vote volume.
 - **Later:** topics/tags or text embeddings.
 

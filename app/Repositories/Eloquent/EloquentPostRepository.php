@@ -65,6 +65,28 @@ class EloquentPostRepository implements PostRepositoryInterface
         return $this->orderByScore($query)->paginate($perPage);
     }
 
+    public function paginateRecommended(string $userId, int $days, int $perPage): LengthAwarePaginator
+    {
+        $query = $this->withStats($userId)
+            ->where('created_at', '>=', now()->subDays($days))
+            ->whereHas('group', fn (Builder $group) => $group->where('is_private', false))
+            ->where('user_id', '!=', $userId)
+            ->whereNotIn('group_id', fn ($groups) => $groups
+                ->select('group_id')
+                ->from('user_group_subscriptions')
+                ->where('user_id', $userId))
+            // 1 when the post's group is in a language the user speaks, else 0: those come first.
+            // A plain EXISTS reads the same on MySQL and sqlite (the test driver).
+            ->orderByRaw(
+                'exists (select 1 from `groups` inner join `user_speaking_languages`'
+                .' on `user_speaking_languages`.`language_code` = `groups`.`language_code`'
+                .' where `groups`.`id` = `posts`.`group_id` and `user_speaking_languages`.`user_id` = ?) desc',
+                [$userId]
+            );
+
+        return $this->orderByScore($query)->paginate($perPage);
+    }
+
     public function paginateForSubscriber(string $userId, int $perPage): LengthAwarePaginator
     {
         // The subscriber is also the viewer here: this feed always shows the current user's own votes.
