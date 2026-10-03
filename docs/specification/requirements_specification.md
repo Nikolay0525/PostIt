@@ -98,6 +98,7 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-COM-014 | The system shall let the Owner edit a group's rules, description and topic, and configure the group's Guardian-related parameters (e.g. target Guardian ratio, response-time window) within bounds set by the platform; the Owner may voluntarily transfer ownership to another member. | M | Planned | T |
 | FR-COM-015 | The system shall grant the Owner the Guardian's moderation abilities automatically and only while the group has no active Guardian. | S | Planned | T |
 | FR-COM-016 | The system shall let members hold a non-binding, transparent vote on a proposed rule or topic change; the Owner shall publish a public accept/reject statement with reasoning, and the vote's outcome and the Owner's response shall remain visible in the group's history. | C | Planned | D |
+| FR-COM-017 | The system shall let a group be marked adult (18+); an adult group and its content shall be shown only to adult users who enabled adult content, enforced on the server. Images posted in an adult group are treated as adult without a separate check. | S | Planned | T |
 
 ### 4.3 Content (module `Content`)
 
@@ -133,6 +134,8 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-MOD-010 | The system shall record, privately, whether a Guardian's action was upheld, overturned, or judged as insufficient evidence, and shall use this record for the Guardian's own accuracy history (FR-COM-011) and to track each reviewer's long-run reliability. | C | Planned | T |
 | FR-MOD-011 | The system shall version a group's rules by date and shall judge an appealed action against the rules in force at the time of that action, not the current rules. | M | Planned | T |
 | FR-MOD-012 | The system shall let a platform administrator review a recurring pattern of appeals against the same group Owner's own moderation actions (not a single appeal) and, after a warning is issued and ignored, strip and transfer ownership of the group to another member. | S | Planned | T |
+| FR-MOD-013 | The system shall check every uploaded image automatically in the background: an image with adult content shall be marked adult, and illegal content (e.g. graphic violence, child sexual abuse material) shall be blocked **everywhere, including adult groups**. Avatars always get the strictest check, since they belong to no group. | S | Planned | T |
+| FR-MOD-014 | The system shall let users report an image and let the uploader mark their own image as adult, as the manual fallback to FR-MOD-013. | S | Planned | T |
 
 ### 4.5 Engagement (module `Engagement`)
 
@@ -179,9 +182,9 @@ Each requirement has a verification method (T/I/D). Tests are organised as descr
 | Module | Requirements | Module document |
 |---|---|---|
 | Account | FR-ACC-001 … 012 | [business_logic](../modules/Account/business_logic.md) |
-| Community | FR-COM-001 … 016 | [business_logic](../modules/Community/business_logic.md) |
+| Community | FR-COM-001 … 017 | [business_logic](../modules/Community/business_logic.md) |
 | Content | FR-CON-001 … 013 | [business_logic](../modules/Content/business_logic.md) |
-| Moderation | FR-MOD-001 … 012 | [business_logic](../modules/Moderation/business_logic.md) |
+| Moderation | FR-MOD-001 … 014 | [business_logic](../modules/Moderation/business_logic.md) |
 | Engagement | FR-ENG-001 … 005 | [business_logic](../modules/Engagement/business_logic.md) |
 
 ## 10. Open issues

@@ -2,6 +2,12 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [FEAT] Avatar — service layer
+
+- New `ProfileService::updateAvatar()` / `removeAvatar()` on top of `ImageService` (see `Content`): the file goes to `avatars/` with an `images` row (`owner_type = User`), and `users.avatar_url` mirrors its path so post/comment lists can show avatars without joining `images`. Despite the column name, it holds a disk path; render it with `ImageService::url()`.
+- Replacing an avatar deletes the old file and row only after the new one is saved, so a failed upload keeps the previous avatar. Removing resets `avatar_url` to null (default picture).
+- No route or UI yet — they come with the profile edit page. Added `AvatarTest` (6 cases).
+
 ## [2026-10-03] [FEAT] Following authors — service layer
 
 - `UserRepositoryInterface`: `follow`, `unfollow`, `isFollowing`, `followersCount` over `user_user_subscriptions` (insertOrIgnore / WHERE-scoped delete, as for group subscriptions — composite key).

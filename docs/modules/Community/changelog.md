@@ -2,6 +2,10 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [DOCS] Adult (18+) groups planned
+
+- Planned `groups.is_adult` (FR-COM-017): such groups and their content are visible only to adults who enabled adult content, enforced on the server; their images count as adult, but the illegal-content check (Moderation FR-MOD-013) is never switched off.
+
 ## [2026-09-29] [FEAT] Page URLs use slugs; service pages under `/-/`
 
 - Groups are now addressed by slug: `/groups/home-cooking`, `/groups/home-cooking/random-post`; posts by group slug + post slug: `/groups/home-cooking/posts/борщ-з-пампушками-a1b2c3` (see `Content` changelog). Old `/groups/{uuid}` and `/posts/{uuid}` URLs are gone (404) — pre-release, no external links to preserve.
