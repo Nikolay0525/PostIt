@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -37,8 +38,12 @@ class HandleInertiaRequests extends Middleware
     {
         return array_merge(parent::share($request), [
             'locale' => fn () => app()->getLocale(),
+            // avatar_url is a ready link (or null), for the account menu button.
             'auth.user' => fn () => $request->user()
-                ? $request->user()->only('id', 'username')
+                ? [
+                    ...$request->user()->only('id', 'username'),
+                    'avatar_url' => ImageService::url($request->user()->avatar_url),
+                ]
                 : null,
             'status' => fn () => $request->session()->get('status'),
             // Read by app.js so a saved theme mode applies without a reload; guests get null

@@ -190,6 +190,11 @@
     @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50
            text-sm font-semibold text-brand-600;
   }
+  /* The same, smaller, next to a comment's author. */
+  .avatar-sm {
+    @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50
+           text-xs font-semibold text-brand-600;
+  }
   .post-meta-text {
     @apply min-w-0 text-sm leading-tight text-muted;
   }

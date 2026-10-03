@@ -2,6 +2,11 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-04] [FEAT] Avatars shown everywhere, not only on the profile
+
+- New `UserAvatar.vue`: the picture, or the first letter when there is none or it fails to load. Used by the post card (`.avatar`), comments (new `.avatar-sm`) and the navbar account button (replacing a placeholder that pointed at a non-existent default image).
+- The shared `auth.user` prop now carries `avatar_url` (a ready link or null). Uploading or removing the avatar on the profile updates the navbar button at once, without a page visit.
+
 ## [2026-10-03] [FEAT] Profile: status, bio, groups, achievements; edited in place
 
 - New optional `users.status_emoji` (≤ 16), `status_text` (≤ 100) and `bio` (≤ 500), by migration `2026_10_03_180000_add_profile_fields_to_users_table`. The emoji is picked from a fixed set (`UpdateProfileRequest::STATUS_EMOJIS`, 24 options), not typed, so the field can't carry arbitrary text.

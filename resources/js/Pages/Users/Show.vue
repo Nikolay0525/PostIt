@@ -79,6 +79,12 @@ const avatarInput = ref(null);
 const avatarBusy = ref(false);
 const avatarError = ref(null);
 
+// The navbar's account button shows the same picture: update it too, without a page visit.
+const setAvatar = (url) => {
+    info.avatar_url = url;
+    page.props.auth.user.avatar_url = url;
+};
+
 const uploadAvatar = async (event) => {
     const file = event.target.files[0];
     event.target.value = '';
@@ -97,7 +103,7 @@ const uploadAvatar = async (event) => {
     try {
         const form = new FormData();
         form.append('avatar', file);
-        info.avatar_url = (await postForm('/profile/avatar', form)).avatar_url;
+        setAvatar((await postForm('/profile/avatar', form)).avatar_url);
     } catch (e) {
         avatarError.value = failure(e);
     } finally {
@@ -110,7 +116,7 @@ const removeAvatar = async () => {
     avatarError.value = null;
 
     try {
-        info.avatar_url = (await deleteJson('/profile/avatar')).avatar_url;
+        setAvatar((await deleteJson('/profile/avatar')).avatar_url);
     } catch (e) {
         avatarError.value = failure(e);
     } finally {

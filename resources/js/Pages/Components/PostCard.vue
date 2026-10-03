@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import ShareButton from '@/Pages/Components/ShareButton.vue';
+import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
 import { excerpt, timeAgo } from '@/utils/format';
 
@@ -11,7 +12,6 @@ const props = defineProps({
     full: { type: Boolean, default: false },
 });
 
-const initial = computed(() => props.post.author.username.charAt(0).toUpperCase());
 const preview = computed(() => excerpt(props.post.article_text));
 
 const showLoginPrompt = ref(false);
@@ -20,7 +20,7 @@ const showLoginPrompt = ref(false);
 <template>
     <article class="post-card">
         <header class="post-meta">
-            <span class="avatar" aria-hidden="true">{{ initial }}</span>
+            <UserAvatar :url="post.author.avatar_url" :username="post.author.username" class="avatar" />
 
             <!-- dir="auto" lets each piece of user text align by its own language -->
             <p class="post-meta-text">

@@ -205,6 +205,12 @@ class ProfileControllerTest extends TestCase
         $response->assertExactJson(['avatar_url' => ImageService::url($path)]);
         $this->get('/users/olena')
             ->assertInertia(fn (AssertableInertia $page) => $page->where('profile.avatar_url', ImageService::url($path)));
+        // Every page gets it for the navbar's account button, and posts carry it for their author.
+        Post::factory()->create(['user_id' => $user->id, 'created_at' => now()]);
+        $this->get('/?period=all')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('auth.user.avatar_url', ImageService::url($path)));
+        $this->get('/users/olena')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('posts.data.0.author.avatar_url', ImageService::url($path)));
 
         $this->deleteJson('/profile/avatar')->assertExactJson(['avatar_url' => null]);
 
