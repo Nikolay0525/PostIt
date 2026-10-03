@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Enums\SearchType;
 use App\Http\Resources\GroupListItemResource;
+use App\Http\Resources\PostListItemResource;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserProfileResource;
 use App\Services\SearchService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,9 +20,34 @@ class SearchController extends Controller
     // On the All tab: this many groups and people above the posts, with a link to the full tab.
     private const PREVIEW_SIZE = 4;
 
+    // Under the navbar field while typing: this many of each kind.
+    private const SUGGESTIONS = 3;
+
     public function __construct(
         protected SearchService $searchService
     ) {}
+
+    /**
+     * Suggestions under the navbar field while typing: the best few of each kind, as JSON (the
+     * field sits on every page, so this can't be a page visit). Same matching and visibility as
+     * the results page; a too-short term gets empty lists.
+     */
+    public function suggest(Request $request): JsonResponse
+    {
+        $term = $this->searchService->normalize($request->query('q'));
+
+        if ($term === null) {
+            return response()->json(['groups' => [], 'people' => [], 'posts' => []]);
+        }
+
+        $viewerId = $request->user()?->id;
+
+        return response()->json([
+            'groups' => GroupListItemResource::collection($this->searchService->groups($term, self::SUGGESTIONS)->items()),
+            'people' => UserProfileResource::collection($this->searchService->people($term, self::SUGGESTIONS)->items()),
+            'posts' => PostListItemResource::collection($this->searchService->posts($term, self::SUGGESTIONS, $viewerId)->items()),
+        ]);
+    }
 
     // Public like the feed: guests search too, and see what guests may see.
     public function index(Request $request): Response

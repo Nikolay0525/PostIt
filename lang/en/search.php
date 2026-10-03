@@ -16,5 +16,13 @@ return [
     ],
     'all_groups' => 'All groups (:num)',
     'all_people' => 'All people (:num)',
+    'suggest' => [
+        'group' => 'Groups',
+        'person' => 'People',
+        'post' => 'Posts',
+        'in_posts' => 'Search “:q” in posts',
+        'in_groups' => 'Search “:q” in groups',
+        'in_people' => 'Search “:q” among people',
+    ],
 
 ];

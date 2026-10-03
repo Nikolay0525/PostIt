@@ -30,6 +30,9 @@ Route::get('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'show
 Route::get('/users/{username}', [ProfileController::class, 'show'])->name('users.show');
 Route::get('/search', [SearchController::class, 'index'])
     ->middleware('throttle:60,1')->name('search');
+// Fired while typing (debounced in the browser), so a looser limit than the results page.
+Route::get('/search/suggest', [SearchController::class, 'suggest'])
+    ->middleware('throttle:120,1')->name('search.suggest');
 
 Route::middleware(['guest'])->group(function () {
     Route::inertia('/login', 'Auth/Login')->name('login');

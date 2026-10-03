@@ -127,6 +127,44 @@ class SearchControllerTest extends TestCase
                 ->where('groups.meta.total', 6));
     }
 
+    public function test_suggestions_return_the_best_three_of_each_kind(): void
+    {
+        Group::factory()->count(5)->sequence(fn ($sequence) => ['name' => 'Retro '.$sequence->index])->create();
+        User::factory()->create(['username' => 'retro_fan']);
+        $post = Post::factory()->create(['title' => 'Retro console']);
+        $untitled = Post::factory()->withoutTitle()->create(['article' => 'My **retro** shelf, finally sorted.']);
+
+        $this->getJson('/search/suggest?q=retro')
+            ->assertOk()
+            ->assertJsonCount(3, 'groups')
+            ->assertJsonCount(1, 'people')
+            ->assertJsonPath('people.0.username', 'retro_fan')
+            ->assertJsonPath('posts.0.id', $post->id)
+            ->assertJsonPath('posts.0.title', 'Retro console')
+            ->assertJsonPath('posts.0.group.slug', $post->group->slug)
+            // Without a title, the start of the text — as plain text, not Markdown.
+            ->assertJsonPath('posts.1.id', $untitled->id)
+            ->assertJsonPath('posts.1.preview', 'My retro shelf, finally sorted.');
+    }
+
+    public function test_suggestions_for_a_too_short_term_are_empty(): void
+    {
+        Group::factory()->create(['name' => 'R']);
+
+        $this->getJson('/search/suggest?q=r')
+            ->assertExactJson(['groups' => [], 'people' => [], 'posts' => []]);
+    }
+
+    public function test_suggestions_keep_private_group_posts_to_members(): void
+    {
+        $group = Group::factory()->private()->create(['name' => 'Secret club']);
+        Post::factory()->create(['group_id' => $group->id, 'title' => 'Secret meeting']);
+
+        $this->getJson('/search/suggest?q=secret')
+            ->assertJsonPath('groups.0.id', $group->id)
+            ->assertJsonCount(0, 'posts');
+    }
+
     public function test_people_show_public_fields_only(): void
     {
         User::factory()->create(['username' => 'olena', 'email' => 'olena@example.com']);

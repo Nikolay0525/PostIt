@@ -2,6 +2,12 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-04] [FEAT] Search suggestions under the navbar field
+
+- `GET /search/suggest?q=` (`SearchController::suggest`, JSON `{groups, people, posts}`, 3 each, throttled 120/min; a too-short term gets empty lists) on the same repository `search()` methods. Posts come as a new light `PostListItemResource` (title, or the first 80 characters of the text as plain text when untitled, and the group).
+- The navbar field moved into `SearchBox.vue`: debounced fetch (250 ms) that cancels the previous request (`getJson()` in `http.js` now takes an `AbortController` signal), a listbox panel with sections and three "Search “…” in …" rows, keyboard navigation (↑ ↓ Enter Esc) with combobox ARIA, closing on outside click and on navigation. The browser's form history is off (`autocomplete="off"`), spellcheck too.
+- FR-CON-011 → Done. `SearchControllerTest` +3 cases (12).
+
 ## [2026-10-04] [FEAT] Site search: results page
 
 - The navbar search field now works: Enter opens `GET /search?q=…&type=…` (`SearchController`, `SearchService`, page `Search.vue`), throttled 60/min. Tabs All / Posts / Groups / People (`SearchType`); All previews 4 groups and 4 people (with their total) above the scrolling posts.

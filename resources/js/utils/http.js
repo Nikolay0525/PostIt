@@ -17,8 +17,9 @@ function xsrfToken() {
 // console and in anything the caller shows the user, rather than a mystery "failed with 500".
 //
 // A FormData body (a file upload) is sent as multipart: the browser sets that Content-Type itself,
-// with the boundary, so it must not be set here.
-async function request(method, url, body) {
+// with the boundary, so it must not be set here. `signal` (an AbortController's) lets the caller
+// cancel a request whose answer it no longer wants.
+async function request(method, url, body, signal) {
     const isForm = body instanceof FormData;
     const headers = {
         Accept: 'application/json',
@@ -34,6 +35,7 @@ async function request(method, url, body) {
         credentials: 'same-origin',
         headers,
         body: body === undefined || isForm ? body : JSON.stringify(body),
+        signal,
     });
 
     const data = await response.json().catch(() => null);
@@ -43,6 +45,11 @@ async function request(method, url, body) {
     }
 
     return data;
+}
+
+// A background read (e.g. search suggestions while typing), with optional cancellation.
+export function getJson(url, { signal } = {}) {
+    return request('GET', url, undefined, signal);
 }
 
 export function postJson(url, body) {

@@ -56,7 +56,7 @@
 - **Order:** exact match on the main field (post title, group name, username) → starts with → contains → matched only elsewhere (post text, group description); within each — post score then date, group members, person followers.
 - **Visibility:** private groups **are** found (marked 🔒) so they can be found and joined; their posts only by members (same rule as everywhere). Deleted posts never. People show public profile fields only.
 - **Not applied:** the feed filters — search finds everything the viewer may see, including posts already read.
-- **Next:** live suggestions under the field, Roblox-style (top 3 groups, people and posts while typing, plus "Search “…” in posts / groups / people").
+- **Suggestions (done):** while typing (2+ characters, 250 ms after the last key), a panel under the field shows the best 3 groups, people and posts — same matching and visibility — plus "Search “…” in posts / groups / people". Arrow keys move through it, Enter opens the highlighted row (or the results page), Esc / a click outside / any navigation closes it. The browser's own form history on the field is off (`autocomplete="off"`).
 
 ### Recommendations roadmap
 - **v1:** trending — public groups, by freshness bucket then score (see v1.2). Still what **guests** get.
