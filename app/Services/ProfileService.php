@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ImageOwnerType;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Throwable;
 
@@ -20,6 +21,25 @@ class ProfileService
         protected UserRepositoryInterface $userRepository,
         protected ImageService $imageService
     ) {}
+
+    /**
+     * @throws ModelNotFoundException when no user has this username
+     */
+    public function getProfile(string $username): User
+    {
+        return $this->userRepository->findForProfile($username)
+            ?? throw (new ModelNotFoundException)->setModel(User::class, [$username]);
+    }
+
+    /**
+     * @param  array{status_emoji?: ?string, status_text?: ?string, bio?: ?string}  $fields  only the fields to change
+     */
+    public function updateProfile(User $user, array $fields): User
+    {
+        $allowed = array_intersect_key($fields, array_flip(['status_emoji', 'status_text', 'bio']));
+
+        return $allowed === [] ? $user : $this->userRepository->update($user, $allowed);
+    }
 
     /**
      * Replaces the avatar. The old image is removed only once the new one is saved, so a failed

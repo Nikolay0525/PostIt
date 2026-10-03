@@ -9,6 +9,7 @@ return [
     'sign_up' => 'Sign up',
     'account_menu' => 'Account menu',
     'create_group' => 'Create group',
+    'profile' => 'Profile',
     'settings' => 'Settings',
     'log_out' => 'Log out',
     'inbox' => 'Inbox',

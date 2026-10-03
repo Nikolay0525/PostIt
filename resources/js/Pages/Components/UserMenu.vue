@@ -27,6 +27,7 @@ const initial = computed(() => username.value.charAt(0).toUpperCase());
         <template #default="{ close }">
             <p class="menu-heading" dir="auto">{{ username }}</p>
 
+            <Link :href="route('users.show', username)" class="menu-item" @click="close">{{ $t('nav.profile') }}</Link>
             <Link :href="route('groups.create')" class="menu-item" @click="close">{{ $t('nav.create_group') }}</Link>
             <Link :href="route('settings.edit')" class="menu-item" @click="close">{{ $t('nav.settings') }}</Link>
             <Link :href="route('logout')" method="post" as="button" type="button" class="menu-item" @click="close">

@@ -27,7 +27,7 @@ const showLoginPrompt = ref(false);
                 <span aria-hidden="true"> · </span>
                 <time :datetime="post.created_at">{{ timeAgo(post.created_at) }}</time>
                 <br />
-                <a href="#" class="post-author" dir="auto">{{ post.author.username }}</a>
+                <Link :href="route('users.show', post.author.username)" class="post-author" dir="auto">{{ post.author.username }}</Link>
             </p>
         </header>
 

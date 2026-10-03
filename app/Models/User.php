@@ -20,7 +20,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     public $incrementing = false;
 
-    protected $fillable = ['username', 'email', 'password', 'avatar_url', 'date_of_birth', 'role'];
+    protected $fillable = ['username', 'email', 'password', 'avatar_url', 'status_emoji', 'status_text', 'bio', 'date_of_birth', 'role'];
 
     protected $hidden = ['password', 'remember_token'];
 

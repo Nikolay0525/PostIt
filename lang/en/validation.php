@@ -208,6 +208,10 @@ return [
         'password' => 'password',
         'date_of_birth' => 'date of birth',
         'token' => 'reset token',
+        'avatar' => 'avatar',
+        'status_emoji' => 'status emoji',
+        'status_text' => 'status',
+        'bio' => 'about me',
 
         // Settings
         'ui_language_code' => 'interface language',

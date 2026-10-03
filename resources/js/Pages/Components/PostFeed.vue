@@ -11,8 +11,10 @@ defineProps({
 </script>
 
 <template>
-    <section class="feed">
-        <h2 class="feed-title">{{ title }}</h2>
+    <!-- w-full: inside another .feed (the profile page) the auto side margins would otherwise
+         shrink this to its content, and an empty feed's title would end up centred. -->
+    <section class="feed w-full">
+        <h2 class="feed-title" dir="auto">{{ title }}</h2>
         <p v-if="hint" class="text-sm text-muted">{{ hint }}</p>
 
         <p v-if="!posts.data.length" class="text-sm text-muted">{{ $t('posts.none') }}</p>

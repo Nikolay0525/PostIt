@@ -15,6 +15,11 @@ interface UserRepositoryInterface
      */
     public function findForSettings(string $id): ?User;
 
+    /**
+     * For the public profile page: the returned user carries the `followers_count` aggregate.
+     */
+    public function findForProfile(string $username): ?User;
+
     public function create(array $data): User;
 
     public function update(User $user, array $data): User;

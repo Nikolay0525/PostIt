@@ -2,6 +2,24 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [FEAT] Profile: status, bio, groups, achievements; edited in place
+
+- New optional `users.status_emoji` (≤ 16), `status_text` (≤ 100) and `bio` (≤ 500), by migration `2026_10_03_180000_add_profile_fields_to_users_table`. The emoji is picked from a fixed set (`UpdateProfileRequest::STATUS_EMOJIS`, 24 options), not typed, so the field can't carry arbitrary text.
+- **The owner edits the profile right on its page** (decided over a separate edit page or a settings section): `PATCH /profile` (partial update; `''`/null clears a field), `POST`/`DELETE /profile/avatar`. All JSON, so the scrolled post list isn't reset. The avatar endpoints moved here from `/settings/avatar` (same day, never released) and now answer `{avatar_url}` instead of redirecting; the settings page no longer gets avatar props.
+- Page layout: one header card with avatar, username, status, followers/join date and the main action (Follow, or Edit for the owner); an "About me" card only when there is a bio; then Achievements, Groups, Posts. For the owner the avatar itself is the upload button (hover/focus: darkened edges and a "+"); "Remove photo" is in the edit form. Long text wraps anywhere (`overflow-wrap: anywhere`, `min-w-0`) instead of widening the card; the bio textarea resizes vertically only.
+- **Groups list**: the user's groups by name — public ones, and private ones only when the viewer is a member too (same rule as their posts). `GroupRepositoryInterface::membershipsVisibleTo()`.
+- **Achievements**: unlocked ones only (`AchievementRepositoryInterface::unlockedBy()`, `AchievementService::getUnlocked()`). Nothing awards achievements yet, so the block shows "No achievements yet" for everyone.
+- `http.js` gained `postForm()` for multipart uploads (no `Content-Type` set by hand, the browser adds the boundary).
+- `ProfileControllerTest` now 13 cases (status/bio set, partial update, clear, validation; groups visibility and order; achievements; avatar JSON endpoints; guest).
+
+## [2026-10-03] [FEAT] Profile page, following, avatar upload
+
+- **Profile page** `GET /users/{username}` (`ProfileController::show`, `Pages/Users/Show.vue`), public like a group page: avatar (or initial), username, followers count, join month, and the user's posts via `PostService::getAuthorPosts()` with `<InfiniteScroll>` (private-group posts only for that group's members). `UserProfileResource` exposes public fields only — never email, date of birth or settings. The username segment accepts any characters but `/` (usernames have no format rule yet).
+- **Follow / unfollow** (FR-ACC-010 → Done): `POST`/`DELETE /users/{id}/follow` (`FollowController`, JSON `{is_following, followers_count}`, outside Inertia so the scrolled post list isn't reset — same as group subscribe). `UserPolicy::follow()`: verified, not self (403). Unfollowing is never gated.
+- **Avatar endpoints**: `POST /settings/avatar` (POST, since PHP only parses multipart uploads on POST) and `DELETE /settings/avatar`, throttled 10/min. `UpdateAvatarRequest`: jpg/png/webp checked by contents, ≤ 2 MB, ≤ 4096×4096 (no resizing — see `Content` image notes). The settings page receives `avatar_url` and `max_avatar_size_kb`; the upload control itself is not built yet.
+- `author.avatar_url` (a ready link, `null` for none) added to `PostResource` and `CommentResource`; author names in posts and comments now link to the profile (were `href="#"`), and the account menu has "Profile".
+- Added `ProfileControllerTest` (9 cases) and `FollowControllerTest` (6 cases).
+
 ## [2026-10-03] [FEAT] Avatar — service layer
 
 - New `ProfileService::updateAvatar()` / `removeAvatar()` on top of `ImageService` (see `Content`): the file goes to `avatars/` with an `images` row (`owner_type = User`), and `users.avatar_url` mirrors its path so post/comment lists can show avatars without joining `images`. Despite the column name, it holds a disk path; render it with `ImageService::url()`.

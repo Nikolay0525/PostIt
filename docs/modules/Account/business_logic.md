@@ -50,6 +50,8 @@
 |---|---|
 | `AuthService` | `register`, `attemptLogin`, `logout`, `sendResetLink`, `resetPassword`, `resendVerification`. Depends on `UserRepositoryInterface`. |
 | `UserRepositoryInterface` *(contract)* | `create`, `updatePassword`; *(0.1.8)* `findForSettings`, `updateSettings`, `syncSpeakingLanguages` (persistence contract implemented in `Repositories/`). |
+| `FollowService` *(2026-10-03)* | `follow` (refuses self), `unfollow`, `isFollowing` (false for a guest), `followersCount`. Behind `POST`/`DELETE /users/{id}/follow` (`FollowController`, `UserPolicy::follow()`). |
+| `ProfileService` *(2026-10-03)* | `getProfile` (by username, with `followers_count`), `updateAvatar`, `removeAvatar` (on top of `ImageService`). Behind `GET /users/{username}` and `POST`/`DELETE /settings/avatar` (`ProfileController`). |
 | `SettingsService` *(0.1.8)* | `getSettings`, `updateSettings` — saves preferences and replaces speaking languages in one transaction; rejects adult content for a minor. Behind `GET`/`PATCH /settings` (`SettingsController`, `UpdateSettingsRequest`), page `Pages/Settings/Edit.vue`, reachable from the account menu. |
 
 ## Domain Events

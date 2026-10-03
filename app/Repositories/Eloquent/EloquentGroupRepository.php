@@ -9,6 +9,7 @@ use App\Models\GroupRuleVersion;
 use App\Models\UserGroupSubscription;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class EloquentGroupRepository implements GroupRepositoryInterface
 {
@@ -73,6 +74,21 @@ class EloquentGroupRepository implements GroupRepositoryInterface
     public function hasSubscriptions(string $userId): bool
     {
         return Group::whereHas('members', fn (Builder $members) => $members->whereKey($userId))->exists();
+    }
+
+    public function membershipsVisibleTo(string $userId, ?string $viewerId): Collection
+    {
+        return Group::query()
+            ->whereHas('members', fn (Builder $members) => $members->whereKey($userId))
+            ->where(function (Builder $visible) use ($viewerId) {
+                $visible->where('is_private', false);
+
+                if ($viewerId !== null) {
+                    $visible->orWhereHas('members', fn (Builder $members) => $members->whereKey($viewerId));
+                }
+            })
+            ->orderBy('name')
+            ->get(['id', 'slug', 'name', 'icon_url', 'is_private']);
     }
 
     // `UserGroupSubscription` has a composite primary key, which Eloquent does not support

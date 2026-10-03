@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Comment;
+use App\Services\ImageService;
 use App\Support\Concerns\ComputesControversy;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -31,6 +32,7 @@ class CommentResource extends JsonResource
             'author' => [
                 'id' => $this->is_deleted ? null : $this->author->id,
                 'username' => $this->is_deleted ? 'Removed' : $this->author->username,
+                'avatar_url' => $this->is_deleted ? null : ImageService::url($this->author->avatar_url),
             ],
             'created_at' => $this->created_at,
             'upvotes' => $this->upvotes_count,

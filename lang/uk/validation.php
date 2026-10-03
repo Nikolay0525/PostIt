@@ -203,6 +203,10 @@ return [
         'password' => 'пароль',
         'date_of_birth' => 'дата народження',
         'token' => 'токен скидання',
+        'avatar' => 'аватар',
+        'status_emoji' => 'емодзі статусу',
+        'status_text' => 'статус',
+        'bio' => 'про себе',
 
         // Settings
         'ui_language_code' => 'мова інтерфейсу',

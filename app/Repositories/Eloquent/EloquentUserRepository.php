@@ -27,6 +27,11 @@ class EloquentUserRepository implements UserRepositoryInterface
         return User::with(['settings', 'speakingLanguages'])->find($id);
     }
 
+    public function findForProfile(string $username): ?User
+    {
+        return User::withCount('followers')->where('username', $username)->first();
+    }
+
     public function create(array $data): User
     {
         return User::create($data);

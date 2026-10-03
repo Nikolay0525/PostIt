@@ -10,5 +10,6 @@ return [
     'request_join' => ':login or :register to request to join this group.',
     'post' => ':login or :register to post.',
     'discuss' => ':login or :register to join the discussion.',
+    'follow' => ':login or :register to follow this user.',
 
 ];

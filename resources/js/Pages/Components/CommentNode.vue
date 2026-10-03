@@ -74,7 +74,7 @@ const submitReply = async () => {
 
             <template v-else>
                 <p class="post-meta-text">
-                    <a href="#" class="post-author font-medium text-ink" dir="auto">{{ comment.author.username }}</a>
+                    <Link :href="route('users.show', comment.author.username)" class="post-author font-medium text-ink" dir="auto">{{ comment.author.username }}</Link>
                     <span aria-hidden="true"> · </span>
                     <time :datetime="comment.created_at">{{ timeAgo(comment.created_at) }}</time>
                 </p>

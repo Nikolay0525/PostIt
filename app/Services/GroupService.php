@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\GroupModeratorRole;
 use App\Models\Group;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -84,6 +85,16 @@ class GroupService
     public function hasSubscriptions(string $userId): bool
     {
         return $this->groupRepository->hasSubscriptions($userId);
+    }
+
+    /**
+     * The user's groups for their profile; a private group only when the viewer is in it too.
+     *
+     * @return Collection<int, Group>
+     */
+    public function getMembershipsVisibleTo(string $userId, ?string $viewerId): Collection
+    {
+        return $this->groupRepository->membershipsVisibleTo($userId, $viewerId);
     }
 
     /**

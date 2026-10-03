@@ -15,16 +15,25 @@ function xsrfToken() {
 // (its `message`, e.g. a validation error or, outside production, an exception message) instead
 // of just the bare status code — so a failure surfaces with an actual reason attached, in the
 // console and in anything the caller shows the user, rather than a mystery "failed with 500".
+//
+// A FormData body (a file upload) is sent as multipart: the browser sets that Content-Type itself,
+// with the boundary, so it must not be set here.
 async function request(method, url, body) {
+    const isForm = body instanceof FormData;
+    const headers = {
+        Accept: 'application/json',
+        'X-XSRF-TOKEN': xsrfToken(),
+    };
+
+    if (!isForm) {
+        headers['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(url, {
         method,
         credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-XSRF-TOKEN': xsrfToken(),
-        },
-        body: body === undefined ? undefined : JSON.stringify(body),
+        headers,
+        body: body === undefined || isForm ? body : JSON.stringify(body),
     });
 
     const data = await response.json().catch(() => null);
@@ -42,6 +51,11 @@ export function postJson(url, body) {
 
 export function patchJson(url, body) {
     return request('PATCH', url, body);
+}
+
+// Multipart POST, for file uploads; the response is still JSON.
+export function postForm(url, formData) {
+    return request('POST', url, formData);
 }
 
 export function deleteJson(url) {
