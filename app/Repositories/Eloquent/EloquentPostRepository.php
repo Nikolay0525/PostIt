@@ -9,6 +9,7 @@ use App\Models\Vote;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class EloquentPostRepository implements PostRepositoryInterface
 {
@@ -54,6 +55,23 @@ class EloquentPostRepository implements PostRepositoryInterface
             ->where('is_deleted', false)
             ->inRandomOrder()
             ->value('slug');
+    }
+
+    // `post_views`/`post_shares` are link tables with a composite key and no model: insertOrIgnore
+    // makes a repeat a no-op without a lookup first, and can't race into a duplicate-key error.
+    public function recordView(string $postId, string $userId): void
+    {
+        DB::table('post_views')->insertOrIgnore(['post_id' => $postId, 'user_id' => $userId, 'viewed_at' => now()]);
+    }
+
+    public function recordShare(string $postId, string $userId): void
+    {
+        DB::table('post_shares')->insertOrIgnore(['post_id' => $postId, 'user_id' => $userId, 'created_at' => now()]);
+    }
+
+    public function sharesCount(string $postId): int
+    {
+        return DB::table('post_shares')->where('post_id', $postId)->count();
     }
 
     public function paginateTrending(array $freshnessDays, int $perPage, ?string $viewerId = null): LengthAwarePaginator
@@ -158,6 +176,7 @@ class EloquentPostRepository implements PostRepositoryInterface
                 'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true),
                 'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false),
                 'comments',
+                'sharedBy as shares_count',
             ])
             ->where('is_deleted', false);
 

@@ -2,6 +2,14 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [FEAT] Post views and copy-link sharing
+
+- New tables `post_views` and `post_shares` (migration `2026_10_03_210000_create_post_views_and_post_shares_tables`), composite key `(user_id, post_id)`, written with `insertOrIgnore` — repeats are no-ops and can't race into duplicate-key errors.
+- `PostController::show` records a member's view (`PostService::recordView()`); guests aren't recorded.
+- `POST /posts/{id}/share` (`PostController::share`, JSON `{shares_count}`, 404 for a missing/deleted post) counts a member's share once. `shares_count` added to the post aggregates (`Post::sharedBy()`), `PostResource` and so to every feed.
+- `ShareButton.vue` in the post footer: copies the absolute post URL for everyone (falls back to a prompt without clipboard access), shows "Link copied" for 2 s, and for members updates the count.
+- Added `PostViewsAndSharesTest` (6 cases).
+
 ## [2026-10-03] [FEAT] Recommendations v1.2: freshness buckets instead of a 7-day cut-off
 
 - The Recommended tab (guests' trending and members' recommendations) no longer drops posts older than 7 days. It orders by freshness bucket — this week, this month, older (`PostService::FRESHNESS_DAYS = [7, 30]`, `EloquentPostRepository::orderByFreshness()`, a portable `CASE WHEN`) — then by score; for members the language priority still comes first. The list now only runs out when the site does.

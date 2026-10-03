@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import ShareButton from '@/Pages/Components/ShareButton.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
 import { excerpt, timeAgo } from '@/utils/format';
 
@@ -75,6 +76,12 @@ const showLoginPrompt = ref(false);
                     d="M5 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"
                 />
             </svg> {{ post.comments_count }}</Link>
+
+            <ShareButton
+                :post-id="post.id"
+                :url="route('posts.show', [post.group.slug, post.slug])"
+                :count="post.shares_count"
+            />
 
             <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-more">{{ $t('posts.see_full') }}</Link>
         </footer>

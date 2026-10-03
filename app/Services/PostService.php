@@ -79,6 +79,21 @@ class PostService
         }
     }
 
+    public function recordView(string $postId, string $userId): void
+    {
+        $this->postRepository->recordView($postId, $userId);
+    }
+
+    /**
+     * @return int the post's share count afterwards (each user counts once)
+     */
+    public function share(string $postId, string $userId): int
+    {
+        $this->postRepository->recordShare($postId, $userId);
+
+        return $this->postRepository->sharesCount($postId);
+    }
+
     public function getRandomPostSlug(string $groupId): ?string
     {
         return $this->postRepository->randomSlugForGroup($groupId);

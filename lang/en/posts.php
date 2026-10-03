@@ -5,6 +5,8 @@ return [
     'none' => 'No posts yet.',
     'loading' => 'Loading more posts…',
     'see_full' => 'See full post',
+    'copy_link' => 'Copy link',
+    'copied' => 'Link copied',
 
     'create' => [
         'title' => 'New post',

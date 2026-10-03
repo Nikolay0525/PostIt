@@ -36,6 +36,7 @@ class PostResource extends JsonResource
             'downvotes' => $this->downvotes_count,
             'controversy' => $this->controversyScore($this->upvotes_count, $this->downvotes_count),
             'comments_count' => $this->comments_count,
+            'shares_count' => $this->shares_count,
             // true = viewer upvoted, false = downvoted, null = no vote (or a guest).
             'viewer_vote' => $this->viewer_vote === null ? null : (bool) $this->viewer_vote,
             'author' => [

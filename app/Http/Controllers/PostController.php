@@ -7,8 +7,10 @@ use App\Http\Resources\CommentResource;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Services\CommentService;
 use App\Services\PostService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,7 +21,8 @@ class PostController extends Controller
     public function __construct(
         protected PostService $postService,
         protected CommentService $commentService,
-        protected GroupRepositoryInterface $groupRepository
+        protected GroupRepositoryInterface $groupRepository,
+        protected PostRepositoryInterface $postRepository
     ) {}
 
     public function show(Request $request, string $groupSlug, string $postSlug): Response
@@ -32,6 +35,11 @@ class PostController extends Controller
 
         // Throws ModelNotFoundException (rendered as 404) when the group has no such post.
         $post = $this->postService->getPostBySlug($group->id, $postSlug, $viewerId);
+
+        // Remembered for members only; it powers "only new" in recommendations.
+        if ($viewerId !== null) {
+            $this->postService->recordView($post->id, $viewerId);
+        }
 
         return Inertia::render('Posts/Show', [
             'post' => new PostResource($post),
@@ -74,6 +82,18 @@ class PostController extends Controller
         );
 
         return redirect()->route('posts.show', [$group->slug, $post->slug]);
+    }
+
+    // A plain JSON endpoint like VoteController: the copy-link button sits in feeds with
+    // <InfiniteScroll>, which a page visit would reset. Copying the link itself happens in the
+    // browser for everyone; this only counts it, once per member.
+    public function share(Request $request, string $id): JsonResponse
+    {
+        $post = $this->postRepository->find($id);
+
+        abort_if($post === null || $post->is_deleted, 404);
+
+        return response()->json(['shares_count' => $this->postService->share($post->id, $request->user()->id)]);
     }
 
     // Read-only, so it's public like show()/groups.show — not gated behind auth. Does not check

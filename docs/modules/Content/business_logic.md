@@ -46,11 +46,15 @@
 - A followed author's post in one of your groups appears in **both** Following lists — each list is complete on its own, and neither has duplicates within itself.
 - People feed visibility: a post in a private group only if the follower is a member of that group (same rule as the author's profile).
 
+### Views and shares *(2026-10-03)*
+- `post_views (user_id, post_id, viewed_at)`: written when a **member** opens a post's page; one row per user and post (the first view is kept). Guests aren't recorded. Not shown anywhere yet — it feeds the planned "only new" filter. It is behavioural data about users: keep it to that purpose; consider pruning old rows (e.g. > 90 days) once the filter exists.
+- `post_shares (user_id, post_id, created_at)`: the copy-link button copies the post's address for everyone; a **member's** click is also counted, once per member, so one person can't inflate the number. `shares_count` is on every post (`PostResource`).
+
 ### Recommendations roadmap
 - **v1:** trending — public groups, by freshness bucket then score (see v1.2). Still what **guests** get.
 - **v1.1 (done, members):** only *new* to the viewer — no own posts, no groups they're already in — and posts in groups of a language they speak (`user_speaking_languages`, pre-filled from the browser at sign-up) come **first**, then the rest; then by freshness bucket and score (v1.2). Languages are a priority, not a filter, on purpose: with few posts (and seed groups in random languages) a strict filter would leave the tab empty. Switch to a filter once there is enough content.
 - **v1.2 (done):** no hard 7-day cut-off: freshness buckets — this week, this month, older (`PostService::FRESHNESS_DAYS = [7, 30]`) — with score deciding within a bucket. The tab only runs out when there is nothing left to show, yet new posts still lead. Buckets rather than a smooth decay (`score / age^1.5`) because the power function isn't spelled the same on MySQL and sqlite.
-- **Planned next:** `post_views` (opened posts) and a copy-link share button with a share count; then a Filters dropdown on the Recommended tab — "Only new" (hide posts you opened or voted on), "Only my languages" (strict), period. Kept in the URL like the tabs. Own posts and posts from your groups stay excluded always (they are in Following). 18+ is out of scope until adult groups exist.
+- **Done:** `post_views` (opened posts) and a copy-link share button with a share count. **Next:** a Filters dropdown on the Recommended tab — "Only new" (hide posts you opened or voted on), "Only my languages" (strict), period. Kept in the URL like the tabs. Own posts and posts from your groups stay excluded always (they are in Following). 18+ is out of scope until adult groups exist.
 - **v2:** collaborative — "people who upvoted what you upvoted are also in these groups" (`votes` + `user_group_subscriptions`). Useful once there is real vote volume.
 - **Later:** topics/tags or text embeddings.
 

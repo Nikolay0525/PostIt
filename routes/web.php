@@ -75,6 +75,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/groups/{groupSlug}/-/create-post', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])
         ->middleware('throttle:60,1')->name('posts.store');
+    Route::post('/posts/{id}/share', [PostController::class, 'share'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('posts.share');
 
     Route::get('/groups/-/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])
