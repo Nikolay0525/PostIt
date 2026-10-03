@@ -12,5 +12,6 @@ return [
     'discuss' => ':login or :register to join the discussion.',
     'follow' => ':login or :register to follow this user.',
     'following' => ':login or :register to see posts from your groups and the people you follow.',
+    'filters' => ':login or :register to hide what you\'ve seen and filter by your languages.',
 
 ];

@@ -7,6 +7,7 @@ use App\Enums\VoteParentType;
 use App\Models\Post;
 use App\Models\Vote;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -74,15 +75,23 @@ class EloquentPostRepository implements PostRepositoryInterface
         return DB::table('post_shares')->where('post_id', $postId)->count();
     }
 
-    public function paginateTrending(array $freshnessDays, int $perPage, ?string $viewerId = null): LengthAwarePaginator
+    // True when the post's group is in a language the user speaks. A plain EXISTS reads the same
+    // on MySQL and sqlite (the test driver); bound to the user's id.
+    private const IN_USER_LANGUAGE = 'exists (select 1 from `groups` inner join `user_speaking_languages`'
+        .' on `user_speaking_languages`.`language_code` = `groups`.`language_code`'
+        .' where `groups`.`id` = `posts`.`group_id` and `user_speaking_languages`.`user_id` = ?)';
+
+    public function paginateTrending(array $freshnessDays, int $perPage, ?string $viewerId = null, ?int $maxAgeDays = null): LengthAwarePaginator
     {
         $query = $this->withStats($viewerId)
             ->whereHas('group', fn (Builder $group) => $group->where('is_private', false));
 
+        $this->withinDays($query, $maxAgeDays);
+
         return $this->orderByScore($this->orderByFreshness($query, $freshnessDays))->paginate($perPage);
     }
 
-    public function paginateRecommended(string $userId, array $freshnessDays, int $perPage): LengthAwarePaginator
+    public function paginateRecommended(string $userId, array $freshnessDays, int $perPage, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
         $query = $this->withStats($userId)
             ->whereHas('group', fn (Builder $group) => $group->where('is_private', false))
@@ -90,17 +99,49 @@ class EloquentPostRepository implements PostRepositoryInterface
             ->whereNotIn('group_id', fn ($groups) => $groups
                 ->select('group_id')
                 ->from('user_group_subscriptions')
-                ->where('user_id', $userId))
-            // 1 when the post's group is in a language the user speaks, else 0: those come first.
-            // A plain EXISTS reads the same on MySQL and sqlite (the test driver).
-            ->orderByRaw(
-                'exists (select 1 from `groups` inner join `user_speaking_languages`'
-                .' on `user_speaking_languages`.`language_code` = `groups`.`language_code`'
-                .' where `groups`.`id` = `posts`.`group_id` and `user_speaking_languages`.`user_id` = ?) desc',
-                [$userId]
-            );
+                ->where('user_id', $userId));
+
+        $this->applyFilters($query, $userId, $filters);
+
+        // Without the strict language filter, the user's languages are still a priority here:
+        // they come first, so the list isn't empty while there are few posts.
+        if (! $filters->onlyMyLanguages) {
+            $query->orderByRaw(self::IN_USER_LANGUAGE.' desc', [$userId]);
+        }
 
         return $this->orderByScore($this->orderByFreshness($query, $freshnessDays))->paginate($perPage);
+    }
+
+    // The home feed filters, the same on every tab. They only narrow a list; each feed keeps its
+    // own order.
+    private function applyFilters(Builder $query, string $userId, FeedFilters $filters): void
+    {
+        $this->withinDays($query, $filters->period->days());
+
+        if ($filters->onlyNew) {
+            // Opened or voted on = already seen.
+            $query
+                ->whereNotIn('posts.id', fn ($views) => $views
+                    ->select('post_id')
+                    ->from('post_views')
+                    ->where('user_id', $userId))
+                ->whereNotIn('posts.id', fn ($votes) => $votes
+                    ->select('parent_id')
+                    ->from('votes')
+                    ->where('user_id', $userId)
+                    ->where('parent_type', VoteParentType::Post));
+        }
+
+        if ($filters->onlyMyLanguages) {
+            $query->whereRaw(self::IN_USER_LANGUAGE, [$userId]);
+        }
+    }
+
+    private function withinDays(Builder $query, ?int $days): void
+    {
+        if ($days !== null) {
+            $query->where('posts.created_at', '>=', now()->subDays($days));
+        }
     }
 
     // Freshness buckets instead of a hard cut-off: with [7, 30], this week's posts come first,
@@ -122,16 +163,18 @@ class EloquentPostRepository implements PostRepositoryInterface
             : $query->orderByRaw('case'.$cases.' else '.count($bindings).' end', $bindings);
     }
 
-    public function paginateForSubscriber(string $userId, int $perPage): LengthAwarePaginator
+    public function paginateForSubscriber(string $userId, int $perPage, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
         // The subscriber is also the viewer here: this feed always shows the current user's own votes.
-        return $this->withStats($userId)
+        $query = $this->withStats($userId)
             ->whereIn('group_id', fn ($groups) => $groups
                 ->select('group_id')
                 ->from('user_group_subscriptions')
-                ->where('user_id', $userId))
-            ->latest()
-            ->paginate($perPage);
+                ->where('user_id', $userId));
+
+        $this->applyFilters($query, $userId, $filters);
+
+        return $query->latest()->paginate($perPage);
     }
 
     public function paginateForAuthor(string $authorId, int $perPage, ?string $viewerId = null): LengthAwarePaginator
@@ -141,7 +184,7 @@ class EloquentPostRepository implements PostRepositoryInterface
         return $this->visibleTo($query, $viewerId)->latest()->paginate($perPage);
     }
 
-    public function paginateForFollower(string $followerId, int $perPage): LengthAwarePaginator
+    public function paginateForFollower(string $followerId, int $perPage, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
         // The follower is also the viewer: their own votes are shown, and private groups they're in.
         $query = $this->withStats($followerId)
@@ -149,6 +192,8 @@ class EloquentPostRepository implements PostRepositoryInterface
                 ->select('user_author_id')
                 ->from('user_user_subscriptions')
                 ->where('user_follower_id', $followerId));
+
+        $this->applyFilters($query, $followerId, $filters);
 
         return $this->visibleTo($query, $followerId)->latest()->paginate($perPage);
     }

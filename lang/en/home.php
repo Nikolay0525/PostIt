@@ -19,6 +19,24 @@ return [
         'member' => 'Popular in groups you haven\'t joined yet: your languages first, then the freshest.',
     ],
     'recommended_empty' => 'Nothing new for you yet — check back later or look at your Following tab.',
+    'filters' => [
+        'label' => 'Filters',
+        'new' => [
+            'label' => 'Only new',
+            'hint' => 'Hide posts you\'ve opened or voted on.',
+        ],
+        'langs' => [
+            'label' => 'Only my languages',
+            'hint' => 'Only groups in languages you speak (set in Settings).',
+        ],
+        'period' => [
+            'label' => 'Period',
+            'all' => 'All time',
+            'month' => 'This month',
+            'week' => 'This week',
+        ],
+        'empty' => 'Nothing matches these filters — try loosening them.',
+    ],
     'empty' => [
         'groups' => 'No posts from your groups yet. Join a group to see its posts here.',
         'people' => 'No posts from people you follow yet. Follow someone from their profile to see their posts here.',

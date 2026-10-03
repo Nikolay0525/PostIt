@@ -138,9 +138,24 @@
   .feed-title {
     @apply text-xl font-semibold text-ink;
   }
-  /* Home page: the main tabs (underlined), and inside Following a smaller segmented switch. */
+  /* Home page: the main tabs (underlined) with the Filters button on the same line, and inside
+     Following a smaller segmented switch. The line is on the row, so it runs under the button
+     too; the active tab's border sits on top of it (-mb-px). */
+  .feed-tabs-row {
+    @apply flex items-end justify-between gap-3 border-b border-line;
+  }
   .feed-tabs {
-    @apply flex gap-6 border-b border-line;
+    @apply flex gap-6;
+  }
+  .feed-filter-btn {
+    @apply mb-2 inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5
+           text-sm text-muted transition hover:text-ink;
+  }
+  .feed-filter-count {
+    @apply flex h-5 min-w-5 items-center justify-center rounded-sm bg-brand-600 px-1 text-xs font-semibold text-white;
+  }
+  .feed-filter-panel {
+    @apply flex flex-col gap-4 p-4;
   }
   .feed-tab {
     @apply -mb-px cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-1 pb-3 text-base

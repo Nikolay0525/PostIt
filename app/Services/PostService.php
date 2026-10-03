@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\PostSort;
 use App\Models\Post;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -37,25 +38,26 @@ class PostService
         return $this->postRepository->paginateForGroup($groupId, $sort, self::PER_PAGE, $viewerId);
     }
 
-    public function getSubscribedPosts(string $userId): LengthAwarePaginator
+    public function getSubscribedPosts(string $userId, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
-        return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE);
+        return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE, $filters);
     }
 
     /**
-     * The Recommended tab. A guest has no languages or groups to go by yet, so gets plain
-     * trending; a member gets it made personal (PostRepositoryInterface::paginateRecommended()).
+     * The Recommended tab. A guest has no languages, groups or views to go by yet, so gets plain
+     * trending, narrowed only by the period; a member gets it made personal and fully filtered
+     * (PostRepositoryInterface::paginateRecommended()).
      */
-    public function getRecommendedPosts(?string $userId): LengthAwarePaginator
+    public function getRecommendedPosts(?string $userId, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
         return $userId === null
-            ? $this->postRepository->paginateTrending(self::FRESHNESS_DAYS, self::PER_PAGE)
-            : $this->postRepository->paginateRecommended($userId, self::FRESHNESS_DAYS, self::PER_PAGE);
+            ? $this->postRepository->paginateTrending(self::FRESHNESS_DAYS, self::PER_PAGE, null, $filters->period->days())
+            : $this->postRepository->paginateRecommended($userId, self::FRESHNESS_DAYS, self::PER_PAGE, $filters);
     }
 
-    public function getFollowedAuthorsPosts(string $followerId): LengthAwarePaginator
+    public function getFollowedAuthorsPosts(string $followerId, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
-        return $this->postRepository->paginateForFollower($followerId, self::PER_PAGE);
+        return $this->postRepository->paginateForFollower($followerId, self::PER_PAGE, $filters);
     }
 
     public function getAuthorPosts(string $authorId, ?string $viewerId = null): LengthAwarePaginator

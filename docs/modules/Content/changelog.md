@@ -2,6 +2,14 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-04] [FEAT] Feed filters, shared by every tab: only new, only my languages, period
+
+- `HomeController` reads `new`, `langs` and `period` (`FeedPeriod`: `all` default, `month`, `week`) into an `App\Support\FeedFilters` and returns them as the `filters` prop; `new`/`langs` are forced off for guests whatever the URL says, an unknown period falls back to `all`.
+- One `EloquentPostRepository::applyFilters()` used by `paginateRecommended()`, `paginateForSubscriber()` and `paginateForFollower()`: *only new* excludes posts in the user's `post_views` or `votes`; *only my languages* is a strict `WHERE EXISTS` (same SQL as Recommended's language priority, shared as `IN_USER_LANGUAGE`); the period adds a `created_at` lower bound. Filters only narrow — each feed keeps its order. `paginateTrending()` takes the period for guests. Own posts and joined groups stay out of Recommended regardless.
+- Decided (same day): the filters are shared by every tab and kept when switching — first built for Recommended only, which felt unintuitive.
+- `Home.vue`: a Filters button on the tab line (every tab except a guest's Following, with a count of active filters) opening a panel with two checkboxes (members) and the period radios; a change reloads only the posts. With filters on, an empty list says to loosen them. The tab underline moved to the row so it runs under the button.
+- Added `FeedFiltersTest` (11 cases, including both Following lists).
+
 ## [2026-10-03] [FIX] Private-group posts closed to outsiders everywhere (FR-COM-006 → Done)
 
 - Before, only lists hid a private group's posts; by direct URL or id an outsider could read a post, get one from "I'm feeling lucky", comment, vote and share. `CommentPolicy` even assumed visibility had been checked elsewhere — it hadn't.
