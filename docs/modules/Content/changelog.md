@@ -2,6 +2,12 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [FIX] Private-group posts closed to outsiders everywhere (FR-COM-006 → Done)
+
+- Before, only lists hid a private group's posts; by direct URL or id an outsider could read a post, get one from "I'm feeling lucky", comment, vote and share. `CommentPolicy` even assumed visibility had been checked elsewhere — it hadn't.
+- New `PostPolicy::view()` (guests included via `?User`) on `ChecksGroupVisibility::canSeePostsOf()`. Checked in `PostController::show`/`share`, and first thing in `PostPolicy::vote`, `CommentPolicy::create`/`vote`; `PostController::random` uses `GroupService::canViewPosts()`, like the group page. **The private group itself stays open to everyone** (name, description, rules, join request) — only its posts are closed; `GroupPolicy` deliberately has no visibility rule. Outsiders get 404 rather than 403, so the post's existence isn't revealed; their failed visits aren't recorded as views.
+- Added `PrivateGroupAccessTest` (7 cases: the private group page stays open with posts hidden; post page, random post, comment, vote on post and comment, share; public group stays open).
+
 ## [2026-10-03] [FEAT] Post views and copy-link sharing
 
 - New tables `post_views` and `post_shares` (migration `2026_10_03_210000_create_post_views_and_post_shares_tables`), composite key `(user_id, post_id)`, written with `insertOrIgnore` — repeats are no-ops and can't race into duplicate-key errors.

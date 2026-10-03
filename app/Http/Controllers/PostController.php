@@ -9,10 +9,12 @@ use App\Models\Post;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Services\CommentService;
+use App\Services\GroupService;
 use App\Services\PostService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,7 +24,8 @@ class PostController extends Controller
         protected PostService $postService,
         protected CommentService $commentService,
         protected GroupRepositoryInterface $groupRepository,
-        protected PostRepositoryInterface $postRepository
+        protected PostRepositoryInterface $postRepository,
+        protected GroupService $groupService
     ) {}
 
     public function show(Request $request, string $groupSlug, string $postSlug): Response
@@ -35,6 +38,9 @@ class PostController extends Controller
 
         // Throws ModelNotFoundException (rendered as 404) when the group has no such post.
         $post = $this->postService->getPostBySlug($group->id, $postSlug, $viewerId);
+
+        // A private group's post doesn't exist for outsiders: 404, not 403 (PostPolicy::view()).
+        abort_unless(Gate::allows('view', $post), 404);
 
         // Remembered for members only; it powers "only new" in recommendations.
         if ($viewerId !== null) {
@@ -91,19 +97,23 @@ class PostController extends Controller
     {
         $post = $this->postRepository->find($id);
 
-        abort_if($post === null || $post->is_deleted, 404);
+        abort_if($post === null || $post->is_deleted || $request->user()->cannot('view', $post), 404);
 
         return response()->json(['shares_count' => $this->postService->share($post->id, $request->user()->id)]);
     }
 
-    // Read-only, so it's public like show()/groups.show — not gated behind auth. Does not check
-    // private-group visibility: posts.show itself doesn't yet either (FR-COM-006 is still
-    // "Partial"), so this endpoint isn't the odd one out — closing that gap is a separate task.
-    public function random(string $groupSlug): RedirectResponse
+    // Read-only, so it's public like show()/groups.show — not gated behind auth. The private
+    // group itself stays open; only its posts don't exist for outsiders — the same rule the
+    // group page uses for its list (GroupService::canViewPosts()), same 404 as show().
+    public function random(Request $request, string $groupSlug): RedirectResponse
     {
         $group = $this->groupRepository->findBySlug($groupSlug);
 
         abort_if($group === null, 404);
+
+        $isMember = $this->groupService->isMember($group->id, $request->user()?->id);
+
+        abort_unless($this->groupService->canViewPosts($group, $isMember), 404);
 
         $postSlug = $this->postService->getRandomPostSlug($group->id);
 

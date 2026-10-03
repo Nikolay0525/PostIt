@@ -6,6 +6,11 @@ use App\Models\Group;
 use App\Models\User;
 use App\Policies\Concerns\ChecksGroupBans;
 
+/**
+ * The group itself is never hidden — a private group must stay findable so people can ask to
+ * join it. Only its posts are restricted, and that rule lives with the posts (PostPolicy::view(),
+ * GroupService::canViewPosts()).
+ */
 class GroupPolicy
 {
     use ChecksGroupBans;
