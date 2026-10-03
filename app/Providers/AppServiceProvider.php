@@ -4,14 +4,18 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Observers\UserObserver;
+use App\Repositories\Contracts\AchievementRepositoryInterface;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Contracts\ImageRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\VoteRepositoryInterface;
+use App\Repositories\Eloquent\EloquentAchievementRepository;
 use App\Repositories\Eloquent\EloquentCommentRepository;
 use App\Repositories\Eloquent\EloquentGroupRepository;
+use App\Repositories\Eloquent\EloquentImageRepository;
 use App\Repositories\Eloquent\EloquentLanguageRepository;
 use App\Repositories\Eloquent\EloquentPostRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
@@ -54,6 +58,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             LanguageRepositoryInterface::class,
             EloquentLanguageRepository::class
+        );
+
+        $this->app->bind(
+            ImageRepositoryInterface::class,
+            EloquentImageRepository::class
+        );
+
+        $this->app->bind(
+            AchievementRepositoryInterface::class,
+            EloquentAchievementRepository::class
         );
     }
 

@@ -1,12 +1,14 @@
 <script setup>
 import InboxMenu from '@/Pages/Components/InboxMenu.vue';
 import NotificationsMenu from '@/Pages/Components/NotificationsMenu.vue';
+import SearchBox from '@/Pages/Components/SearchBox.vue';
+import ThemeToggle from '@/Pages/Components/ThemeToggle.vue';
 import UserMenu from '@/Pages/Components/UserMenu.vue';
 </script>
 
 <template>
     <div class="min-h-screen bg-canvas text-ink">
-        <header class="border-b border-line bg-white">
+        <header class="border-b border-line bg-surface">
             <nav class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-8">
                     <Link :href="route('home')" class="brand-mark">
@@ -22,21 +24,10 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
                     </div>
                 </div>
 
-                <form class="search-bar order-last w-full sm:order-none sm:w-auto sm:flex-1" role="search" @submit.prevent>
-                    <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
-                        <circle cx="9" cy="9" r="5.5" />
-                        <path d="m13.5 13.5 3.5 3.5" stroke-linecap="round" />
-                    </svg>
-                    <input
-                        type="search"
-                        dir="auto"
-                        class="search-input"
-                        :placeholder="$t('nav.search_placeholder')"
-                        :aria-label="$t('nav.search')"
-                    />
-                </form>
+                <SearchBox class="order-last w-full sm:order-none sm:w-auto sm:flex-1" />
 
                 <div class="flex items-center gap-4">
+                    <ThemeToggle />
                     <template v-if="$page.props.auth.user">
                         <InboxMenu />
                         <NotificationsMenu />

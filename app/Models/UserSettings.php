@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ThemeMode;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -19,8 +20,13 @@ class UserSettings extends Model
 
     protected $keyType = 'string';
 
+    // Same as the column default, so a row created in this request has it before any reload.
+    protected $attributes = [
+        'theme_mode' => ThemeMode::Browser->value,
+    ];
+
     protected $fillable = [
-        'user_id', 'ui_language_code', 'dark_theme',
+        'user_id', 'ui_language_code', 'dark_theme', 'theme_mode',
         'show_swear_words', 'show_adult_content', 'enable_cookies', 'allow_messages',
     ];
 
@@ -28,6 +34,7 @@ class UserSettings extends Model
     {
         return [
             'dark_theme' => 'boolean',
+            'theme_mode' => ThemeMode::class,
             'show_swear_words' => 'boolean',
             'show_adult_content' => 'boolean',
             'enable_cookies' => 'boolean',

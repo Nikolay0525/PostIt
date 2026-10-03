@@ -64,6 +64,20 @@ Ordinary Guardian actions are never put to a direct crowd vote — see `Communit
 
 The Owner does not decay and is not reviewed by the Guardian appeal/jury process (that process is for Guardians, drawn from the Guardian pool). Instead: a *recurring pattern* of appeals against the same Owner's own moderation actions (not a single appeal) is flagged for a platform administrator, who may issue a visible warning and, if the pattern continues, strip the Owner's rights and transfer the group to another member (`Community` `OwnershipTransferred`, `reason = admin_ordered`). This mirrors, ahead of time, the last-resort intervention real communities eventually need for abandoned or abusive founders.
 
+## Image screening *(planned, FR-MOD-013/014)*
+
+Three levels, introduced in this order:
+1. **Manual (first):** the uploader marks an image adult (`images.is_adult_image`); users report images (`reports`); moderators decide.
+2. **Automatic, external API (later):** each upload is checked by a background job (Laravel queue) against a moderation API (candidates: Google Cloud Vision SafeSearch, AWS Rekognition, Azure Content Safety, Sightengine; roughly $1–2 per 1000 images). The provider sits behind an app interface (e.g. `ImageModeratorInterface`), like repositories, so it can be swapped without touching callers.
+3. **Self-hosted model (only if ever needed):** NSFWJS / open_nsfw as a separate Python/Node service. Not worth it at the current scale.
+
+`images.moderation_status` lifecycle *(proposed; column exists, 0 = not reviewed)*: `pending` → `approved` | `adult` | `blocked`.
+
+Rules:
+- **Illegal content is blocked everywhere**, regardless of group settings — the site owner is responsible for it. An adult group (FR-COM-017) only switches off the *adult* classification (its images are treated as adult), never the illegal-content check.
+- **Avatars** (and other images outside a group) always get the strictest check: no adult content allowed.
+- Open question: is a new image shown while `pending` (simpler UX, hidden if later blocked) or only after approval (safer, but delays every upload)?
+
 ## Domain Policies *(planned)*
 
 | Domain Policy | Description |

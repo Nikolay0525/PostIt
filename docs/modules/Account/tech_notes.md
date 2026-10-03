@@ -1,7 +1,7 @@
 # Account — Tech Notes
 
 ## Tech debt
-- `UserSettings.show_adult_content`, "no self follow" and "no self block" are business rules that are **not enforced** yet. Add validation in a Service and, where possible, a DB check.
+- "No self block" is a business rule that is **not enforced** yet. Add validation in a Service and, where possible, a DB check. ("Adult content ⇒ adult only" is enforced since 2026-09-29, "no self follow" by `FollowService` since 2026-10-03 — Service only, no DB check.)
 - `UserCounters` are denormalised; no code updating them was found in the reviewed files. Decide between event listeners and DB triggers/jobs.
 - Karma formula is undefined. Define it in the specification before implementing.
 - `User::isAdult()` reads `date_of_birth`; make sure registration requires and validates this field, otherwise the method fails on null.

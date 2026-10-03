@@ -74,7 +74,7 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-ACC-007 | The system shall allow a user to set a new password using a valid reset token. | M | Done | T |
 | FR-ACC-008 | The system shall let a user manage settings: UI language, speaking language, dark theme, swear-word filter, adult-content display, cookies, and whether direct messages are allowed. *(0.1.8)* Settings page built; a user may speak **several** languages (0–10), pre-filled at registration from the browser. Dark theme, swear-word filter, cookies and messages are stored but not yet acted on. | S | Done | T |
 | FR-ACC-009 | The system shall allow adult-content display to be enabled only for users aged 18 or older. *(0.1.8)* Enforced on save. | M | Done | T |
-| FR-ACC-010 | The system shall let a user follow and unfollow other users, but not themselves. | S | Partial | T |
+| FR-ACC-010 | The system shall let a user follow and unfollow other users, but not themselves. *(2026-10-03)* Follow button on the profile page `/users/{username}`; `POST`/`DELETE /users/{id}/follow`. Followed authors do not reach the home feed yet. | S | Done | T |
 | FR-ACC-011 | The system shall let a user block and unblock other users, but not themselves, and shall hide blocked users' content from the blocker. | S | Partial | T |
 | FR-ACC-012 | The system shall maintain per-user counters (posts, comments, groups joined, reports sent, positive and negative votes) and karma. | S | Partial | T |
 
@@ -87,7 +87,7 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-COM-003 | The system shall let a logged-in user subscribe to and unsubscribe from a public group. *(0.1.5)* Implemented end-to-end (`MembershipService`, `GroupPolicy::subscribe()`, `POST`/`DELETE /groups/{id}/subscribe`); a private group is rejected here — its membership only comes from an approved join request (FR-COM-004, still Partial). | M | Done | T |
 | FR-COM-004 | The system shall let a logged-in user send a join request to a private group and shall store it as pending. | M | Partial | T |
 | FR-COM-005 | The system shall let a moderator approve or reject join requests of their group; approval shall create the membership. | M | Planned | T |
-| FR-COM-006 | The system shall hide the posts of a private group from non-members, on the server and in the UI. | M | Partial | T |
+| FR-COM-006 | The system shall hide the posts of a private group from non-members, on the server and in the UI. *(2026-10-03)* Enforced everywhere a post is reached by URL or id — post page, random post, comment, vote, share — via `PostPolicy::view()` / `GroupService::canViewPosts()`; outsiders get 404. Lists (group page, feeds, profiles) already filtered. The private group's own page stays open to everyone, so it can be found and joined. | M | Done | T |
 | FR-COM-007 | The system shall grant the Guardian role only through community-driven eligibility (per-group contribution score, threshold-gated candidate pool, random offer, opt-in) — never by direct appointment by the Owner. *(Supersedes the earlier "creator assigns moderators" design; see business logic 0.1.1.)* | S | Planned | T |
 | FR-COM-008 | The system shall ask a guest to log in or register when the guest tries to join or subscribe. | M | Done | D |
 | FR-COM-009 | The system shall let a group have a title in any language, shown and searched by, separate from a Latin-script slug used only in its URL. *(0.1.7)* The slug is entered manually by the creator, not auto-generated — deliberately different from a post's slug (FR-CON-002), which is auto-generated and keeps the post's own script. *(0.1.8)* `groups.slug` exists (unique, ≤ 30, `[a-z0-9]` words joined by single hyphens) and page URLs use it: `/groups/{slug}`, `/groups/{slug}/posts/{post slug}`; service pages live under `/-/` (e.g. `/groups/-/create`), which no slug can match. | M | Done | T |
@@ -98,6 +98,7 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-COM-014 | The system shall let the Owner edit a group's rules, description and topic, and configure the group's Guardian-related parameters (e.g. target Guardian ratio, response-time window) within bounds set by the platform; the Owner may voluntarily transfer ownership to another member. | M | Planned | T |
 | FR-COM-015 | The system shall grant the Owner the Guardian's moderation abilities automatically and only while the group has no active Guardian. | S | Planned | T |
 | FR-COM-016 | The system shall let members hold a non-binding, transparent vote on a proposed rule or topic change; the Owner shall publish a public accept/reject statement with reasoning, and the vote's outcome and the Owner's response shall remain visible in the group's history. | C | Planned | D |
+| FR-COM-017 | The system shall let a group be marked adult (18+); an adult group and its content shall be shown only to adult users who enabled adult content, enforced on the server. Images posted in an adult group are treated as adult without a separate check. | S | Planned | T |
 
 ### 4.3 Content (module `Content`)
 
@@ -110,10 +111,10 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-CON-005 | The system shall let a guest read comments but not write them, prompting the guest to log in or register. | M | Done | D |
 | FR-CON-006 | The system shall let a logged-in user upvote or downvote a post or comment once, and change or remove that vote; a user shall not vote on their own post or comment. *(0.1.3)* The system shall also show the user their own current vote on every post/comment they view, so the correct arrow stays highlighted. | M | Done | T |
 | FR-CON-007 | The system shall order a group's posts by **Newest** (creation time) or **Top** (vote score). | M | Partial | D |
-| FR-CON-008 | The system shall show a home feed: trending posts for guests, a personal feed for logged-in users. | M | Partial | D |
+| FR-CON-008 | The system shall show a home feed: trending posts for guests, a personal feed for logged-in users. *(2026-10-03)* Two tabs: **Recommended** (default for everyone; guests: trending in public groups; members: new-to-them posts, their languages first) and **Following**, split into **Groups** and **People**; guests are asked to log in on Following. Personalised recommendations are planned (see `Content` business logic). | M | Partial | D |
 | FR-CON-009 | The system shall let an author or a moderator delete a post or comment softly; a deleted comment that has replies shall stay in the thread as "deleted". | M | Partial | T |
 | FR-CON-010 | The system shall let a user attach images to content and mark adult images; adult images shall be shown only to adults who enabled them. | C | Planned | T |
-| FR-CON-011 | The system shall let a user search posts, groups and people. | S | Planned | D |
+| FR-CON-011 | The system shall let a user search posts, groups and people. *(2026-10-04)* Results page `/search` (tabs All / Posts / Groups / People) behind the navbar field, plus live suggestions under the field while typing. Plain `LIKE` for now (Meilisearch planned). | S | Done | D |
 | FR-CON-012 | The system shall order a post's comments by **Best** by default — a score that decays with age so a new, lightly-voted comment can rank fairly against an older, heavily-voted one — with **Top** (raw vote score, no decay) and **Controversial** (balance between opposing votes) as alternatives. | S | Planned | T |
 | FR-CON-013 | The system shall show a **post's or comment's** controversy as a rounded score once it has received a minimum number of votes on both sides, and shall never expose the exact vote split through it. *(0.1.3, corrected)* Implemented as a rounded, unbounded score (not a 0–100% value), covering posts and comments alike. | S | Done | T |
 
@@ -133,6 +134,8 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-MOD-010 | The system shall record, privately, whether a Guardian's action was upheld, overturned, or judged as insufficient evidence, and shall use this record for the Guardian's own accuracy history (FR-COM-011) and to track each reviewer's long-run reliability. | C | Planned | T |
 | FR-MOD-011 | The system shall version a group's rules by date and shall judge an appealed action against the rules in force at the time of that action, not the current rules. | M | Planned | T |
 | FR-MOD-012 | The system shall let a platform administrator review a recurring pattern of appeals against the same group Owner's own moderation actions (not a single appeal) and, after a warning is issued and ignored, strip and transfer ownership of the group to another member. | S | Planned | T |
+| FR-MOD-013 | The system shall check every uploaded image automatically in the background: an image with adult content shall be marked adult, and illegal content (e.g. graphic violence, child sexual abuse material) shall be blocked **everywhere, including adult groups**. Avatars always get the strictest check, since they belong to no group. | S | Planned | T |
+| FR-MOD-014 | The system shall let users report an image and let the uploader mark their own image as adult, as the manual fallback to FR-MOD-013. | S | Planned | T |
 
 ### 4.5 Engagement (module `Engagement`)
 
@@ -179,9 +182,9 @@ Each requirement has a verification method (T/I/D). Tests are organised as descr
 | Module | Requirements | Module document |
 |---|---|---|
 | Account | FR-ACC-001 … 012 | [business_logic](../modules/Account/business_logic.md) |
-| Community | FR-COM-001 … 016 | [business_logic](../modules/Community/business_logic.md) |
+| Community | FR-COM-001 … 017 | [business_logic](../modules/Community/business_logic.md) |
 | Content | FR-CON-001 … 013 | [business_logic](../modules/Content/business_logic.md) |
-| Moderation | FR-MOD-001 … 012 | [business_logic](../modules/Moderation/business_logic.md) |
+| Moderation | FR-MOD-001 … 014 | [business_logic](../modules/Moderation/business_logic.md) |
 | Engagement | FR-ENG-001 … 005 | [business_logic](../modules/Engagement/business_logic.md) |
 
 ## 10. Open issues

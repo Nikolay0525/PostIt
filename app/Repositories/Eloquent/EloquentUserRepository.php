@@ -4,12 +4,18 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\User;
 use App\Models\UserSettings;
+use App\Models\UserUserSubscription;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\SearchesText;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class EloquentUserRepository implements UserRepositoryInterface
 {
+    use SearchesText;
+
     public function find(string $id): ?User
     {
         return User::find($id);
@@ -23,6 +29,21 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function findForSettings(string $id): ?User
     {
         return User::with(['settings', 'speakingLanguages'])->find($id);
+    }
+
+    public function findForProfile(string $username): ?User
+    {
+        return User::withCount('followers')->where('username', $username)->first();
+    }
+
+    public function search(string $term, int $perPage): LengthAwarePaginator
+    {
+        $query = $this->whereContains(User::withCount('followers'), ['users.username'], $term);
+
+        return $this->orderByMatch($query, 'users.username', $term)
+            ->orderByDesc('followers_count')
+            ->orderBy('username')
+            ->paginate($perPage);
     }
 
     public function create(array $data): User
@@ -62,5 +83,38 @@ class EloquentUserRepository implements UserRepositoryInterface
             fn (string $code) => ['user_id' => $userId, 'language_code' => $code],
             array_values(array_unique($languageCodes))
         ));
+    }
+
+    // `UserUserSubscription` has a composite primary key, which Eloquent does not support
+    // natively: same insertOrIgnore()/WHERE-scoped delete() as EloquentGroupRepository::subscribe().
+    public function follow(string $followerId, string $authorId): void
+    {
+        UserUserSubscription::query()->insertOrIgnore([
+            'user_follower_id' => $followerId,
+            'user_author_id' => $authorId,
+            'created_at' => now(),
+        ]);
+    }
+
+    public function unfollow(string $followerId, string $authorId): void
+    {
+        $this->followQuery($followerId, $authorId)->delete();
+    }
+
+    public function isFollowing(string $followerId, string $authorId): bool
+    {
+        return $this->followQuery($followerId, $authorId)->exists();
+    }
+
+    public function followersCount(string $authorId): int
+    {
+        return UserUserSubscription::query()->where('user_author_id', $authorId)->count();
+    }
+
+    private function followQuery(string $followerId, string $authorId): Builder
+    {
+        return UserUserSubscription::query()
+            ->where('user_follower_id', $followerId)
+            ->where('user_author_id', $authorId);
     }
 }

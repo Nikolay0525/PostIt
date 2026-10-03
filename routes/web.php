@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\VoteController;
 use App\Services\GroupService;
@@ -16,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 // can't collide with a group, whatever it's named. Background JSON endpoints keep the UUID.
 Route::pattern('groupSlug', GroupService::SLUG_ROUTE_PATTERN);
 Route::pattern('postSlug', '[^/]+');
+Route::pattern('username', '[^/]+');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -23,6 +27,12 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/groups/{groupSlug}', [GroupController::class, 'show'])->name('groups.show');
 Route::get('/groups/{groupSlug}/random-post', [PostController::class, 'random'])->name('groups.random_post');
 Route::get('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/users/{username}', [ProfileController::class, 'show'])->name('users.show');
+Route::get('/search', [SearchController::class, 'index'])
+    ->middleware('throttle:60,1')->name('search');
+// Fired while typing (debounced in the browser), so a looser limit than the results page.
+Route::get('/search/suggest', [SearchController::class, 'suggest'])
+    ->middleware('throttle:120,1')->name('search.suggest');
 
 Route::middleware(['guest'])->group(function () {
     Route::inertia('/login', 'Auth/Login')->name('login');
@@ -50,6 +60,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])
         ->middleware('throttle:30,1')->name('settings.update');
+    Route::patch('/settings/theme', [SettingsController::class, 'updateTheme'])
+        ->middleware('throttle:60,1')->name('settings.theme');
+
+    // The owner edits their profile right on its page (JSON, see ProfileController).
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->middleware('throttle:30,1')->name('profile.update');
+    // POST, not PATCH: PHP only parses multipart file uploads on POST.
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])
+        ->middleware('throttle:10,1')->name('profile.avatar');
+    Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])
+        ->middleware('throttle:10,1')->name('profile.avatar.destroy');
 
     Route::post('/votes', [VoteController::class, 'store'])
         ->middleware('throttle:60,1')->name('votes.store');
@@ -60,6 +81,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/groups/{groupSlug}/-/create-post', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])
         ->middleware('throttle:60,1')->name('posts.store');
+    Route::post('/posts/{id}/share', [PostController::class, 'share'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('posts.share');
 
     Route::get('/groups/-/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])
@@ -69,4 +92,9 @@ Route::middleware(['auth'])->group(function () {
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.subscribe');
     Route::delete('/groups/{id}/subscribe', [MembershipController::class, 'unsubscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.unsubscribe');
+
+    Route::post('/users/{id}/follow', [FollowController::class, 'store'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('users.follow');
+    Route::delete('/users/{id}/follow', [FollowController::class, 'destroy'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('users.unfollow');
 });

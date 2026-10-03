@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Post;
+use App\Services\ImageService;
 use App\Support\Concerns\ComputesControversy;
 use App\Support\Concerns\RendersMarkdown;
 use Illuminate\Http\Request;
@@ -35,9 +36,14 @@ class PostResource extends JsonResource
             'downvotes' => $this->downvotes_count,
             'controversy' => $this->controversyScore($this->upvotes_count, $this->downvotes_count),
             'comments_count' => $this->comments_count,
+            'shares_count' => $this->shares_count,
             // true = viewer upvoted, false = downvoted, null = no vote (or a guest).
             'viewer_vote' => $this->viewer_vote === null ? null : (bool) $this->viewer_vote,
-            'author' => ['id' => $this->author->id, 'name' => $this->author->name],
+            'author' => [
+                'id' => $this->author->id,
+                'username' => $this->author->username,
+                'avatar_url' => ImageService::url($this->author->avatar_url),
+            ],
             'group' => ['id' => $this->group->id, 'slug' => $this->group->slug, 'name' => $this->group->name],
         ];
     }

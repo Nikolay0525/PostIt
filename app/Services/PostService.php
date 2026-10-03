@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\PostSort;
 use App\Models\Post;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -14,7 +15,8 @@ class PostService
 {
     private const PER_PAGE = 20;
 
-    private const TRENDING_DAYS = 7;
+    // Recommended tab: this week first, then this month, then older (see orderByFreshness()).
+    private const FRESHNESS_DAYS = [7, 30];
 
     private const SLUG_ATTEMPTS = 3;
 
@@ -36,14 +38,31 @@ class PostService
         return $this->postRepository->paginateForGroup($groupId, $sort, self::PER_PAGE, $viewerId);
     }
 
-    public function getSubscribedPosts(string $userId): LengthAwarePaginator
+    public function getSubscribedPosts(string $userId, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
-        return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE);
+        return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE, $filters);
     }
 
-    public function getTrendingPosts(?string $viewerId = null): LengthAwarePaginator
+    /**
+     * The Recommended tab. A guest has no languages, groups or views to go by yet, so gets plain
+     * trending, narrowed only by the period; a member gets it made personal and fully filtered
+     * (PostRepositoryInterface::paginateRecommended()).
+     */
+    public function getRecommendedPosts(?string $userId, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
-        return $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE, $viewerId);
+        return $userId === null
+            ? $this->postRepository->paginateTrending(self::FRESHNESS_DAYS, self::PER_PAGE, null, $filters->period->days())
+            : $this->postRepository->paginateRecommended($userId, self::FRESHNESS_DAYS, self::PER_PAGE, $filters);
+    }
+
+    public function getFollowedAuthorsPosts(string $followerId, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
+    {
+        return $this->postRepository->paginateForFollower($followerId, self::PER_PAGE, $filters);
+    }
+
+    public function getAuthorPosts(string $authorId, ?string $viewerId = null): LengthAwarePaginator
+    {
+        return $this->postRepository->paginateForAuthor($authorId, self::PER_PAGE, $viewerId);
     }
 
     // `(group_id, slug)` is unique, since the slug addresses the post in its URL. A clash of the
@@ -60,6 +79,21 @@ class PostService
                 }
             }
         }
+    }
+
+    public function recordView(string $postId, string $userId): void
+    {
+        $this->postRepository->recordView($postId, $userId);
+    }
+
+    /**
+     * @return int the post's share count afterwards (each user counts once)
+     */
+    public function share(string $postId, string $userId): int
+    {
+        $this->postRepository->recordShare($postId, $userId);
+
+        return $this->postRepository->sharesCount($postId);
     }
 
     public function getRandomPostSlug(string $groupId): ?string

@@ -11,10 +11,56 @@
   --color-muted: #64748b;
   --color-line: #e4e9f2;
   --color-canvas: #f6f9fd;
+  /* Cards, inputs, menus: the layer above the canvas. */
+  --color-surface: #ffffff;
 
   --color-danger: #dc2626;
   --color-danger-700: #b91c1c;
   --color-danger-soft: #fef2f2;
+
+  --color-warning: #b45309;
+  --color-warning-soft: #fffbeb;
+
+  /* Corner radius for the whole UI: every rounded-* utility reads these (a value needs a unit,
+     e.g. 2px; only 0 may go without). In use: sm — small bits (checkbox, notification badge,
+     chip ×); lg — buttons, inputs, menus, chips, badges, sort select; xl — group icon;
+     2xl — cards and profile blocks; 3xl — one hero block. rounded-full doesn't read them:
+     avatars, dots and radio buttons stay round on purpose. Delete this block for Tailwind's
+     default, rounder corners. */
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
+  --radius-4xl: 2px ;
+}
+
+/* Dark theme: the same tokens, redefined. <html data-theme> is set before first paint by
+   resources/views/partials/theme-script.blade.php. Brand shades are lighter here, since
+   brand-600/700 are used as text on dark surfaces; brand-50/100 become tinted dark fills. */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-brand-50: #16233d;
+  --color-brand-100: #1f3358;
+  --color-brand-500: #5b8ef0;
+  --color-brand-600: #4479e6;
+  --color-brand-700: #8fb2f6;
+
+  --color-ink: #e6ebf3;
+  --color-muted: #94a3b8;
+  --color-line: #263246;
+  --color-canvas: #0d1320;
+  --color-surface: #151c2b;
+
+  --color-danger: #f87171;
+  --color-danger-700: #ef4444;
+  --color-danger-soft: #3a1618;
+
+  --color-warning: #fbbf24;
+  --color-warning-soft: #3a2a0c;
 }
 
 @layer base {

@@ -203,17 +203,21 @@ return [
     */
 
     'attributes' => [
-        // Account (name: lang/*/attributes.php)
+        // Account (username: lang/*/attributes.php)
         'email' => 'email address',
         'password' => 'password',
         'date_of_birth' => 'date of birth',
         'token' => 'reset token',
+        'avatar' => 'avatar',
+        'status_emoji' => 'status emoji',
+        'status_text' => 'status',
+        'bio' => 'about me',
 
         // Settings
         'ui_language_code' => 'interface language',
         'speaking_languages' => 'languages you speak',
         'speaking_languages.*' => 'language',
-        'dark_theme' => 'dark theme',
+        'theme_mode' => 'theme',
         'show_swear_words' => 'show swear words',
         'show_adult_content' => 'show adult content',
         'enable_cookies' => 'cookies',

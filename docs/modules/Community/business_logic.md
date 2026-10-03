@@ -57,6 +57,12 @@ Two roles hold moderation power in a group, and neither may appoint, remove or o
 
 **Open (see `tech_notes.md`):** exact `contribution_score` threshold and `standing_score` decay/warning parameters; whether a declined Guardian offer can be re-offered; whether a returned long-absent Owner automatically reclaims ownership.
 
+## Adult (18+) groups *(planned, FR-COM-017)*
+
+- New flag `groups.is_adult` (not in schema yet), set by the Owner.
+- An adult group, its posts and their images are shown only to users with `isAdult()` **and** `show_adult_content` enabled; guests and everyone else don't see it — checked on the server (NFR-SEC-003), in every list that can include its posts (group page, feeds, author profile).
+- Images in an adult group are treated as adult automatically; the illegal-content check (Moderation, FR-MOD-013) still applies.
+
 ## Key Flow — Joining a group
 
 - Guest opens the group page → can read public groups; sees a "log in or sign up" prompt when trying to join.

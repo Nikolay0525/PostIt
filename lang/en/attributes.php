@@ -14,7 +14,7 @@
 return [
 
     'user' => [
-        'name' => 'name',
+        'username' => 'username',
     ],
 
     'group' => [

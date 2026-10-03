@@ -5,6 +5,8 @@ namespace App\Repositories\Contracts;
 use App\Enums\GroupModeratorRole;
 use App\Models\Group;
 use App\Models\GroupRuleVersion;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 interface GroupRepositoryInterface
 {
@@ -24,6 +26,13 @@ interface GroupRepositoryInterface
      */
     public function findForGroupPage(string $slug): ?Group;
 
+    /**
+     * Groups whose name, slug or description contains the term — private ones too, so they can
+     * be found and joined. A match in the name first (exact, "starts with", "contains"), the
+     * biggest first within each. Each carries `members_count`.
+     */
+    public function search(string $term, int $perPage): LengthAwarePaginator;
+
     public function slugExists(string $slug): bool;
 
     public function create(string $name, string $slug, string $description, string $languageCode, bool $isPrivate): Group;
@@ -39,7 +48,13 @@ interface GroupRepositoryInterface
 
     public function isMember(string $groupId, string $userId): bool;
 
-    public function hasSubscriptions(string $userId): bool;
+    /**
+     * The groups a user is a member of, by name, as shown on their profile: public groups, and
+     * private ones only when the viewer is a member too (a guest sees public groups only).
+     *
+     * @return Collection<int, Group>
+     */
+    public function membershipsVisibleTo(string $userId, ?string $viewerId): Collection;
 
     /**
      * Creates the membership row. Idempotent — a no-op if already subscribed. Only meaningful

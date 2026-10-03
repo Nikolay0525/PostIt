@@ -65,7 +65,7 @@ class EloquentCommentRepository implements CommentRepositoryInterface
     private function withStats(?string $viewerId = null): Builder
     {
         $query = Comment::query()
-            ->with('author:id,name')
+            ->with('author:id,username,avatar_url')
             ->withCount([
                 'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true),
                 'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false),

@@ -2,6 +2,12 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [DOCS] Image screening plan
+
+- Planned image screening in three levels: manual (adult flag + reports) first, then an external moderation API in a background job behind a swappable interface, a self-hosted model only if ever needed. New FR-MOD-013/014.
+- Decided: illegal content is blocked everywhere, adult groups included; avatars always get the strictest check.
+- Proposed `images.moderation_status` lifecycle `pending → approved | adult | blocked`; open question whether pending images are shown.
+
 ## [2026-09-26] [DOCS] Appeal/jury process; Owner accountability backstop
 
 - Designed the appeal flow for a Guardian's own moderation action: filed only by the affected user (not a direct crowd vote), a neutral case file, an independent random cross-group jury (3 standard / 5 severe panel), blind voting, automatic escalation on a non-unanimous verdict.

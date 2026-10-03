@@ -198,17 +198,21 @@ return [
     */
 
     'attributes' => [
-        // Account (name: lang/*/attributes.php)
+        // Account (username: lang/*/attributes.php)
         'email' => 'електронна пошта',
         'password' => 'пароль',
         'date_of_birth' => 'дата народження',
         'token' => 'токен скидання',
+        'avatar' => 'аватар',
+        'status_emoji' => 'емодзі статусу',
+        'status_text' => 'статус',
+        'bio' => 'про себе',
 
         // Settings
         'ui_language_code' => 'мова інтерфейсу',
         'speaking_languages' => 'мови, якими ви розмовляєте',
         'speaking_languages.*' => 'мова',
-        'dark_theme' => 'темна тема',
+        'theme_mode' => 'тема',
         'show_swear_words' => 'показувати лайку',
         'show_adult_content' => 'показувати вміст 18+',
         'enable_cookies' => 'файли cookie',

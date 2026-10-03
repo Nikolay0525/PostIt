@@ -7,7 +7,7 @@ return [
     'throttle' => 'Забагато спроб входу. Спробуйте ще раз через :seconds с.',
 
     'fields' => [
-        'name' => 'Ім’я',
+        'username' => 'Ім’я користувача',
         'date_of_birth' => 'Дата народження',
         'email' => 'Email',
         'password' => 'Пароль',

@@ -38,8 +38,20 @@ return [
             'label' => 'Allow optional cookies',
             'hint' => 'Cookies needed to keep you signed in are always used.',
         ],
-        'dark_theme' => [
-            'label' => 'Dark theme',
+    ],
+
+    'theme' => [
+        'clock' => [
+            'label' => 'By time of day',
+            'hint' => 'Dark from 20:00 to 07:00 by your local time. The button in the top bar switches it until the next change.',
+        ],
+        'browser' => [
+            'label' => 'Like my browser',
+            'hint' => 'Follows your system or browser setting. The button in the top bar switches it for 12 hours.',
+        ],
+        'manual' => [
+            'label' => 'Manual',
+            'hint' => 'Switch it with the button in the top bar; your choice is saved.',
         ],
     ],
 

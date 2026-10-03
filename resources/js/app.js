@@ -14,7 +14,7 @@ createInertiaApp({
         return page
     },
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
             .use(i18nVue, {
@@ -28,7 +28,10 @@ createInertiaApp({
             })
             .component('Head', Head) 
             .component('Link', Link)
-            .mount(el)
+
+        // Mount only once the page language is loaded, so the first render never shows raw keys
+        // ("auth.login.heading"). `finally`: if the file can't be loaded, show the page anyway.
+        loadLanguageAsync(props.initialPage.props.locale).finally(() => app.mount(el))
     },
     progress: {
         color: '#4B5563',
@@ -37,16 +40,19 @@ createInertiaApp({
     }
 })
 
-// The locale changes without a full reload when the user saves another interface language.
-// Both events are needed: 'navigate' is skipped when a visit replaces the history entry (saving
-// settings redirects back to the same URL), and 'success' does not fire on back/forward.
-const syncLocale = event => {
-    const locale = event.detail.page.props.locale
+// The locale and theme change without a full reload when the user saves other settings (or logs
+// in or out). Both events are needed: 'navigate' is skipped when a visit replaces the history
+// entry (saving settings redirects back to the same URL), and 'success' does not fire on back/forward.
+const syncSettings = event => {
+    const { locale, theme } = event.detail.page.props
 
     if (locale && locale !== getActiveLanguage()) {
         loadLanguageAsync(locale)
     }
+
+    // Guests have no saved theme: they get the 'browser' mode, as on first paint.
+    window.PostItTheme.configure(theme?.mode ?? 'browser', theme?.dark ?? false)
 }
 
-router.on('success', syncLocale)
-router.on('navigate', syncLocale)
+router.on('success', syncSettings)
+router.on('navigate', syncSettings)

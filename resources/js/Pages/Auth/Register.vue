@@ -3,7 +3,7 @@ import { useForm } from '@inertiajs/vue3';
 import TextInput from '@/Pages/Components/TextInput.vue';
 
 const form = useForm({
-    name: '',
+    username: '',
     date_of_birth: '',
     email: '',
     password: '',
@@ -26,7 +26,7 @@ const submitForm = () => {
             <p class="auth-subtitle">{{ $t('auth.register.subtitle') }}</p>
 
             <form class="auth-form" @submit.prevent="submitForm">
-                <TextInput :name="$t('auth.fields.name')" type="text" v-model="form.name" :message="form.errors.name" />
+                <TextInput :name="$t('auth.fields.username')" type="text" v-model="form.username" :message="form.errors.username" />
                 <TextInput :name="$t('auth.fields.date_of_birth')" type="date" v-model="form.date_of_birth" :message="form.errors.date_of_birth" />
                 <TextInput :name="$t('auth.fields.email')" type="email" v-model="form.email" :message="form.errors.email" />
                 <TextInput :name="$t('auth.fields.password')" type="password" v-model="form.password" :message="form.errors.password" />

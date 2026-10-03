@@ -75,8 +75,10 @@ const toggles = [
     { section: 'content', key: 'show_adult_content', hasHint: true },
     { section: 'privacy', key: 'allow_messages', hasHint: true },
     { section: 'privacy', key: 'enable_cookies', hasHint: true },
-    { section: 'appearance', key: 'dark_theme', hasHint: false },
 ];
+
+// App\Enums\ThemeMode; texts are settings.theme.<mode>.label / .hint.
+const themeModes = ['clock', 'browser', 'manual'];
 
 const togglesBySection = computed(() => toggles.reduce((sections, toggle) => {
     (sections[toggle.section] ??= []).push(toggle);
@@ -185,6 +187,25 @@ const submit = () => {
                     </label>
                     <p v-if="form.errors[toggle.key]" class="field-error">{{ form.errors[toggle.key] }}</p>
                 </div>
+            </fieldset>
+
+            <fieldset class="settings-section">
+                <legend class="settings-heading">{{ $t('settings.sections.appearance') }}</legend>
+
+                <label v-for="mode in themeModes" :key="mode" class="settings-toggle">
+                    <input
+                        v-model="form.theme_mode"
+                        type="radio"
+                        name="theme_mode"
+                        :value="mode"
+                        class="checkbox-input mt-0.5 rounded-full"
+                    />
+                    <span>
+                        <span class="block text-sm font-medium text-ink">{{ $t(`settings.theme.${mode}.label`) }}</span>
+                        <span class="block text-xs text-muted">{{ $t(`settings.theme.${mode}.hint`) }}</span>
+                    </span>
+                </label>
+                <p v-if="form.errors.theme_mode" class="field-error">{{ form.errors.theme_mode }}</p>
             </fieldset>
 
             <div class="wizard-actions">

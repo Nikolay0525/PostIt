@@ -2,6 +2,75 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-04] [FEAT] Search suggestions under the navbar field
+
+- `GET /search/suggest?q=` (`SearchController::suggest`, JSON `{groups, people, posts}`, 3 each, throttled 120/min; a too-short term gets empty lists) on the same repository `search()` methods. Posts come as a new light `PostListItemResource` (title, or the first 80 characters of the text as plain text when untitled, and the group).
+- The navbar field moved into `SearchBox.vue`: debounced fetch (250 ms) that cancels the previous request (`getJson()` in `http.js` now takes an `AbortController` signal), a listbox panel with sections and three "Search “…” in …" rows, keyboard navigation (↑ ↓ Enter Esc) with combobox ARIA, closing on outside click and on navigation. The browser's form history is off (`autocomplete="off"`), spellcheck too.
+- FR-CON-011 → Done. `SearchControllerTest` +3 cases (12).
+
+## [2026-10-04] [FEAT] Site search: results page
+
+- The navbar search field now works: Enter opens `GET /search?q=…&type=…` (`SearchController`, `SearchService`, page `Search.vue`), throttled 60/min. Tabs All / Posts / Groups / People (`SearchType`); All previews 4 groups and 4 people (with their total) above the scrolling posts.
+- New `search()` on the post, group and user repositories, sharing `SearchesText` (escaped `LIKE`, best-match ordering). Posts keep the private-group rule (`visibleTo()`); private groups themselves are listed; people come as `UserProfileResource` (public fields only); groups as a new light `GroupListItemResource` (no per-group rules query).
+- New `GroupRow.vue` / `PersonRow.vue` list rows. On the search page the navbar field shows the query.
+- Added `SearchControllerTest` (9 cases: short/empty term, all tab, title-before-text, exact/prefix/contains order, private group found but its posts members-only, deleted posts, literal `%`, preview total, public fields only).
+
+## [2026-10-04] [FEAT] Feed filters, shared by every tab: only new, only my languages, period
+
+- `HomeController` reads `new`, `langs` and `period` (`FeedPeriod`: `all` default, `month`, `week`) into an `App\Support\FeedFilters` and returns them as the `filters` prop; `new`/`langs` are forced off for guests whatever the URL says, an unknown period falls back to `all`.
+- One `EloquentPostRepository::applyFilters()` used by `paginateRecommended()`, `paginateForSubscriber()` and `paginateForFollower()`: *only new* excludes posts in the user's `post_views` or `votes`; *only my languages* is a strict `WHERE EXISTS` (same SQL as Recommended's language priority, shared as `IN_USER_LANGUAGE`); the period adds a `created_at` lower bound. Filters only narrow — each feed keeps its order. `paginateTrending()` takes the period for guests. Own posts and joined groups stay out of Recommended regardless.
+- Decided (same day): the filters are shared by every tab and kept when switching — first built for Recommended only, which felt unintuitive.
+- `Home.vue`: a Filters button on the tab line (every tab except a guest's Following, with a count of active filters) opening a panel with two checkboxes (members) and the period radios; a change reloads only the posts. With filters on, an empty list says to loosen them. The tab underline moved to the row so it runs under the button.
+- Added `FeedFiltersTest` (11 cases, including both Following lists).
+
+## [2026-10-03] [FIX] Private-group posts closed to outsiders everywhere (FR-COM-006 → Done)
+
+- Before, only lists hid a private group's posts; by direct URL or id an outsider could read a post, get one from "I'm feeling lucky", comment, vote and share. `CommentPolicy` even assumed visibility had been checked elsewhere — it hadn't.
+- New `PostPolicy::view()` (guests included via `?User`) on `ChecksGroupVisibility::canSeePostsOf()`. Checked in `PostController::show`/`share`, and first thing in `PostPolicy::vote`, `CommentPolicy::create`/`vote`; `PostController::random` uses `GroupService::canViewPosts()`, like the group page. **The private group itself stays open to everyone** (name, description, rules, join request) — only its posts are closed; `GroupPolicy` deliberately has no visibility rule. Outsiders get 404 rather than 403, so the post's existence isn't revealed; their failed visits aren't recorded as views.
+- Added `PrivateGroupAccessTest` (7 cases: the private group page stays open with posts hidden; post page, random post, comment, vote on post and comment, share; public group stays open).
+
+## [2026-10-03] [FEAT] Post views and copy-link sharing
+
+- New tables `post_views` and `post_shares` (migration `2026_10_03_210000_create_post_views_and_post_shares_tables`), composite key `(user_id, post_id)`, written with `insertOrIgnore` — repeats are no-ops and can't race into duplicate-key errors.
+- `PostController::show` records a member's view (`PostService::recordView()`); guests aren't recorded.
+- `POST /posts/{id}/share` (`PostController::share`, JSON `{shares_count}`, 404 for a missing/deleted post) counts a member's share once. `shares_count` added to the post aggregates (`Post::sharedBy()`), `PostResource` and so to every feed.
+- `ShareButton.vue` in the post footer: copies the absolute post URL for everyone (falls back to a prompt without clipboard access), shows "Link copied" for 2 s, and for members updates the count.
+- Added `PostViewsAndSharesTest` (6 cases).
+
+## [2026-10-03] [FEAT] Recommendations v1.2: freshness buckets instead of a 7-day cut-off
+
+- The Recommended tab (guests' trending and members' recommendations) no longer drops posts older than 7 days. It orders by freshness bucket — this week, this month, older (`PostService::FRESHNESS_DAYS = [7, 30]`, `EloquentPostRepository::orderByFreshness()`, a portable `CASE WHEN`) — then by score; for members the language priority still comes first. The list now only runs out when the site does.
+- `paginateTrending()`/`paginateRecommended()` take the bucket bounds instead of `$days`. Tab hints and the empty text no longer say "this week".
+- `RecommendationsTest`: old posts follow fresh ones instead of being excluded; guest ordering covered (6 cases).
+
+## [2026-10-03] [FEAT] Recommendations v1.1: new to you, your languages first
+
+- `PostRepositoryInterface::paginateRecommended()` / `PostService::getRecommendedPosts()`: for a member, the Recommended tab skips their own posts and groups they're already in, and orders posts in groups of a language they speak first (an `EXISTS` on `user_speaking_languages`, same on MySQL and sqlite), then by score. Guests still get plain trending.
+- Decided: languages are a **priority, not a filter** — a strict filter would empty the tab on a small site (and in dev, where seed groups get random languages). One condition to change later.
+- `PostService::getTrendingPosts()` removed (replaced). The hint under the tab now differs for guests and members; an empty list says to check back or look at Following.
+- Added `RecommendationsTest` (5 cases).
+
+## [2026-10-03] [FEAT] Home feed tabs: Recommended / Following (Groups, People)
+
+- `HomeController` reads `feed` (`FeedType`: `recommended` default, `following`) and `source` (`FeedSource`: `groups` default, `people`) from the query; unknown values fall back to the defaults. A guest on Following gets `posts: null` and a log-in prompt. Decided: Recommended is the default for everyone, members included — previously members with group subscriptions landed on their feed.
+- New `PostRepositoryInterface::paginateForFollower()` / `PostService::getFollowedAuthorsPosts()` for the People list; the private-group rule is shared with `paginateForAuthor()` (`visibleTo()`).
+- `Home.vue`: underlined tabs plus a Groups/People switch, switching via a partial reload that resets the post list (like a group's sort). `PostFeed` got an optional title and an `empty` text.
+- Removed `GroupService`/`GroupRepositoryInterface::hasSubscriptions()` — only the old default-feed choice used it. `FeedType::Subscriptions`/`Trending` replaced.
+- Added `HomeControllerTest` (7 cases). Recommendations are still trending; the roadmap is in business logic.
+
+## [2026-10-03] [FEAT] Image storage — service layer
+
+- New `ImageRepositoryInterface` (`create`, `findForOwner`, `delete`) and `ImageService`: stores an uploaded file on the `public` disk under a random UUID name (extension guessed from the contents, not the client's file name) and records it in `images` with uploader and owner. If the row can't be saved, the file is deleted; deleting an image removes both.
+- `images.url` holds the **path on the disk** (e.g. `avatars/{uuid}.png`), not an absolute URL, so changing `APP_URL` or the disk leaves no stale links; `ImageService::url()` builds the link when rendering.
+- Files are stored as uploaded, without resizing: the GD extension isn't enabled. Validation of type/size is the caller's job (the upcoming avatar endpoint).
+- First user: avatars (see `Account`). Post images (FR-CON-010) and group icons can reuse it.
+
+## [2026-10-03] [FEAT] An author's posts — service layer
+
+- `PostRepositoryInterface::paginateForAuthor()` / `PostService::getAuthorPosts()`: an author's posts, newest first, 20 per page, for the upcoming profile page.
+- Visibility: posts in public groups for everyone; a post in a private group only for viewers who are members of **that** group (guests and non-members don't see it). Decided over "hide private-group posts from everyone": a member already sees these posts in the group itself, so hiding them on the profile would only be inconsistent.
+- Added `AuthorPostsTest` (4 cases: own posts only and order, private group hidden from guest/non-member, member sees only their private group, deleted posts excluded).
+
 ## [2026-09-29] [FEAT] Post URLs use the post slug
 
 - A post's URL is now `/groups/{group slug}/posts/{post slug}` instead of `/posts/{uuid}`; the post slug keeps its random 6-char suffix (decided: no "-2, -3" numbering), e.g. `/groups/home-cooking/posts/борщ-з-пампушками-a1b2c3`.

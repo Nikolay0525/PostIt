@@ -37,7 +37,7 @@ class CommentControllerTest extends TestCase
             'parent_id' => null,
             'is_deleted' => false,
             'text' => 'Hello world',
-            'author' => ['id' => $user->id, 'name' => $user->name],
+            'author' => ['id' => $user->id, 'username' => $user->username],
             'upvotes' => 0,
             'downvotes' => 0,
             'controversy' => null,

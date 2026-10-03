@@ -40,6 +40,33 @@
 
 **Boundary:** `Content` stores and orders content; visibility rules for private groups are asked from `Community`.
 
+## Home feed *(2026-10-03)*
+
+- Tabs: **Recommended** (default, everyone) and **Following** (logged-in only), the latter switched between **Groups** (posts from groups you're in) and **People** (posts by authors you follow). Tab and source are in the URL (`/?feed=following&source=people`); the default keeps a clean `/`.
+- A followed author's post in one of your groups appears in **both** Following lists — each list is complete on its own, and neither has duplicates within itself.
+- People feed visibility: a post in a private group only if the follower is a member of that group (same rule as the author's profile).
+
+### Views and shares *(2026-10-03)*
+- `post_views (user_id, post_id, viewed_at)`: written when a **member** opens a post's page; one row per user and post (the first view is kept). Guests aren't recorded. Not shown anywhere yet — it feeds the planned "only new" filter. It is behavioural data about users: keep it to that purpose; consider pruning old rows (e.g. > 90 days) once the filter exists.
+- `post_shares (user_id, post_id, created_at)`: the copy-link button copies the post's address for everyone; a **member's** click is also counted, once per member, so one person can't inflate the number. `shares_count` is on every post (`PostResource`).
+
+### Search *(2026-10-04, FR-CON-011)*
+- The navbar field opens `/search?q=…` (Enter); tabs **All / Posts / Groups / People** (`&type=`). All shows up to 4 groups and 4 people (with "All groups (N)") above the posts; each other tab is one scrolling list. Public — guests search too.
+- **Matches:** posts — title and text; groups — name, slug, description; people — username. At least 2 characters.
+- **Order:** exact match on the main field (post title, group name, username) → starts with → contains → matched only elsewhere (post text, group description); within each — post score then date, group members, person followers.
+- **Visibility:** private groups **are** found (marked 🔒) so they can be found and joined; their posts only by members (same rule as everywhere). Deleted posts never. People show public profile fields only.
+- **Not applied:** the feed filters — search finds everything the viewer may see, including posts already read.
+- **Suggestions (done):** while typing (2+ characters, 250 ms after the last key), a panel under the field shows the best 3 groups, people and posts — same matching and visibility — plus "Search “…” in posts / groups / people". Arrow keys move through it, Enter opens the highlighted row (or the results page), Esc / a click outside / any navigation closes it. The browser's own form history on the field is off (`autocomplete="off"`).
+
+### Recommendations roadmap
+- **v1:** trending — public groups, by freshness bucket then score (see v1.2). Still what **guests** get.
+- **v1.1 (done, members):** only *new* to the viewer — no own posts, no groups they're already in — and posts in groups of a language they speak (`user_speaking_languages`, pre-filled from the browser at sign-up) come **first**, then the rest; then by freshness bucket and score (v1.2). Languages are a priority, not a filter, on purpose: with few posts (and seed groups in random languages) a strict filter would leave the tab empty. Switch to a filter once there is enough content.
+- **v1.2 (done):** no hard 7-day cut-off: freshness buckets — this week, this month, older (`PostService::FRESHNESS_DAYS = [7, 30]`) — with score deciding within a bucket. The tab only runs out when there is nothing left to show, yet new posts still lead. Buckets rather than a smooth decay (`score / age^1.5`) because the power function isn't spelled the same on MySQL and sqlite.
+- **Done:** `post_views` (opened posts) and a copy-link share button with a share count.
+- **Filters (done):** a Filters dropdown **shared by every tab** (Recommended, Following → Groups / People; kept when switching) — **Only new** (hide posts you opened or voted on), **Only my languages** (strict, instead of the default priority), **Period** (all time — default, this month, this week). They only narrow a list — each feed keeps its own order (Following stays newest first; on Following "only my languages" is just a filter, the language *priority* exists on Recommended only). All off by default, so unfiltered feeds are unchanged; the button shows how many are on. Kept in the URL (`/?new=1&langs=1&period=week`); defaults keep a clean `/`. Guests get only Period (the other two need an account), and no button on Following, where they see a log-in prompt. Never brought back by any filter: own posts and posts from groups you're in — they are in Following. 18+ is out of scope until adult groups exist.
+- **v2:** collaborative — "people who upvoted what you upvoted are also in these groups" (`votes` + `user_group_subscriptions`). Useful once there is real vote volume.
+- **Later:** topics/tags or text embeddings.
+
 ## Domain Policies
 
 | Domain Policy | Description |

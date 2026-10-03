@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
 import { timeAgo } from '@/utils/format';
 import { postJson } from '@/utils/http';
@@ -73,8 +74,9 @@ const submitReply = async () => {
             <p v-if="comment.is_deleted" class="comment-deleted">{{ $t('comments.deleted') }}</p>
 
             <template v-else>
-                <p class="post-meta-text">
-                    <a href="#" class="post-author font-medium text-ink" dir="auto">{{ comment.author.name }}</a>
+                <p class="post-meta-text flex items-center gap-2">
+                    <UserAvatar :url="comment.author.avatar_url" :username="comment.author.username" class="avatar-sm" />
+                    <Link :href="route('users.show', comment.author.username)" class="post-author font-medium text-ink" dir="auto">{{ comment.author.username }}</Link>
                     <span aria-hidden="true"> · </span>
                     <time :datetime="comment.created_at">{{ timeAgo(comment.created_at) }}</time>
                 </p>
