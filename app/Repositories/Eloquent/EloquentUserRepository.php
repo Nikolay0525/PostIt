@@ -6,12 +6,16 @@ use App\Models\User;
 use App\Models\UserSettings;
 use App\Models\UserUserSubscription;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\SearchesText;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class EloquentUserRepository implements UserRepositoryInterface
 {
+    use SearchesText;
+
     public function find(string $id): ?User
     {
         return User::find($id);
@@ -30,6 +34,16 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function findForProfile(string $username): ?User
     {
         return User::withCount('followers')->where('username', $username)->first();
+    }
+
+    public function search(string $term, int $perPage): LengthAwarePaginator
+    {
+        $query = $this->whereContains(User::withCount('followers'), ['users.username'], $term);
+
+        return $this->orderByMatch($query, 'users.username', $term)
+            ->orderByDesc('followers_count')
+            ->orderBy('username')
+            ->paginate($perPage);
     }
 
     public function create(array $data): User

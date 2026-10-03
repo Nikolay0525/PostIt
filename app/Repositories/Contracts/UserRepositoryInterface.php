@@ -3,6 +3,7 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface UserRepositoryInterface
 {
@@ -19,6 +20,12 @@ interface UserRepositoryInterface
      * For the public profile page: the returned user carries the `followers_count` aggregate.
      */
     public function findForProfile(string $username): ?User;
+
+    /**
+     * Users whose username contains the term: the exact name first, then "starts with", then
+     * the rest, the most followed first within each. Each carries `followers_count`.
+     */
+    public function search(string $term, int $perPage): LengthAwarePaginator;
 
     public function create(array $data): User;
 

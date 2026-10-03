@@ -176,6 +176,19 @@
   .feed-switch-option.is-active {
     @apply bg-brand-50 font-medium text-brand-700;
   }
+  /* Search results: groups and people as rows in a card, posts as the usual feed below. */
+  .search-section {
+    @apply flex flex-col gap-2;
+  }
+  .search-list {
+    @apply flex flex-col divide-y divide-line rounded-2xl border border-line bg-surface;
+  }
+  .search-row {
+    @apply flex items-center gap-3 px-4 py-3 transition hover:bg-canvas;
+  }
+  .search-list > .profile-link-btn {
+    @apply px-4 py-3;
+  }
   /* <InfiniteScroll> wraps its items in one element, so the spacing has to be set on it. */
   .feed-list {
     @apply flex flex-col gap-4;

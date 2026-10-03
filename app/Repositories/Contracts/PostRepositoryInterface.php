@@ -56,6 +56,13 @@ interface PostRepositoryInterface
     public function paginateForSubscriber(string $userId, int $perPage, FeedFilters $filters = new FeedFilters): LengthAwarePaginator;
 
     /**
+     * Posts whose title or text contains the term, with the private-group rule of
+     * paginateForAuthor(). A match in the title first (exact, "starts with", "contains"), then
+     * text-only matches; the better-rated, then the newer, within each.
+     */
+    public function search(string $term, int $perPage, ?string $viewerId = null): LengthAwarePaginator;
+
+    /**
      * The author's posts, newest first, for their profile page. Posts in a private group are
      * included only when the viewer is a member of that group; a guest sees public groups only.
      */

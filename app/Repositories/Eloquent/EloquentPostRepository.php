@@ -7,6 +7,7 @@ use App\Enums\VoteParentType;
 use App\Models\Post;
 use App\Models\Vote;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\SearchesText;
 use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class EloquentPostRepository implements PostRepositoryInterface
 {
+    use SearchesText;
+
     public function find(string $id): ?Post
     {
         return Post::find($id);
@@ -175,6 +178,16 @@ class EloquentPostRepository implements PostRepositoryInterface
         $this->applyFilters($query, $userId, $filters);
 
         return $query->latest()->paginate($perPage);
+    }
+
+    public function search(string $term, int $perPage, ?string $viewerId = null): LengthAwarePaginator
+    {
+        $query = $this->whereContains($this->withStats($viewerId), ['posts.title', 'posts.article'], $term);
+
+        // A match in the title beats one in the text only; then the better-rated, then the newer.
+        return $this->orderByScore(
+            $this->orderByMatch($this->visibleTo($query, $viewerId), 'posts.title', $term)
+        )->paginate($perPage);
     }
 
     public function paginateForAuthor(string $authorId, int $perPage, ?string $viewerId = null): LengthAwarePaginator

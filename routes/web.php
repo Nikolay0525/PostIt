@@ -8,6 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\VoteController;
 use App\Services\GroupService;
@@ -27,6 +28,8 @@ Route::get('/groups/{groupSlug}', [GroupController::class, 'show'])->name('group
 Route::get('/groups/{groupSlug}/random-post', [PostController::class, 'random'])->name('groups.random_post');
 Route::get('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'show'])->name('posts.show');
 Route::get('/users/{username}', [ProfileController::class, 'show'])->name('users.show');
+Route::get('/search', [SearchController::class, 'index'])
+    ->middleware('throttle:60,1')->name('search');
 
 Route::middleware(['guest'])->group(function () {
     Route::inertia('/login', 'Auth/Login')->name('login');

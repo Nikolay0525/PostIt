@@ -16,6 +16,8 @@
 - *(0.1.6)* `PostResource` re-parses `article`'s Markdown into `article_html`/`article_text` on every read (every feed item, every page load) — there is no caching of the rendered HTML. Fine at seeded-data volume; revisit (cache the rendered HTML alongside the post, invalidate on edit — no edit feature exists yet either) once real content volume makes it a measured cost, not a guessed one.
 - *(0.1.6)* The Bold/Italic toolbar on the create-post page is hand-rolled `textarea` selection manipulation (`selectionStart`/`selectionEnd`/`setSelectionRange`), not a rich-text editor library. It only inserts Markdown markers; it does not validate that the result is well-formed Markdown (e.g. an odd number of `*` in the source is passed through to `Str::markdown()` as-is, whatever CommonMark makes of it).
 
+- *(2026-10-04)* Search is plain `LIKE '%term%'` (`Repositories\Eloquent\Concerns\SearchesText`) — no index can serve a leading wildcard, so it scans; fine at the current size. Planned step up: Laravel Scout + Meilisearch (typo tolerance, word forms, speed), swapped in behind the same repository `search()` methods. The `LIKE` escape character is `!`, not `\` (spelled differently on MySQL and sqlite). Case: MySQL's collation ignores case for every alphabet, sqlite's `LIKE` only for ASCII — tests use matching case for Cyrillic.
+
 ## Non-obvious decisions
 - Posts and comments are soft-deleted with their own `is_deleted` / `deleted_at` fields instead of Laravel's `SoftDeletes`. Queries must filter `is_deleted = false` explicitly, or the model should be switched to `SoftDeletes`.
 - Comment text is limited to 500 characters (DB and textarea `maxlength`).

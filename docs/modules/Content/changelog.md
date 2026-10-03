@@ -2,6 +2,13 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-04] [FEAT] Site search: results page
+
+- The navbar search field now works: Enter opens `GET /search?q=…&type=…` (`SearchController`, `SearchService`, page `Search.vue`), throttled 60/min. Tabs All / Posts / Groups / People (`SearchType`); All previews 4 groups and 4 people (with their total) above the scrolling posts.
+- New `search()` on the post, group and user repositories, sharing `SearchesText` (escaped `LIKE`, best-match ordering). Posts keep the private-group rule (`visibleTo()`); private groups themselves are listed; people come as `UserProfileResource` (public fields only); groups as a new light `GroupListItemResource` (no per-group rules query).
+- New `GroupRow.vue` / `PersonRow.vue` list rows. On the search page the navbar field shows the query.
+- Added `SearchControllerTest` (9 cases: short/empty term, all tab, title-before-text, exact/prefix/contains order, private group found but its posts members-only, deleted posts, literal `%`, preview total, public fields only).
+
 ## [2026-10-04] [FEAT] Feed filters, shared by every tab: only new, only my languages, period
 
 - `HomeController` reads `new`, `langs` and `period` (`FeedPeriod`: `all` default, `month`, `week`) into an `App\Support\FeedFilters` and returns them as the `filters` prop; `new`/`langs` are forced off for guests whatever the URL says, an unknown period falls back to `all`.

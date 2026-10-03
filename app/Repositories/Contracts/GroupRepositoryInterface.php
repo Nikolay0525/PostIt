@@ -5,6 +5,7 @@ namespace App\Repositories\Contracts;
 use App\Enums\GroupModeratorRole;
 use App\Models\Group;
 use App\Models\GroupRuleVersion;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 interface GroupRepositoryInterface
@@ -24,6 +25,13 @@ interface GroupRepositoryInterface
      * By slug; the returned group carries the aggregate members_count and its currentRuleVersion.
      */
     public function findForGroupPage(string $slug): ?Group;
+
+    /**
+     * Groups whose name, slug or description contains the term — private ones too, so they can
+     * be found and joined. A match in the name first (exact, "starts with", "contains"), the
+     * biggest first within each. Each carries `members_count`.
+     */
+    public function search(string $term, int $perPage): LengthAwarePaginator;
 
     public function slugExists(string $slug): bool;
 

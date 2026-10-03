@@ -8,11 +8,15 @@ use App\Models\GroupModerator;
 use App\Models\GroupRuleVersion;
 use App\Models\UserGroupSubscription;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\SearchesText;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class EloquentGroupRepository implements GroupRepositoryInterface
 {
+    use SearchesText;
+
     public function find(string $id): ?Group
     {
         return Group::find($id);
@@ -26,6 +30,22 @@ class EloquentGroupRepository implements GroupRepositoryInterface
     public function findForGroupPage(string $slug): ?Group
     {
         return Group::withCount('members')->with('currentRuleVersion')->where('slug', $slug)->first();
+    }
+
+    // Private groups included on purpose: a private group must stay findable so people can ask to
+    // join it — only its posts are closed.
+    public function search(string $term, int $perPage): LengthAwarePaginator
+    {
+        $query = $this->whereContains(
+            Group::withCount('members'),
+            ['groups.name', 'groups.slug', 'groups.description'],
+            $term
+        );
+
+        return $this->orderByMatch($query, 'groups.name', $term)
+            ->orderByDesc('members_count')
+            ->orderBy('name')
+            ->paginate($perPage);
     }
 
     public function slugExists(string $slug): bool
