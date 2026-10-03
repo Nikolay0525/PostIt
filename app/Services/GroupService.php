@@ -82,11 +82,6 @@ class GroupService
         return $userId !== null && $this->groupRepository->isMember($groupId, $userId);
     }
 
-    public function hasSubscriptions(string $userId): bool
-    {
-        return $this->groupRepository->hasSubscriptions($userId);
-    }
-
     /**
      * The user's groups for their profile; a private group only when the viewer is in it too.
      *

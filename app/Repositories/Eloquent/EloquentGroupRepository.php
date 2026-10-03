@@ -71,11 +71,6 @@ class EloquentGroupRepository implements GroupRepositoryInterface
             ->exists();
     }
 
-    public function hasSubscriptions(string $userId): bool
-    {
-        return Group::whereHas('members', fn (Builder $members) => $members->whereKey($userId))->exists();
-    }
-
     public function membershipsVisibleTo(string $userId, ?string $viewerId): Collection
     {
         return Group::query()

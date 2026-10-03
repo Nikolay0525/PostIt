@@ -2,6 +2,14 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [FEAT] Home feed tabs: Recommended / Following (Groups, People)
+
+- `HomeController` reads `feed` (`FeedType`: `recommended` default, `following`) and `source` (`FeedSource`: `groups` default, `people`) from the query; unknown values fall back to the defaults. A guest on Following gets `posts: null` and a log-in prompt. Decided: Recommended is the default for everyone, members included — previously members with group subscriptions landed on their feed.
+- New `PostRepositoryInterface::paginateForFollower()` / `PostService::getFollowedAuthorsPosts()` for the People list; the private-group rule is shared with `paginateForAuthor()` (`visibleTo()`).
+- `Home.vue`: underlined tabs plus a Groups/People switch, switching via a partial reload that resets the post list (like a group's sort). `PostFeed` got an optional title and an `empty` text.
+- Removed `GroupService`/`GroupRepositoryInterface::hasSubscriptions()` — only the old default-feed choice used it. `FeedType::Subscriptions`/`Trending` replaced.
+- Added `HomeControllerTest` (7 cases). Recommendations are still trending; the roadmap is in business logic.
+
 ## [2026-10-03] [FEAT] Image storage — service layer
 
 - New `ImageRepositoryInterface` (`create`, `findForOwner`, `delete`) and `ImageService`: stores an uploaded file on the `public` disk under a random UUID name (extension guessed from the contents, not the client's file name) and records it in `images` with uploader and owner. If the row can't be saved, the file is deleted; deleting an image removes both.

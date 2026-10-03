@@ -79,20 +79,36 @@ class EloquentPostRepository implements PostRepositoryInterface
 
     public function paginateForAuthor(string $authorId, int $perPage, ?string $viewerId = null): LengthAwarePaginator
     {
-        return $this->withStats($viewerId)
-            ->where('user_id', $authorId)
-            ->where(function (Builder $visible) use ($viewerId) {
-                $visible->whereHas('group', fn (Builder $group) => $group->where('is_private', false));
+        $query = $this->withStats($viewerId)->where('user_id', $authorId);
 
-                if ($viewerId !== null) {
-                    $visible->orWhereIn('group_id', fn ($groups) => $groups
-                        ->select('group_id')
-                        ->from('user_group_subscriptions')
-                        ->where('user_id', $viewerId));
-                }
-            })
-            ->latest()
-            ->paginate($perPage);
+        return $this->visibleTo($query, $viewerId)->latest()->paginate($perPage);
+    }
+
+    public function paginateForFollower(string $followerId, int $perPage): LengthAwarePaginator
+    {
+        // The follower is also the viewer: their own votes are shown, and private groups they're in.
+        $query = $this->withStats($followerId)
+            ->whereIn('user_id', fn ($authors) => $authors
+                ->select('user_author_id')
+                ->from('user_user_subscriptions')
+                ->where('user_follower_id', $followerId));
+
+        return $this->visibleTo($query, $followerId)->latest()->paginate($perPage);
+    }
+
+    // Posts in public groups, plus private groups the viewer is a member of (none for a guest).
+    private function visibleTo(Builder $query, ?string $viewerId): Builder
+    {
+        return $query->where(function (Builder $visible) use ($viewerId) {
+            $visible->whereHas('group', fn (Builder $group) => $group->where('is_private', false));
+
+            if ($viewerId !== null) {
+                $visible->orWhereIn('group_id', fn ($groups) => $groups
+                    ->select('group_id')
+                    ->from('user_group_subscriptions')
+                    ->where('user_id', $viewerId));
+            }
+        });
     }
 
     private function withStats(?string $viewerId = null): Builder

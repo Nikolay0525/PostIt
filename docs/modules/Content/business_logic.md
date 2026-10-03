@@ -40,6 +40,18 @@
 
 **Boundary:** `Content` stores and orders content; visibility rules for private groups are asked from `Community`.
 
+## Home feed *(2026-10-03)*
+
+- Tabs: **Recommended** (default, everyone) and **Following** (logged-in only), the latter switched between **Groups** (posts from groups you're in) and **People** (posts by authors you follow). Tab and source are in the URL (`/?feed=following&source=people`); the default keeps a clean `/`.
+- A followed author's post in one of your groups appears in **both** Following lists — each list is complete on its own, and neither has duplicates within itself.
+- People feed visibility: a post in a private group only if the follower is a member of that group (same rule as the author's profile).
+
+### Recommendations roadmap
+- **v1 (now):** trending — public groups, last 7 days, by score. Not personal yet.
+- **v1.1 (next):** only in the viewer's speaking languages (`groups.language_code` ∈ the user's languages, pre-filled from the browser at sign-up), and only *new* to the viewer — exclude groups they're already in and their own posts.
+- **v2:** collaborative — "people who upvoted what you upvoted are also in these groups" (`votes` + `user_group_subscriptions`). Useful once there is real vote volume.
+- **Later:** topics/tags or text embeddings.
+
 ## Domain Policies
 
 | Domain Policy | Description |

@@ -11,5 +11,6 @@ return [
     'post' => ':login or :register to post.',
     'discuss' => ':login or :register to join the discussion.',
     'follow' => ':login or :register to follow this user.',
+    'following' => ':login or :register to see posts from your groups and the people you follow.',
 
 ];

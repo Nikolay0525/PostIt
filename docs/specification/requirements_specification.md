@@ -111,7 +111,7 @@ Priority: **M** = must, **S** = should, **C** = could. Status: **Done** (impleme
 | FR-CON-005 | The system shall let a guest read comments but not write them, prompting the guest to log in or register. | M | Done | D |
 | FR-CON-006 | The system shall let a logged-in user upvote or downvote a post or comment once, and change or remove that vote; a user shall not vote on their own post or comment. *(0.1.3)* The system shall also show the user their own current vote on every post/comment they view, so the correct arrow stays highlighted. | M | Done | T |
 | FR-CON-007 | The system shall order a group's posts by **Newest** (creation time) or **Top** (vote score). | M | Partial | D |
-| FR-CON-008 | The system shall show a home feed: trending posts for guests, a personal feed for logged-in users. | M | Partial | D |
+| FR-CON-008 | The system shall show a home feed: trending posts for guests, a personal feed for logged-in users. *(2026-10-03)* Two tabs: **Recommended** (default for everyone; v1 = trending in public groups) and **Following**, split into **Groups** and **People**; guests are asked to log in on Following. Personalised recommendations are planned (see `Content` business logic). | M | Partial | D |
 | FR-CON-009 | The system shall let an author or a moderator delete a post or comment softly; a deleted comment that has replies shall stay in the thread as "deleted". | M | Partial | T |
 | FR-CON-010 | The system shall let a user attach images to content and mark adult images; adult images shall be shown only to adults who enabled them. | C | Planned | T |
 | FR-CON-011 | The system shall let a user search posts, groups and people. | S | Planned | D |

@@ -41,6 +41,11 @@ class PostService
         return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE);
     }
 
+    public function getFollowedAuthorsPosts(string $followerId): LengthAwarePaginator
+    {
+        return $this->postRepository->paginateForFollower($followerId, self::PER_PAGE);
+    }
+
     public function getAuthorPosts(string $authorId, ?string $viewerId = null): LengthAwarePaginator
     {
         return $this->postRepository->paginateForAuthor($authorId, self::PER_PAGE, $viewerId);

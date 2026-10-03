@@ -138,6 +138,29 @@
   .feed-title {
     @apply text-xl font-semibold text-ink;
   }
+  /* Home page: the main tabs (underlined), and inside Following a smaller segmented switch. */
+  .feed-tabs {
+    @apply flex gap-6 border-b border-line;
+  }
+  .feed-tab {
+    @apply -mb-px cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-1 pb-3 text-base
+           font-semibold text-muted transition hover:text-ink;
+  }
+  .feed-tab.is-active {
+    @apply border-brand-600 text-ink;
+  }
+  .feed-switch {
+    @apply inline-flex self-start overflow-hidden rounded-lg border border-line bg-surface;
+  }
+  .feed-switch-option {
+    @apply cursor-pointer border-0 bg-transparent px-4 py-1.5 text-sm text-muted transition hover:text-ink;
+  }
+  .feed-switch-option + .feed-switch-option {
+    @apply border-s border-line;
+  }
+  .feed-switch-option.is-active {
+    @apply bg-brand-50 font-medium text-brand-700;
+  }
   /* <InfiniteScroll> wraps its items in one element, so the spacing has to be set on it. */
   .feed-list {
     @apply flex flex-col gap-4;
