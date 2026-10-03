@@ -48,7 +48,7 @@ const submitComment = async () => {
 </script>
 
 <template>
-    <Head :title="` | ${post.title ?? post.author.name}`" />
+    <Head :title="` | ${post.title ?? post.author.username}`" />
 
     <section class="feed">
         <Link :href="route('groups.show', post.group.slug)" class="back-link" dir="auto">

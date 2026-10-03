@@ -198,7 +198,7 @@ return [
     */
 
     'attributes' => [
-        // Account (name: lang/*/attributes.php)
+        // Account (username: lang/*/attributes.php)
         'email' => 'електронна пошта',
         'password' => 'пароль',
         'date_of_birth' => 'дата народження',

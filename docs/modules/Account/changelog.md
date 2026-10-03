@@ -2,6 +2,12 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [REFACTOR] `users.name` renamed to `username`
+
+- The field was a unique handle in practice (`RegisterRequest` already required `unique:users`), but its name suggested a real name, which PostIt does not collect. Renamed to `username` everywhere: model, registration form and validation, `auth.user` shared prop, `author` in `PostResource`/`CommentResource`, lang keys (`auth.fields.username`, `attributes.user.username`), factory and tests.
+- New migration `2026_10_03_120000_rename_name_to_username_on_users_table` renames the column and adds a **unique index**, so uniqueness no longer relies on validation alone. Prepares profile pages addressed by username.
+- Registration validation `max:255` → `max:50` to match the column.
+
 ## [2026-09-30] [FEAT] Dark theme with three modes
 
 - New `user_settings.theme_mode` (`App\Enums\ThemeMode`: `clock`, `browser`, `manual`; default `browser`), added by its own migration `2026_09_30_202436_add_theme_mode_to_user_settings_table` rather than in the initial one, so existing local databases keep their data. `dark_theme` stays as the choice shown in `manual`.

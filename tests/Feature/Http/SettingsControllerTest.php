@@ -153,7 +153,7 @@ class SettingsControllerTest extends TestCase
     {
         $this->withHeader('Accept-Language', 'uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7,xx;q=0.5')
             ->post('/register', [
-                'name' => 'Olena',
+                'username' => 'Olena',
                 'email' => 'olena@example.com',
                 'password' => 'password123',
                 'password_confirmation' => 'password123',
@@ -169,7 +169,7 @@ class SettingsControllerTest extends TestCase
     {
         $this->withHeader('Accept-Language', 'xx')
             ->post('/register', [
-                'name' => 'Max',
+                'username' => 'Max',
                 'email' => 'max@example.com',
                 'password' => 'password123',
                 'password_confirmation' => 'password123',

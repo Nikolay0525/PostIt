@@ -10,7 +10,7 @@ const props = defineProps({
     full: { type: Boolean, default: false },
 });
 
-const initial = computed(() => props.post.author.name.charAt(0).toUpperCase());
+const initial = computed(() => props.post.author.username.charAt(0).toUpperCase());
 const preview = computed(() => excerpt(props.post.article_text));
 
 const showLoginPrompt = ref(false);
@@ -27,7 +27,7 @@ const showLoginPrompt = ref(false);
                 <span aria-hidden="true"> · </span>
                 <time :datetime="post.created_at">{{ timeAgo(post.created_at) }}</time>
                 <br />
-                <a href="#" class="post-author" dir="auto">{{ post.author.name }}</a>
+                <a href="#" class="post-author" dir="auto">{{ post.author.username }}</a>
             </p>
         </header>
 

@@ -56,9 +56,9 @@ class LocaleTest extends TestCase
 
     public function test_validation_messages_use_translated_field_names_and_values(): void
     {
-        $this->post('/register', ['name' => '', 'date_of_birth' => now()->addDay()->toDateString()], ['Accept-Language' => 'uk'])
+        $this->post('/register', ['username' => '', 'date_of_birth' => now()->addDay()->toDateString()], ['Accept-Language' => 'uk'])
             ->assertSessionHasErrors([
-                'name' => 'Поле ім’я обов’язкове.',
+                'username' => 'Поле ім’я користувача обов’язкове.',
                 'date_of_birth' => 'Поле дата народження має бути датою до сьогодні.',
             ]);
     }
@@ -88,7 +88,7 @@ class LocaleTest extends TestCase
     {
         // A Russian browser: no Russian interface, so the guest sees English — and keeps it.
         $this->post('/register', [
-            'name' => 'Ivan',
+            'username' => 'Ivan',
             'email' => 'ivan@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',

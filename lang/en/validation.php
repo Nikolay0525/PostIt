@@ -203,7 +203,7 @@ return [
     */
 
     'attributes' => [
-        // Account (name: lang/*/attributes.php)
+        // Account (username: lang/*/attributes.php)
         'email' => 'email address',
         'password' => 'password',
         'date_of_birth' => 'date of birth',

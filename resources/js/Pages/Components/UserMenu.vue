@@ -7,8 +7,8 @@ import Dropdown from '@/Pages/Components/Dropdown.vue';
 const avatarUrl = '/images/default-avatar.png';
 
 const page = usePage();
-const name = computed(() => page.props.auth.user.name);
-const initial = computed(() => name.value.charAt(0).toUpperCase());
+const username = computed(() => page.props.auth.user.username);
+const initial = computed(() => username.value.charAt(0).toUpperCase());
 </script>
 
 <template>
@@ -25,7 +25,7 @@ const initial = computed(() => name.value.charAt(0).toUpperCase());
         </template>
 
         <template #default="{ close }">
-            <p class="menu-heading" dir="auto">{{ name }}</p>
+            <p class="menu-heading" dir="auto">{{ username }}</p>
 
             <Link :href="route('groups.create')" class="menu-item" @click="close">{{ $t('nav.create_group') }}</Link>
             <Link :href="route('settings.edit')" class="menu-item" @click="close">{{ $t('nav.settings') }}</Link>

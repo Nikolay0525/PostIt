@@ -38,7 +38,7 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'locale' => fn () => app()->getLocale(),
             'auth.user' => fn () => $request->user()
-                ? $request->user()->only('id', 'name')
+                ? $request->user()->only('id', 'username')
                 : null,
             'status' => fn () => $request->session()->get('status'),
             // Read by app.js so a saved theme mode applies without a reload; guests get null
