@@ -4,7 +4,9 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\User;
 use App\Models\UserSettings;
+use App\Models\UserUserSubscription;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -62,5 +64,38 @@ class EloquentUserRepository implements UserRepositoryInterface
             fn (string $code) => ['user_id' => $userId, 'language_code' => $code],
             array_values(array_unique($languageCodes))
         ));
+    }
+
+    // `UserUserSubscription` has a composite primary key, which Eloquent does not support
+    // natively: same insertOrIgnore()/WHERE-scoped delete() as EloquentGroupRepository::subscribe().
+    public function follow(string $followerId, string $authorId): void
+    {
+        UserUserSubscription::query()->insertOrIgnore([
+            'user_follower_id' => $followerId,
+            'user_author_id' => $authorId,
+            'created_at' => now(),
+        ]);
+    }
+
+    public function unfollow(string $followerId, string $authorId): void
+    {
+        $this->followQuery($followerId, $authorId)->delete();
+    }
+
+    public function isFollowing(string $followerId, string $authorId): bool
+    {
+        return $this->followQuery($followerId, $authorId)->exists();
+    }
+
+    public function followersCount(string $authorId): int
+    {
+        return UserUserSubscription::query()->where('user_author_id', $authorId)->count();
+    }
+
+    private function followQuery(string $followerId, string $authorId): Builder
+    {
+        return UserUserSubscription::query()
+            ->where('user_follower_id', $followerId)
+            ->where('user_author_id', $authorId);
     }
 }

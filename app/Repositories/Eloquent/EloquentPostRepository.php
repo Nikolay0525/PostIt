@@ -77,6 +77,24 @@ class EloquentPostRepository implements PostRepositoryInterface
             ->paginate($perPage);
     }
 
+    public function paginateForAuthor(string $authorId, int $perPage, ?string $viewerId = null): LengthAwarePaginator
+    {
+        return $this->withStats($viewerId)
+            ->where('user_id', $authorId)
+            ->where(function (Builder $visible) use ($viewerId) {
+                $visible->whereHas('group', fn (Builder $group) => $group->where('is_private', false));
+
+                if ($viewerId !== null) {
+                    $visible->orWhereIn('group_id', fn ($groups) => $groups
+                        ->select('group_id')
+                        ->from('user_group_subscriptions')
+                        ->where('user_id', $viewerId));
+                }
+            })
+            ->latest()
+            ->paginate($perPage);
+    }
+
     private function withStats(?string $viewerId = null): Builder
     {
         $query = Post::query()

@@ -1,6 +1,12 @@
 # Content — Changelog
 
-Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
+Append-only. Newest entries first. Format: `## [2026-10-03] [FEAT] An author's posts — service layer
+
+- `PostRepositoryInterface::paginateForAuthor()` / `PostService::getAuthorPosts()`: an author's posts, newest first, 20 per page, for the upcoming profile page.
+- Visibility: posts in public groups for everyone; a post in a private group only for viewers who are members of **that** group (guests and non-members don't see it). Decided over "hide private-group posts from everyone": a member already sees these posts in the group itself, so hiding them on the profile would only be inconsistent.
+- Added `AuthorPostsTest` (4 cases: own posts only and order, private group hidden from guest/non-member, member sees only their private group, deleted posts excluded).
+
+## [YYYY-MM-DD] [TICKET] Title`.
 
 ## [2026-09-29] [FEAT] Post URLs use the post slug
 

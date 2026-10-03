@@ -41,6 +41,11 @@ class PostService
         return $this->postRepository->paginateForSubscriber($userId, self::PER_PAGE);
     }
 
+    public function getAuthorPosts(string $authorId, ?string $viewerId = null): LengthAwarePaginator
+    {
+        return $this->postRepository->paginateForAuthor($authorId, self::PER_PAGE, $viewerId);
+    }
+
     public function getTrendingPosts(?string $viewerId = null): LengthAwarePaginator
     {
         return $this->postRepository->paginateTrending(self::TRENDING_DAYS, self::PER_PAGE, $viewerId);

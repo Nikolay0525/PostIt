@@ -32,4 +32,15 @@ interface UserRepositoryInterface
      * @param  list<string>  $languageCodes
      */
     public function syncSpeakingLanguages(string $userId, array $languageCodes): void;
+
+    /**
+     * Idempotent: following an author already followed changes nothing.
+     */
+    public function follow(string $followerId, string $authorId): void;
+
+    public function unfollow(string $followerId, string $authorId): void;
+
+    public function isFollowing(string $followerId, string $authorId): bool;
+
+    public function followersCount(string $authorId): int;
 }

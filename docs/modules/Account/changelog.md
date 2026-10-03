@@ -2,6 +2,12 @@
 
 Append-only. Newest entries first. Format: `## [YYYY-MM-DD] [TICKET] Title`.
 
+## [2026-10-03] [FEAT] Following authors — service layer
+
+- `UserRepositoryInterface`: `follow`, `unfollow`, `isFollowing`, `followersCount` over `user_user_subscriptions` (insertOrIgnore / WHERE-scoped delete, as for group subscriptions — composite key).
+- New `FollowService`: refuses following oneself (`InvalidArgumentException`); a guest follows no one. No routes or UI yet — first step towards profile pages and authors in the home feed (FR-ACC-010 stays Partial).
+- Added `FollowServiceTest` (6 cases).
+
 ## [2026-10-03] [REFACTOR] `users.name` renamed to `username`
 
 - The field was a unique handle in practice (`RegisterRequest` already required `unique:users`), but its name suggested a real name, which PostIt does not collect. Renamed to `username` everywhere: model, registration form and validation, `auth.user` shared prop, `author` in `PostResource`/`CommentResource`, lang keys (`auth.fields.username`, `attributes.user.username`), factory and tests.

@@ -25,7 +25,7 @@
 | `UserUserSubscription` *(link)* | user_follower_id, user_author_id, created_at | "Follower follows author". | - Unique pair (follower, author).<br>- A user cannot follow themselves.<br>- No `updated_at`. |
 | `BlockedUser` *(link)* | user_id, blocked_user_id, created_at | "User blocks another user". | - Unique pair.<br>- A user cannot block themselves.<br>- Blocked user's content is hidden from the blocker. |
 
-> The rules "`show_adult_content` ⇒ adult only" and "no self follow/block" are business rules of this module; they are not yet enforced in code (see tech notes).
+> The rules "`show_adult_content` ⇒ adult only" and "no self follow" are enforced in code (`SettingsService`, `FollowService`); "no self block" is not yet (see tech notes).
 
 ## Authentication Flow
 
