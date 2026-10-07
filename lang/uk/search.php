@@ -17,7 +17,6 @@ return [
     'all_groups' => 'Усі групи (:num)',
     'all_people' => 'Усі люди (:num)',
     'suggest' => [
-        "members" => 'Учасники',
         'group' => 'Групи',
         'person' => 'Люди',
         'post' => 'Дописи',
