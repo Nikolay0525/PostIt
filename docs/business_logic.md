@@ -53,9 +53,9 @@ PostIt is a web application where people share their ideas and problems and get 
 - *Status* — what the person is doing right now, in a couple of words.
 - *Bio* — what the person has been doing and interested in for a long time.
 
-**Karma.** [A global rating shown on the profile: how much the user has contributed to PostIt. The contribution is assessed by other users — votes on the user's posts and comments, their anonymous moderation, and so on.] Karma is general, not tied to any topic: a person who writes about cooking has no reason to write about programming.
+**Karma.** [A global rating shown on the profile: how much the user has contributed to PostIt. The contribution is assessed by other users — votes on the user's posts and comments, and so on.] Moderation does not count toward karma. Karma is general, not tied to any topic: a person who writes about cooking has no reason to write about programming.
 
-**Sub-karma.** [Each group has its own sub-karma — the user's rating inside that group.]
+**Sub-karma.** [Each group has its own sub-karma for each member; its purpose is to get the member into the group's moderator candidate pool (see Roles).] Whether it is visible to others is not decided yet. Even if it is, others *could* guess who the moderator is, but hardly *would*: the threshold may be low, and candidates may number in the hundreds or thousands.
 
 **Counters.** [Counters of the user's actions are collected], but stored only in the database — users never see them directly. They are the basis for achievements (see Gamification): e.g. "most active voter" for 1000 votes cast.
 
@@ -73,7 +73,42 @@ PostIt is a web application where people share their ideas and problems and get 
 
 ## 4. Groups
 
+**Creation.** Any verified user can create a group and becomes its owner. There is no limit on the number of groups — only a throttle, so that group creation cannot be used for spam.
+
+**Group address.** Every group has a unique address (slug): lowercase Latin letters, digits and hyphens. Like a username, it is a key identifier: to get into a particular group, nobody has to type unfamiliar characters — the identifier is understandable to everyone. The group's name can be in any language.
+
+**Owner's authority.** [The owner can change the group's language, name and rules.] Before doing so they may hold a poll among members, but nobody obliges them to.
+
+**Private groups.**
+- [A group can be switched between public and private. When a public group becomes private, everyone currently subscribed automatically becomes a member.]
+- A private group is joined through a join request. [At first, requests are reviewed by the owner. A new group setting can additionally allow all members to share an invite link that lets people in directly. Without that setting, members can still copy a link to the group's join request.]
+- [The reviewer can either reject a request, or reject it and block further requests from that user — both with a reason. This action is throttled.]
+
+**Rule history.** The group's rules are stored as versions; a change creates a new version instead of overwriting the old one. This is a top-level requirement for transparent moderation: the goal of PostIt is that nobody is ever punished for nothing. [When moderators review an appeal, they judge the decision against the rule version that was in force when it was made, not against the current one — rules may have changed since, and the moderator acted on the old ones.]
+
+**Deleting a group.** [The owner can delete the group, together with all of its posts.] Its pending reports and appeals go with it: a ban in a group that no longer exists no longer matters to anyone.
+
+A lot depends on the owner, so it matters that the right person gets the role. If the owner turns out to be the wrong one, people will create an alternative group and move there — for example, by a link left by the new group's owner.
+
 ## 5. Roles: Owner and Moderator
+
+**Handing over ownership.** [An owner who wants to leave must hand the role to one of the group's moderators. Since everyone is anonymous, it works as a "hot potato": the first moderator to say "yes, I want it" becomes the owner. If the owner deletes their account, the same happens automatically. If the group has no moderators, or none of them says yes, the owner's seat becomes free and anyone who has crossed the sub-karma threshold can take it with a click and a confirmation.]
+
+**Becoming a moderator.** [When a member's sub-karma crosses a threshold, they enter the group's candidate pool. The role is offered to a *random* candidate from the pool — never simply to the top-scoring one, so the role does not turn into a popularity race. The candidate may decline without any penalty.]
+
+**Moderator rating.** [A moderator has a rating inside the group, separate from sub-karma. It grows with the moderator's activity and drops when they do not do the work — but only relative to the group's actual workload: no pending reports means no decay. It has to be maintained to keep the role. If an appeal shows the moderator acted without grounds, the rating gained will be cancelled entirely and even go negative.] It is kept separate from sub-karma so that, if sub-karma is ever made visible, a falling moderator rating cannot be seen by others. Other users' opinion of the moderator's work does not affect whether the moderator keeps the role. If moderator keep receiving negative rating the system will force this user to lose moderator role.
+
+**Accountability.** A moderator's action is never put to a crowd vote — otherwise the people just sanctioned could out-vote their own sanction. [Users may vote in the moderator's log, but those votes have no effect on the moderator.] An action can be overturned only through an appeal.
+
+**Appeals.** [Everything a moderator does that can be appealed is reviewed by a jury:]
+- [Only the user affected by an action may appeal it, and only that specific action — not a general complaint against the moderator.]
+- [The jury is drawn at random from moderators of *other* groups — 3 people, or 5 for severe cases. Voting is blind. A non-unanimous verdict escalates to a larger panel.]
+- [The appeal is judged against the rule version in force when the action was taken (see Groups → Rule history).]
+- [While an appeal is pending, the removed content stays hidden.]
+
+**Owner accountability.** The owner is not judged by the jury; in practice the owner soon stops moderating and leaves it to moderators. [When an anonymous owner's action is appealed, a platform administrator is notified. The history of the owner's violations is kept, including whether they were objectively groundless. The administrator judges by the nature of the violations rather than their count, and decides at their own discretion whether the owner is guilty. Ownership can be transferred by force only after the owner has received at least one warning.]
+
+**Polls.** [Members can create polls (e.g. about changing the rules or topic). A poll does not bind the owner, but the owner responds to it publicly.]
 
 ## 6. Posts and Discussions
 
