@@ -1,255 +1,460 @@
-# Project Policy — PostIt
+# Політика проекту — <Проект Х>
 
 | | |
-|---|---|
-| Name | Project Policy — PostIt |
-| Version | 0.1.0 |
-| Status | Draft |
-| Classification | Internal |
-| Last update | 2026-09-21 |
-| Owner | Project owner (Mykola Poberezhnyi) |
+| --- | --- |
+| Назва | Політика проекту — <Проект Х> |
+| Версія | 0.1.0 |
+| Статус | Draft |
+| Класифікація | Internal |
+| Останнє оновлення | YYYY-MM-DD |
+| Власник | <Роль/Ім'я> |
 
-> This policy defines mandatory requirements for the code and architecture of `PostIt` — a community discussion platform built as a Laravel + Inertia + Vue web application. Key requirements: strictly typed OOP following SOLID, clean code, a layered architecture with enforced boundaries between layers, and test coverage.
+> Ця політика визначає обов'язкові вимоги до коду та архітектури `<Проект Х>` — <одне-два речення: що це за система, які її межі та призначення>. Ключові вимоги: строго типізоване ООП за SOLID, чистий код, шарова архітектура з примусовими межами між шарами та тестове покриття.
 >
-> Out of scope: native mobile applications, a public third-party API, real-time chat.
+> <Опційно: речення про свідомі межі скоупу — чого проект НЕ робить.>
 
-## Policy change rules
+> Секції, помічені **(Опційно)**, включаються залежно від типу проекту (бібліотека, сервіс, платформа); непотрібні — видаляються разом із згадками в змісті.
 
-- **No changes in passing** — the policy changes only through a dedicated policy-update task, never as a side effect of another task.
-- **Mandatory approval** — every change is agreed with the project owner beforehand.
-- **Separate commit + version bump** — policy changes go into a separate Git commit prefixed `[POLICY]`, and the document version is incremented.
+## Правила зміни політики
 
-## Contents
+- **Жодних змін мимохідь** — політика не змінюється як побічний ефект іншої задачі; зміни вносяться лише окремою задачею на оновлення політики.
+- **Обов'язковий апрув** — будь-яка зміна попередньо погоджується з власником проекту.
+- **Окремий комміт + інкремент версії** — зміни політики йдуть окремим git-коммітом з префіксом `[POLICY]` у повідомленні та підняттям версії документа.
 
-1. Scope
-2. Technologies
-3. Fundamental principles
-4. Architecture and structure
-5. Domain events policy
-6. Naming policy
-7. Annotation policy (PHPDoc)
-8. Exceptions policy
-9. NULL-less policy
-10. Testing policy
-11. Git workflow
-12. Development documentation policy
-13. Anti-patterns
+## Зміст
 
-## 1. Scope
+1. Скоуп
+2. Технології
+3. Фундаментальні принципи
+4. Архітектура та структура
+5. Політика доменних івентів (Опційно)
+6. Політика неймінгу
+7. Політика анотацій (PHPDoc)
+8. Політика винятків
+9. NULL-less політика
+10. Політика тестування
+11. Git Workflow (Опційно)
+12. Політика документації розробки (Опційно)
+13. Анти-патерни
 
-This policy applies to all PostIt source code (`app/`, `routes/`, `database/`, `resources/js/`) and tests (`tests/`). It is mandatory for everyone who creates or changes this code — developers and AI agents.
+## Скоуп
 
-## 2. Technologies
+> Ця політика поширюється на `<Проект Х>` — на весь його вихідний код (`src/`) та тести (`tests/`). Вона обов'язкова для всіх, хто створює або змінює цей код — розробників та АІ-агентів.
 
-- **PHP 8.3+**
-- **Laravel 13**, **Inertia.js 3** (server side: `inertiajs/inertia-laravel`), **Ziggy** (named routes in JS)
-- **Vue 3**, **Tailwind CSS 4**, **Vite**
-- **Composer**, **npm**
-- **Laravel Pint** (code style)
-- **PHPUnit 12** (tests)
+## Технології
+
+- **PHP <версія>**
+- **<Ключові бібліотеки/фреймворки>**
+- **Composer**
+- **<Лінтер, напр. Laravel Pint>**
+- **<Статичний аналізатор, напр. PHPStan>**
+- **<Контроль меж шарів, напр. PHP Deptrac>**
+- **<Тестовий фреймворк, напр. PHPUnit>**
 - **Git**
 
-## 3. Fundamental principles
+## Фундаментальні принципи
 
-- **Layer separation.** HTTP/transport code, application (use-case) logic, business rules and persistence are kept in separate layers. No layer leaks into another (see §4).
-- **Business rules live in one place.** Rules such as "private group posts are visible to members only" are implemented on the server (services/policies), not only in the UI. UI checks are a convenience, never the protection.
-- **Thin controllers.** Controllers accept a validated request, call a service, and return a response.
-- **Strictly typed OOP, SOLID, clean code.** Every PHP file declares parameter and return types.
-- **Module boundaries.** Code belongs to exactly one module (bounded context) from the [module registry](modules.md). Cross-module access is done through identifiers and service calls.
-- **Secure by default.** Validation on every input, authorization on every mutation, no user enumeration in auth responses, secrets only in `.env`.
-- **Policy is inviolable.** No circumstances justify breaking this policy. Any deviation is corrected immediately.
+- **Розділення шарів.** Змішування інфраструктурного (транспортного) шару, шару бізнес-логіки та фреймворк-шару строго заборонене. Кожен шар ізольований і не протікає в інші.
+- **DDD для бізнес-логіки.** Бізнес-логіка реалізується в парадигмі DDD настільки, наскільки це доцільно.
+- **Чужа логіка поза проектом.** Проект не містить бізнес-логіки систем, які його використовують / з якими інтегрується — вона залишається на їхньому боці.
+- **Опційність фреймворку.** Фреймворк-орієнтовані механізми (якщо є) — опційні; без фреймворку ядро проекту залишається повністю функціональним. *(Для проектів-застосунків на фреймворку принцип формулюється як: фреймворк не проникає в Domain/Application.)*
+- **Строго типізоване ООП, SOLID, чистий код.**
+- **Непорушність політики.** Жодні обставини не є легітимною підставою для порушення цієї політики. Будь-які розбіжності з нею мають бути приведені у відповідність негайно.
 
-## 4. Architecture and structure
+## Архітектура та структура
 
-Calls go top-down only; lower layers never depend on upper ones.
+Проект розділений на ізольовані шари; виклики йдуть лише зверху вниз — нижні шари не залежать від верхніх.
 
-```
-Presentation (Http, Inertia pages) → Application (Services) → Domain (Models, Enums, Policies) ←[interfaces]→ Infrastructure (Repositories)
-```
-
-Backend structure:
+Глобальна структура `src/`:
 
 ```
-app/
-├── Http/
-│   ├── Controllers/     # Presentation: thin, one controller per resource
-│   ├── Middleware/
-│   └── Requests/        # Form Requests: validation (grouped by module, e.g. Requests/Auth/)
-├── Services/            # Application: use-case orchestration, transactions, events
-├── Repositories/
-│   ├── Contracts/       # Interfaces used by Services
-│   └── *.php            # Eloquent implementations
-├── Models/              # Domain: Eloquent entities (BaseEntity with UUID identity)
-├── Enums/               # Domain: backed enums for statuses, roles, types
-├── Policies/            # Domain: Laravel authorization policies
-└── Exceptions/          # Domain/Application exceptions
+src/
+├── <EntryPoint>.php    # точка входу (для бібліотек) / Presentation-шар (для застосунків)
+├── Facade/             # фасади верхнього рівня (той самий шар, що й точка входу) — за потреби
+├── Infrastructure/     # інфраструктурний шар: транспорт, персистенс, зовнішні сервіси
+├── Domain/             # бізнес-логіка: бізнес-ентіті проекту, в стилі DDD
+├── Application/        # оркестрація: юзкейси (тут живе CQRS — Command / Query)
+└── <Framework>/        # опційний фреймворк-шар
 ```
 
-Frontend structure:
+Напрямок залежностей:
 
 ```
-resources/js/
-├── Pages/               # Inertia pages, one folder per module area (Groups/, Posts/, Auth/)
-│   └── Components/      # Reusable components (PostCard, VoteButtons, ...)
-├── Layouts/
-├── data/                # TEMPORARY dummy data — must be replaced by server props (see tech notes)
-└── utils/
+EntryPoint/Presentation + Facade → Application → Domain ←[контракти]→ Infrastructure
+<Framework> → (опційна обгортка; від неї ніхто не залежить)
 ```
 
-Layer rules:
+### Domain
 
-- **Presentation** validates input (Form Requests), authorizes (Policies/middleware), calls one Service and returns an Inertia/redirect response. No business rules, no direct queries beyond simple read models.
-- **Application (Services)** orchestrates repositories and models, opens transactions, dispatches Laravel events. Contains no HTTP or Inertia code.
-- **Domain (Models/Enums/Policies)** holds entities, their relations, casts, invariants and authorization rules. Domain code does not use `Request`, `Inertia`, `Auth` facade or the session.
-- **Infrastructure (Repositories)** implements persistence behind `Repositories/Contracts` interfaces; Services depend on the interface, never on the implementation.
+Domain розділений на **bounded contexts** — кожен БК самодостатній і містить усе, що стосується його бізнес-області.
 
-Modules: each module (Account, Community, Content, Moderation, Engagement, SharedKernel) is described in `docs/modules/<Module>/`. Physical grouping of classes into per-module subfolders (e.g. `app/Services/Community/`) is allowed and preferred once a module has more than a few classes; the layer folders stay the top level.
+БК — це **широка, але цілісна феатур-область**: він може покривати кілька тісно пов'язаних ресурсів/ентіті, і прямі посилання між ентіті всередині одного БК — очікувані й нормальні. Помилкою є розрізання на окремі БК набору ресурсів, які посилаються одне на одного зі змінною глибиною (то мініфіковане посилання, то повна вбудована модель) — такі ресурси належать одному БК. Крос-БК зв'язність дозволена лише через **стабільні** посилання (мініфікований id + назва), ніколи — через вбудови змінної глибини.
 
-Database rules:
+Скелет БК:
 
-- Primary keys are UUIDs (models extend `BaseEntity`, which uses `HasUuids`). Exception: seeded reference data that already has a standard code (e.g. languages, ISO 639) is keyed by that code instead.
-- Join tables use composite primary keys; pivot access goes through relations (`belongsToMany`) or a dedicated model with explicit handling of the composite key.
-- Type/status/role integers are always backed by a PHP `Enum` (see anti-patterns).
-- Every schema change is a new migration; existing migrations are not edited after being shared.
+```
+Domain/[BoundedContext]/
+├── Entity/
+├── ValueObject/
+├── Enum/
+├── Exception/
+├── OutsourceContract/   # контракти назовні, до Infrastructure (ACL / інверсія залежностей) — обов'язково
+├── Service/             # доменні сервіси
+├── Policy/              # опційно
+├── Event/               # опційно
+└── Contract/            # внутрішні контракти БК — опційно
+```
 
-## 5. Domain events policy
+Структура БК може розширюватись іншими папками за потреби.
 
-- Significant business changes emit a Laravel event (e.g. `Registered`, `PasswordReset` already in use; planned: post created, comment created, vote cast, report resolved).
-- Events are dispatched from Services after the state is persisted, never from controllers.
-- Event payloads carry identifiers only (UUIDs), never passwords, tokens, emails or other sensitive data.
-- Listeners are idempotent and must not trigger event cycles.
+**Гомогенні директорії.** Директорія містить елементи одного роду. Коли папка елемента змішує роди, нефінальні роди йдуть у фіксовані піддиректорії: базові абстракції — `Abstracts/`, реєстри — `Registry/`, внутрішні контракти — `Contract/`. Напр., `Exception/` містить конкретні винятки, `Exception/Abstracts/` — базу винятків БК, `Exception/Registry/` — його реєстр кодів; поліморфна сім'я VO тримає базу в `<Family>/Abstracts/`.
 
-## 6. Naming policy
+Розрізнення контрактів: `OutsourceContract/` — інтерфейси, які БК потребує від Infrastructure (реалізуються в Infrastructure, ін'єктуються через DI); `Contract/` — внутрішні інтерфейси самого БК.
 
-**General:** classes, interfaces, traits, enums — `PascalCase`; methods, variables, parameters — `camelCase`; constants — `UPPER_SNAKE_CASE`; file name = class name; PHP directories — `PascalCase`; database tables and columns — `snake_case`, tables in plural (`user_settings`).
+**SharedKernel** — спільне ядро для всіх БК:
 
-| Type | Convention | Example |
+```
+Domain/SharedKernel/
+├── Abstracts/      # базові абстракції доменних елементів, успадковувані в усіх БК
+├── Contract/       # фундаментальні інтерфейси, обов'язкові для всіх БК
+├── ValueObject/    # спільні VO / примітиви, вживані більш ніж в одному БК
+├── Enum/           # енуми, спільні для кількох БК
+└── Exception/      # опційно: CoreExceptionRegistry, ACoreException, кор-винятки
+```
+
+- `Abstracts/` — базовий Value Object, базова Entity, базовий VO ідентифікатора, базова абстракція винятку проекту.
+- `Contract/` — контракти, обов'язкові до реалізації в елементах БК: інтерфейс VO, інтерфейс Entity, інтерфейс винятку проекту (та інтерфейс Policy, якщо політики використовуються).
+- `ValueObject/` — спільні VO (загальні примітиви — напр., спільні ідентифікатори, обгортки типів).
+- `Enum/` — енуми, що використовуються більш ніж в одному БК.
+- `Exception/` — **опційно**: `CoreExceptionRegistry`, базова абстракція `ACoreException` та кор-винятки (все, що не належить жодному БК чи інфраструктурі).
+
+До SharedKernel потрапляє лише справді крос-БК-шне — елементи, вживані в (або фундаментальні для) більш ніж одному БК; це не склад для довільної логіки, і воно не повинно розростатись. Додавання нового елемента в SharedKernel потребує попереднього апруву власника; фактичний вміст ядра та його спеки документуються в документації розробки (підтримується актуальним щодо коду, без зміни політики).
+
+### Infrastructure
+
+Інфраструктурний шар: технічна периферія (транспорт, персистенс, зовнішні сервіси); саме тут реалізуються `OutsourceContract`-и Domain.
+
+```
+Infrastructure/
+├── Transport/     # HTTP / «дріт» — за потреби
+├── Persistence/   # БД / репозиторії — за потреби
+├── Auth/          # аутентифікація — за потреби
+└── Exception/     # інфраструктурні винятки
+```
+
+Інші папки додаються за потреби.
+
+### Application
+
+Тонкий шар оркестрації (юзкейси), без бізнес-правил; реалізує CQRS. Групується по БК, як і Domain.
+
+```
+Application/[BoundedContext]/
+├── UseCase/       # юзкейси — оркеструють Domain + Infrastructure
+├── Command/       # Application Commands — наміри мутації, аргумент UseCase
+├── Query/         # Application Queries — наміри читання, аргумент UseCase
+├── Dto/           # DTO (вхідні/вихідні дані)
+└── Exception/     # винятки рівня Application
+```
+
+Крос-БК оркестрація йде в окремий модуль, названий за обома БК в алфавітному порядку без роздільника (напр., `BillingOrder/`); набір елементів той самий.
+
+Інші папки додаються за потреби.
+
+### Точка входу / Presentation
+
+Верхній шар. Для **бібліотеки** — точка входу збирає граф об'єктів (транспорт, залежності, юзкейси) з конфігурації та видає ліниво збудовані, закешовані фасади по БК; фасад — чиста комутація: його методи приймають інтент-об'єкти Application (`AQ` / `AC`) і делегують відповідному юзкейсу; жодної бізнес-логіки, жодного передекларування сигнатур операцій. Для **застосунку** — Presentation (контролери, консольні команди, лісенери) лише приймає ввід, викликає юзкейси та формує відповідь.
+
+### Фреймворк-шар (Опційно)
+
+Опційний шар — обгортка, що вбудовує проект у фреймворк (DI, конфіг, фасади, роути). Допускає довільну структуру, формується за потребою та доцільністю. Від нього ніхто не залежить.
+
+## Політика доменних івентів (Опційно)
+
+*Для проектів, де ентіті публікують доменні івенти.*
+
+Кожен Domain Event (DE) складається з: **UUID** івента, **UUID ентіті**-джерела, **таймстемпа**, **пейлоада** (окремий DED-об'єкт), **імені івента** (рядковий ідентифікатор з реєстру івентів модуля/БК) та **версії** схеми (для сумісності при десеріалізації).
+
+- Конкретний DE успадковує `ADomainEvent` і декларує `getEventName()` (з реєстру) та `getEventDataClass()`. Рекомендована статична фабрика `::withData(...)`, що інкапсулює створення DED.
+- **DED** (Domain Event Data) — окремий `final readonly` клас пейлоада конкретного івента; відповідає за власну серіалізацію/десеріалізацію (`toArray()` / `loadFromArray()`).
+- **Реєстр івентів** — по аналогії з реєстром винятків: `Enum` у Domain-шарі БК; значення кейсів — рядкові ідентифікатори формату `<БК>.<Івент>`.
+- Ентіті, що публікує івенти, використовує чергу івентів (trait із SharedKernel): `triggerEvent()`, `pullEvents()`; дедуплікація за семантичним ключем у межах одного виклику.
+- **Життєвий цикл:** ентіті тригерить івент у внутрішню чергу → UseCase зберігає ентіті через репозиторій → Infrastructure після збереження робить `pullEvents()` і диспатчить кожен івент → лісенери приймають івенти та ініціюють відповідні команди вниз по вертикалі.
+- **Захист від рекурсивних ланцюгів** — відповідальність архітектурного дизайну, а не рантайм-механізмів; коректність перевіряється тестами.
+
+## Політика неймінгу
+
+**Загальне:**
+
+- Класи, інтерфейси, абстракти, трейти, енуми — `PascalCase`.
+- Методи, змінні, параметри — `camelCase`; константи — `UPPER_SNAKE_CASE`.
+- Файл = ім'я класу; директорії — `PascalCase`.
+
+**Префікси / суфікси:**
+
+| Тип | Конвенція | Приклад |
 |---|---|---|
-| Model | singular noun, no suffix | `Post`, `GroupBan` |
-| Abstract base class | prefix `Base` | `BaseEntity` |
-| Interface | suffix `Interface` | `UserRepositoryInterface` |
-| Enum | singular noun, no suffix | `ReportStatus` |
-| Service | suffix `Service` | `AuthService`, `PostService` |
-| Repository | suffix `Repository` | `EloquentUserRepository` |
-| Controller | suffix `Controller` | `AuthController` |
-| Form Request | `<Action><Subject>Request` | `RegisterRequest` |
-| Authorization policy | suffix `Policy` | `PostPolicy` |
-| Event | past tense | `PostCreated` |
-| Exception | suffix `Exception` | `GroupBannedException` |
-| Vue page | `PascalCase.vue` in a module folder | `Groups/Show.vue` |
-| Vue component | `PascalCase.vue` | `PostCard.vue` |
-| Route name | dot notation, `resource.action` | `posts.show` |
+| Інтерфейс | префікс `I` | `IUserRepository` |
+| Абстрактний клас | префікс `A` | `AValueObject`, `AEntityId` |
+| Entity / Aggregate Root | без суфікса | `User` |
+| Value Object | суфікс `VO` | `EmailVO` |
+| Enum | без суфікса | `OrderStatus` |
+| Доменний сервіс | суфікс `Service` | `UserProvisioningService` |
+| Доменна політика | суфікс `DPolicy` | `BlockUserDPolicy` |
+| Domain Event | суфікс `DE` | `UserBlockedDE` |
+| Use Case | суфікс `UC` | `GetUserUC` |
+| Application Command | суфікс `AC` | `BlockUserAC` |
+| Application Query | суфікс `AQ` | `GetUserAQ` |
+| DTO | суфікс `DTO` | `UserDTO` |
+| Виняток | суфікс `Exception` | `UserNotFoundException` |
+| Реєстр винятків | суфікс `ExceptionRegistry` | `AccountExceptionRegistry`, `InfrastructureExceptionRegistry`, `CoreExceptionRegistry` |
+| База винятків | префікс `A` + суфікс `Exception` | `AAccountException`, `AInfrastructureException`, `ACoreException` |
+| Фасад БК | суфікс `Facade` | `AccountFacade` |
+| Service Provider фреймворку | суфікс `ServiceProvider` | `<ПроектХ>ServiceProvider` |
 
-**Imports:** external classes are imported with `use` at the top of the file; inline fully-qualified names are discouraged; name collisions are solved with short `as` aliases.
+**Імпорти:** зовнішні класи/інтерфейси/трейти/енуми — через `use` вгорі файлу (FQCN у коді небажаний); у PHPDoc — ті самі короткі `use`-імпортовані імена, що й у коді; FQCN із провідним `\` — лише для неімпортованих типів; колізії імен — аліаси через `as`, логічні та лаконічні.
 
-## 7. Annotation policy (PHPDoc)
+**Директорії:** `PascalCase`, назва відповідає типу елемента; `OutsourceContract/` — фіксована назва.
 
-- Every class, public/protected method and property has a docblock unless the native type declaration fully expresses its meaning (e.g. a typed constructor-promoted property).
-- Method docblock: short purpose description (business meaning, not a code retelling), `@param` where the type needs refinement (e.g. `array<string, mixed>`), `@throws` for every exception the method may throw.
-- Class docblock for models and services: purpose and, for entities, key **invariants** (business rules the entity keeps).
-- Eloquent relations are documented by their return type (`BelongsTo`, `HasMany`, ...).
+## Політика анотацій (PHPDoc)
+
+Анотації обов'язкові для **кожного** метода та властивості класу. Відсутня анотація — помилка. Принцип: краще більше, ніж менше; опис пояснює призначення та обмеження, а не переказує код.
+
+**Докблок метода містить:**
+
+- `@param` — для кожного параметра з точним типом; опис пояснює призначення та обмеження параметра, а не лише тип.
+- `@return` — тип повернення (включно з `@return void`).
+- `@throws` — для кожного винятку, який метод може кинути, прямо чи опосередковано.
+- Лаконічний опис призначення метода — що робить і навіщо (бізнес-контекст, не переказ коду).
+
+**Докблок класу / інтерфейсу / абстракта / трейта / енума містить:**
+
+- `@package` — пакет/неймспейс, до якого належить елемент.
+- Лаконічний опис призначення — що елемент представляє і яку роль відіграє.
+
+**Докблок властивості містить:**
+
+- `@var` — точний тип.
+- Лаконічний опис призначення.
+
+**Для `Entity` / `Aggregate Root` / `Value Object`** докблок класу додатково містить список ключових **інваріантів** — бізнес-правил та обмежень, які елемент підтримує.
+
+**Приклад:**
 
 ```php
 /**
- * Group ban: a temporary or permanent restriction of a user inside one group.
+ * User entity. Represents a platform account holder.
+ *
+ * @package <VendorX>\<ProjectX>\Domain\Account\Entity
  *
  * Invariants:
- * - One ban per (group, user) pair.
- * - `expires_at = null` means a permanent ban.
+ * - Email is always a valid, normalized address
+ * - Status transitions follow the allowed state machine
  */
-class GroupBan extends Model { ... }
+final class User { ... }
+
+/**
+ * Blocks the user according to the allowed transition rules.
+ *
+ * @param BlockUserDPolicy $policy Policy enforcing the blocking rules
+ * @return void
+ * @throws InvalidStatusTransitionException If the user cannot be blocked from its current status
+ */
+public function block(BlockUserDPolicy $policy): void { ... }
 ```
 
-## 8. Exceptions policy
+## Політика винятків
 
-- Business-rule violations are reported with dedicated exceptions (e.g. `UserBannedFromGroupException`), not generic ones and not `RuntimeException` with a free-text message.
-- Third-party and framework exceptions are caught at the boundary where they occur and either handled or wrapped into an application exception before leaving the Service layer.
-- Exception messages shown to users never contain internal details (SQL, paths, tokens).
-- Authentication flows return the same response whether or not an account exists (no user enumeration), as already implemented for password reset.
-- Rendering of exceptions is centralised in `bootstrap/app.php`; JSON is returned for `api/*` and JSON-expecting requests.
+Усі винятки проекту реалізують базову абстракцію `A<ПроектХ>Exception` із `SharedKernel` (яка реалізує контракт `I<ПроектХ>Exception`). Використання будь-яких інших базових класів для винятків заборонене. Сторонні та системні винятки (бібліотеки, PSR, драйвери) мають бути обгорнуті у відповідний внутрішній виняток до виходу назовні.
 
-## 9. NULL-less policy
+### Структура коду винятку
 
-Minimise `null` in business logic: express absence explicitly (empty collection, default value, dedicated "none" state) instead of using `null` as a logical value. This is a recommendation, not a hard ban: where avoiding `null` makes code unreasonably complex it is allowed, ideally with a short justification. Nullable columns that model real optionality (e.g. `posts.title`, `group_bans.expires_at`) are allowed and documented in `business_logic.md`. Empty arrays and collections are not `null`.
+Кожен виняток ідентифікується ієрархічним кодом:
 
-## 10. Testing policy
+```
+<ПРЕФІКС>.<Сегмент>.<код>
+```
 
-- **Framework:** PHPUnit 12 via `composer test`.
-- **Structure:** `tests/` mirrors `app/` (`tests/Unit/Services/...`, `tests/Feature/Http/...`).
-- **Unit tests first:** Services and model logic (e.g. `GroupBan::isActive()`, `User::isAdult()`) are covered by fast unit tests with repository doubles.
-- **Feature tests:** every route with a state-changing effect has a feature test for the happy path, validation failures, and authorization failures (guest, unverified, banned, non-member).
-- **Negative scenarios are mandatory:** every test class covers invalid input and rule violations, asserting the *expected* exception or response.
-- **No real external calls:** mail is faked (`MAIL_MAILER=log` / `Mail::fake()`), no network in tests.
-- **Frontend:** pages are verified manually until a frontend test runner is adopted; adopting one requires a policy update.
+- **`<ПРЕФІКС>`** — глобальний префікс усіх кодів проекту (напр., 3–4 літери від назви); єдине джерело — `SharedKernel`.
+- **`<Сегмент>`** — джерело винятку; кожен реєстр декларує свій сегмент: БК — його сегмент-токен із реєстру контекстів, **один на БК**; інфраструктура — `INF`; усе інше та сам `SharedKernel` — `CORE`.
+- **`<код>`** — числовий код, унікальний у межах свого реєстру.
 
-## 11. Git workflow
+Приклади: `<ПРЕФІКС>.ACCT.1`, `<ПРЕФІКС>.INF.4`, `<ПРЕФІКС>.CORE.2`. Комбінація однозначно ідентифікує будь-який виняток і безпечна для відповідей та логів без розкриття внутрішніх деталей.
 
-**Branches**
+Коди **іммутабельні після призначення**: призначений код не редагується, не перепризначається і не використовується повторно після видалення. Коди лише інкрементуються в межах свого реєстру; видалений код залишається зарезервованим назавжди. При видаленні винятку відповідний кейс реєстру не видаляється, а помічається `#[Deprecated]`:
 
-| Branch | Purpose |
+```php
+#[Deprecated]
+case UserEmailFormatInvalid = 1;
+```
+
+### Реєстри винятків
+
+- **Реєстр БК** — один на bounded context; живе в `Domain/[Bc]/Exception/Registry/`, обслуговує винятки цього БК і в Domain, і в Application. Сегмент — сегмент-токен БК. База винятків БК живе в `Exception/Abstracts/`.
+- **Реєстр інфраструктури** — один на весь шар Infrastructure; живе в `Infrastructure/Exception/Registry/` (база — в `Exception/Abstracts/`). Сегмент — `INF`.
+- **Верхньорівневий реєстр** — єдиний (`CoreExceptionRegistry`); живе в `SharedKernel`, обслуговує винятки самого ядра і все, що не належить жодному БК чи інфраструктурі. Сегмент — `CORE`. **Опційний / відкладений**: створюється лише з появою першого кор-винятку.
+
+Кожен реєстр — це `Enum`, що реалізує `IExceptionCodeRegistry`: декларує свій сегмент (константа `SEGMENT`, віддається через `getSegment()`), числові кейси та мапу кейсів через `getList()`. Створення нового винятку — це додавання нового кейса у відповідний реєстр.
+
+Для кожного реєстру існує базова абстракція винятків (`A[Bc]Exception`; `AInfrastructureException`; `ACoreException`), що розширює `A<ПроектХ>Exception`, прив'язується до свого реєстру та декларує абстрактний `getCodeEnum()`.
+
+### Конкретний виняток
+
+Розширює базову абстракцію свого реєстру, декларує статичне повідомлення через `protected $message` та реалізує `getCodeEnum()`, що повертає відповідний кейс. Динамічна композиція повідомлення в конструкторі дозволена.
+
+```php
+// Реєстр БК
+enum AccountExceptionRegistry: int implements IExceptionCodeRegistry
+{
+    private const string SEGMENT = 'ACCT';
+
+    case UserEmailFormatInvalid = 1;
+    case UserCannotBeBlocked    = 2;
+
+    public static function getSegment(): string
+    {
+        return self::SEGMENT;
+    }
+
+    public static function getList(): array
+    {
+        return array_column(self::cases(), 'value', 'name');
+    }
+}
+
+// Конкретний виняток
+final class UserEmailFormatInvalidException extends AAccountException
+{
+    protected $message = 'User email format invalid';
+
+    protected function getCodeEnum(): AccountExceptionRegistry
+    {
+        return AccountExceptionRegistry::UserEmailFormatInvalid;
+    }
+}
+```
+
+### Обгортання зовнішніх винятків
+
+Сторонні та системні винятки, що виникають у будь-якому шарі, мають бути перехоплені та обгорнуті у відповідний внутрішній виняток до розповсюдження вгору. Пряме розповсюдження чужих винятків за межі шару заборонене. Внутрішні винятки проекту, що проходять крізь шари, повторного обгортання не потребують.
+
+## NULL-less політика
+
+Рекомендується мінімізувати фізичний `null` у бізнес-логіці та типізувати відсутність явно (null-object / reference-патерн або дефолтне значення) замість використання `null` як логічного значення. Це рекомендація, а не жорстка заборона: там, де уникнення `null` невиправдано ускладнює код, він дозволений, бажано з коротким обґрунтуванням. Не стосується порожніх масивів та колекцій.
+
+## Політика тестування
+
+### Інструменти
+
+Основа — <тестовий фреймворк, напр. PHPUnit>. Зовнішні залежності (транспорт, БД, сторонні сервіси) замінюються моками; **реальних мережевих викликів у тестах немає**. Тести не завантажують DI-контейнер фреймворку.
+
+### Структура тестів
+
+Директорія `tests/` віддзеркалює структуру `src/` — по шарах та БК. Кожен тестований елемент має відповідний тест-файл або директорію. Для елементів із багатьма сценаріями (Entity, великі VO) створюється окрема директорія з логічно згрупованими тестами.
+
+### Пріоритет юніт-тестів
+
+Юніт-тести пріоритетні всюди, де можливо: швидкі, без контейнера, основа покриття. Кожен тест — юніт чи інтеграційний — покриває і коректні сценарії, і свідомо невалідні (неправильні формати, порушення інваріантів) з перевіркою, що кинуто саме очікуваний виняток.
+
+### Покриття по шарах
+
+- **Domain:** лише юніт; максимальне покриття — кожен публічний метод кожного елемента.
+- **Application:** лише юніт; сценарії UseCase для різних Command / Query — успішні та з очікуваними відмовами.
+- **Infrastructure:** юніт, де можливо (мапінги, конвертації); для роботи із зовнішніми системами — інтеграційні тести проти **замоканого** транспорту (без реальної мережі) з перевіркою коректності запиту (URL, метод, заголовки, тіло) та обробки відповідей і помилок.
+
+### Групування тестів
+
+Кожен тест-клас помічається ієрархічними атрибутами `#[Group()]` — від загального до конкретного, за шляхом елемента в структурі:
+
+```php
+#[Group('domain')]
+#[Group('account.domain')]
+#[Group('account.domain.entity')]
+final class UserTest extends TestCase { ... }
+```
+
+## Git Workflow (Опційно)
+
+*Для проектів із командною розробкою та середовищами розгортання.*
+
+### Гілки
+
+| Гілка | Призначення |
 |---|---|
-| `main` | Stable branch; always deployable |
-| `feature/<short-name>` | One branch per task; deleted after merge |
-| `fix/<short-name>` | Bug-fix branches |
+| `master` | Основна гілка; production-ready стан |
+| `develop` | Планові спринти; синхронізується з `master` раз на спринт |
+| `<env>-гілки` | Тригерять деплой у відповідне середовище — за потреби |
+| Таск-гілки | Окремі гілки під конкретні задачі; видаляються після мержа |
 
-Changes reach `main` through pull requests only.
+Планові зміни йдуть PR-ами в `develop`; хотфікси — PR-ами напряму в `master`.
 
-**Commit messages**
+### Повідомлення коммітів
 
 ```
-[type] short summary
+[тип] короткий підсумок
 ```
 
-| Type | Meaning |
+| Тип | Опис |
 |---|---|
-| `INIT` | Initial project setup, initial documentation |
-| `DEV` | Feature development |
-| `FIX` | Bug fix |
-| `DOCS` | Documentation only |
-| `POLICY` | Policy change (separate commit) |
-| `RELEASE` | Release |
+| `DEV-XXX` | Розробка функціоналу; XXX — номер картки таск-трекера (якщо є) |
+| `FIX-XXX` | Виправлення; XXX — номер картки (якщо є) |
+| `DOCS` | Документація |
+| `RELEASE` | Реліз |
 
-**Versioning:** semantic versioning `MAJOR.MINOR.PATCH`, incremented before every release.
+Інші типи допускаються за потреби.
 
-**Checks before merge:** `./vendor/bin/pint --test` and `composer test` must pass. Any warning or failure rejects the PR.
+### Версіонування
 
-## 12. Development documentation policy
+Версія інкрементується перед кожним деплоєм / релізом за схемою, зафіксованою для проекту (напр., `X.X.X.X`: мажор — фундаментальні архітектурні зміни; мінор — значні функціональні релізи; номер версії — +1 на кожен плановий деплой; мікро — хотфікси між деплоями, скидається на плановому деплої).
 
-Documentation is a deliverable. Outdated or missing documentation is a defect.
+### CI-перевірки
+
+Кожен PR у `develop` чи `master` перевіряється: лінтер, контроль меж шарів, повний тест-сьют. Будь-які попередження чи помилки автоматично відхиляють PR.
+
+## Політика документації розробки (Опційно)
+
+*Актуальна база знань поруч із кодом. Документація — повноцінний деліверабл; застаріла чи відсутня документація вважається дефектом.*
+
+### Структура
 
 ```
 docs/
-├── project_policy.md
-├── modules.md                     # module registry
-├── specification/requirements_specification.md
-├── architecture/architecture_description.md
-└── modules/<Module>/
-    ├── business_logic.md
-    ├── changelog.md
-    └── tech_notes.md
+├── <реєстр модулів/контекстів>.md   # обов'язковий реєстр усіх модулів/БК з описами
+└── <modules|internal_spec>/
+    └── [Назва]/                     # одна директорія на модуль/БК (включно з SharedKernel)
+        ├── business_logic.md
+        ├── changelog.md             # або єдиний changelog проекту
+        └── tech_notes.md
 ```
 
-- **`business_logic.md`** — stable conceptual content of a module: purpose, boundaries ("NOT here"), entities with invariants, lifecycles, services, events. Always reflects the current state.
-- **`changelog.md`** — append-only chronological log, newest first. Entry format: `## [YYYY-MM-DD] [TICKET] Title` followed by a list of changes.
-- **`tech_notes.md`** — everything a developer must know before touching the module beyond the code and `business_logic.md`: tech debt, known issues, non-obvious decisions, edge cases.
-- Whoever changes a module adds a changelog entry, updates `business_logic.md` if the concept changed, and records new debt in `tech_notes.md`.
-- Requirements changes are made in the specification **first**, then in code and tests (specification-driven development).
-- Style: concise, lists, exhaustive but without noise.
+- **Реєстр** — точка входу в мапу модулів/БК: повний перелік з короткими описами, межами відповідальності, статусом та залежностями.
+- **`business_logic.md`** — стабільний концептуальний зміст модуля: призначення, Aggregate Roots, ключові інваріанти, ключові доменні елементи, явні межі («тут НЕ живе: …»), міжмодульні залежності. Завжди відображає поточний стан.
+- **`changelog.md`** — хронологічний журнал ключових змін; строго append-only, нові записи — на початок. Формат запису: `## [YYYY-MM-DD] [TICKET-XXX] Назва` + список змін.
+- **`tech_notes.md`** — усе, що розробник чи АІ-агент має знати перед роботою з модулем, крім вираженого в коді та `business_logic.md`: техборг, відомі проблеми, неочевидні рішення та їх обґрунтування, edge cases.
 
-## 13. Anti-patterns
+### Обов'язки
 
-| # | Anti-pattern | Essence |
+Кожен, хто змінює модуль: додає запис у `changelog.md`; звіряє та за потреби оновлює `business_logic.md`; фіксує в `tech_notes.md` новий техборг / особливості / закриті проблеми. Файли документації створює той, хто створює модуль.
+
+### Стиль
+
+Максимально лаконічно, списками, але вичерпно: без незначущих деталей, але й без пропуску важливого.
+
+## Анти-патерни
+
+| # | Анти-патерн | Суть |
 |---|---|---|
-| 1 | Layer leakage | Business rules in controllers or Vue components; `Request`/`Inertia` in Services or Models. |
-| 2 | UI-only protection | Access rules (private groups, bans, adult content) enforced only in the frontend. |
-| 3 | Fat controller | Controller contains queries, transactions or rules instead of calling a Service. |
-| 4 | Bypassing the repository | Services depending on a concrete repository or querying Eloquent directly when a contract exists. |
-| 5 | Magic integers | Raw `1`/`2` for `parent_type`, `status`, `role`, `type` instead of a backed Enum. |
-| 6 | Vague exception | Generic exception or free-text `RuntimeException` instead of a specific one. |
-| 7 | Unvalidated input | Reading `$request->all()` or unvalidated input in a Service or model. |
-| 8 | Sensitive data leak | Emails, tokens or hashes in events, logs, or Inertia shared props. |
-| 9 | God module | One module absorbing unrelated business areas (e.g. moderation logic inside Content). |
-| 10 | Editing shared migrations | Changing a migration that others already ran instead of adding a new one. |
-| 11 | Dummy data in production paths | Pages reading `resources/js/data/*` after the matching backend endpoint exists. |
-| 12 | Happy-path-only tests | No negative scenarios, or real network/mail calls in tests. |
-| 13 | Stale documentation | Code changed without updating `business_logic.md`, `changelog.md` or the specification. |
+| 1 | Протікання шарів | Бізнес-логіка в Transport/Persistence, HTTP/БД у Domain, фреймворк-код у Domain/Application. |
+| 2 | Чужа логіка в проекті | Бізнес-правила систем-споживачів усередині проекту замість їхнього боку. |
+| 3 | Обхід Infrastructure | Domain/Application напряму ходять у зовнішні системи замість Infrastructure через `OutsourceContract`. |
+| 4 | Domain → Infrastructure | Пряма залежність Domain від інфри замість інверсії через `OutsourceContract`. |
+| 5 | Витік чужих винятків | Сирі винятки бібліотек/PSR виходять за межі шару без обгортання. |
+| 6 | Розмитий виняток | `SomethingWentWrongException` замість точного винятку під конкретний кейс. |
+| 7 | Зміна коду винятку | Редагування/повторне використання призначеного коду чи префікса замість інкременту + `#[Deprecated]`. |
+| 8 | Товстий Application | Бізнес-правила протікають у тонкий шар оркестрації замість Domain. |
+| 9 | God BC | Один БК поглинає **непов'язані** бізнес-області. Широкий, але цілісний БК (багато тісно пов'язаних ресурсів) — це *не* воно, а навпаки задумана форма. |
+| 10 | Роздутий SharedKernel | Неуніверсальні (БК-специфічні) речі в SharedKernel. |
+| 11 | Обов'язковий фреймворк | Проект непрацездатний без фреймворку замість опційної обгортки. |
+| 12 | Переказ / відсутність анотації | Докблок переказує код або відсутній замість опису призначення / інваріантів / `@throws`. |
+| 13 | Happy-path-only тести | Без негативних сценаріїв, або реальні мережеві виклики в тестах. |
+| 14 | Змішана директорія | Звалювання різнорідних елементів (конкретні класи, абстракти, реєстри, контракти) в одну директорію замість гомогенних піддиректорій (`Abstracts/`, `Registry/`, `Contract/`). |
