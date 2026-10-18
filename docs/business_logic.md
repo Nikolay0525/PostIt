@@ -1,115 +1,58 @@
+# PostIt — Business Logic
 
-# ====== [НазваМодуля] BUSINESS LOGIC ======
+## 1. About PostIt
 
-> Шаблон файлу `business_logic.md` модуля/БК. Описує **стабільний концептуальний зміст** модуля: призначення, межі, доменні елементи та інваріанти. Завжди відображає поточний стан модуля — застарілий зміст вважається дефектом. Секції, непотрібні модулю (немає івентів, немає політик тощо), — видаляються; специфічні елементи модулю (лайфцикли, флоу, нотатки) — додаються за потреби. Приклади в таблицях нижче — ілюстративні (нейтральний домен «замовлення»); замініть їх на власні.
+PostIt is a web application where people share their ideas and problems and get solutions or opinions from other users, in a simple but effective discussion format. It is also a place to spend time without contributing anything — reading posts and discovering groups.
 
-## Purpose
+**Audience.** Everyone. A group can be about absolutely any topic — from cooking to games, from games to programming — as long as it does not violate basic human taboos.
 
-`[НазваМодуля]` володіє:
-- <Бізнес-область 1 — одним рядком: які поняття/дані/операції належать саме цьому модулю>.
-- <Бізнес-область 2>.
-- <Атомарні операції, які модуль надає як будівельні блоки для зовнішніх процедур — якщо оркестрація живе в іншому модулі, скажіть це явно>.
+**Why PostIt.** It answers problems of existing platforms such as Reddit:
+- *Moderation.* Moderation is transparent and anonymous at the same time. [A moderator acts under an anonymous mask: moderation actions are not signed with their username, and their own account looks like a regular user's], so they cannot be targeted and harassed, while their actions are open and [logged]. Moderation decisions [can be appealed], and a moderator [can be removed by a cross-group "court"].
+- *Search.* On Reddit it is easier to find something through Google than through the site itself. PostIt's own search must not have this problem.
+- *No auto-translation.* Posts are never machine-translated: a translation cannot convey the thought of a post.
 
-**NOT here:**
-- <Що свідомо НЕ належить модулю і де воно живе: «оркестрація процедури Х — `[ІншийМодуль]`»>.
-- <Суміжна область 2 — `[ІншийМодуль]`>.
+**Languages.** A group chooses its own language, and its members write in it. People who search using that language's characters find the group and can easily join the conversation. The interface does not have to be translated into every language: people who are online regularly already know English.
 
-## Entities
+**Monetization.** [Advertising banners] are acceptable, since hosting cannot be paid for otherwise. [Users can support the project with one-time donations via PayPal.]
 
-| Entity | Basic Fields | Description | Invariants |
-|---|---|---|---|
-| `AOrder` *(abstract)* | uuid, number, status, customerRef | Абстрактна база, спільна для нащадків; несе ідентичність та лайфцикл. Самостійно не інстанціюється. | - Ідентичність (`uuid`) іммутабельна.<br>- Статус змінюється лише за політиками переходів (див. «Status Lifecycle»).<br>- Новостворена сутність завжди стартує в статусі `DRAFT`. |
-| `RetailOrder` *(extends `AOrder`)* | *(успадковане)* + deliveryAddress | <Роль конкретного нащадка та його відмінності>. | - Успадковує всі інваріанти `AOrder`.<br>- <Власний інваріант>. |
-| `OrderLine` *(internal Entity — owned by `AOrder`, не Aggregate Root)* | uuid, productRef, quantity, price | <Внутрішня сутність: ким володіється, чому не корінь агрегату>. | - `uuid` іммутабельний.<br>- `quantity` строго > 0.<br>- Заміна продукту = новий запис, а не мутація існуючого. |
+**Out of scope.** No paid content and no sponsorships, as other sites do — that goes too far.
 
-> Для кожної ентіті: точний перелік полів (з типами-VO, де важливо), позначки *(abstract)* / *(internal Entity)* / *(Aggregate Root)*, і **повний** список інваріантів — саме інваріанти є головним вмістом цього файлу.
+**Core principles** — not given up under any circumstances (the list may grow):
+- Exact upvote and downvote counts are hidden.
+- Rectangular visual style.
 
-<Опційно: окремі підсекції для складних механік, що стосуються кількох ентіті — напр., схема хешування, кейси енумів тощо.>
+## 2. Registration and Authentication
 
-## Status Lifecycle *(опційно — якщо ентіті має статусну машину)*
+**Registration.** A person registers with a username, an email, a password and a date of birth. Username and email are unique.
 
-- <Правило старту: в якому статусі й чому створюється нова сутність.>
+**Email and username.** The email is the login — a user signs in with the email only, never with the username. The username is the user's anonymous public name on the network.
 
-Дозволені переходи:
+**Date of birth.** Required out of concern for the safety of underage users: it is the simplest way to at least somehow confirm age. There is no minimum age; what matters is adulthood (18+). Only an adult can enable adult content in settings; [for minors such content is filtered or cut off entirely].
 
-| From | Self-initiated | System/admin-initiated |
-|---|---|---|
-| `DRAFT` | → `PLACED` | → `CANCELLED` |
-| `PLACED` | → `CANCELLED` | → `SHIPPED`, `CANCELLED` |
-| `SHIPPED` | — | → `DELIVERED` |
-| `DELIVERED` | — (terminal) | — (terminal) |
+**Languages.** At registration, the user's speaking languages are set automatically from the browser and can later be changed in settings. They directly affect the content the user sees: every group has a fixed language, and its posts are written in that language.
 
-- <Нотатки до неочевидних переходів: хто ініціює, які передумови, чому заборонений прямий перехід X → Y.>
+**Email verification.** The email is the key to account recovery: an unconfirmed email may contain a typo or belong to someone else, and then a password reset link would never arrive. Therefore:
+- After registration the user is signed in, but [until the email is confirmed they have no access anywhere except the verification page — reading included — and are reminded to confirm on every sign-in].
+- [An account whose email is not confirmed within one day is deleted.] [The verification email and the verification page warn about this.]
 
-## <Ключовий флоу> *(опційно — якщо модуль має наскрізний процес, вартий огляду)*
+**Account changes.**
+- [The username can be changed, but not more often than once a week, so it cannot be changed frequently. A released username can be taken by someone else.] [On a username change, a notification message is sent to all of the user's followers; for everyone else the change is of no concern.]
+- The password can be reset through "forgot password", and [changed by a logged-in user in settings, with no period limit].
 
-*<Огляд процесу крок за кроком: маркований список стадій. Наприкінці — **Boundary**: що з флоу належить цьому модулю, а що — сусіднім.>*
+**[Password fields have an "eye" toggle that shows the typed characters.]**
 
-## Value Objects
+## 3. Guests and Users
 
-| Value Object | Description | Invariants |
-|---|---|---|
-| VO-ідентифікатори (`OrderUuidVO` тощо) | Кожна ентіті з ідентичністю отримує типізований VO ідентифікатора, що розширює `AEntityUuidVO` із SharedKernel. | - Іммутабельний.<br>- Валідність UUID гарантується базовим класом, не реалізується повторно. |
-| `OrderNumberVO` | <Що представляє; де забезпечується унікальність, якщо не тут>. | - Іммутабельний.<br>- <Формат/довжина, валідується при створенні>. |
-| `OrderStatusVO` | Обгортає енум `OrderStatus`; інкапсулює статус як типізований VO, а не сирий енум. | - Іммутабельний.<br>- Валідність значення успадкована від енума, не реалізується повторно. |
-| `IDiscountRefVO` *(+ `DiscountRefVO` / `NoDiscountRefVO` impls)* | NULL-less Reference Contract для опційної знижки: або посилання на знижку, або порожня реалізація (`isPresent()` = false). | - Іммутабельний.<br>- NULL-less: завжди одна з реалізацій, ніколи не null. |
+## 4. Groups
 
-> Для кожного VO: що воно представляє, і інваріанти — формат, межі, звідки успадкована валідація. NULL-less-контракти (`I<X>RefVO` + реалізації) описуються одним рядком на сім'ю.
+## 5. Roles: Owner and Moderator
 
-## Domain Policies
+## 6. Posts and Discussions
 
-| Domain Policy | Description |
-|---|---|
-| Політики статусних переходів | По одній політиці на кожну дозволену/заблоковану пару `(дія, зі статусу)` (напр., `PlaceDraftOrderDPolicy`, `CancelPlacedOrderDPolicy`). Забезпечують точно матрицю переходів зі «Status Lifecycle» — жодна зміна статусу не застосовується без проходження своєї політики. |
-| `<Назва>DPolicy` | <Що валідує, за яких умов пропускає/блокує; якщо політика несе числові пороги — навести їх і пояснити калібрування>. |
+## 7. Voting
 
-## Domain Services
+## 8. Feed and Search
 
-Кожен сервіс виконує рівно одну логічну операцію; інфраструктура (персистенс, зовнішні сервіси) досягається через Outsource Contracts.
+## 9. Site Administration
 
-| Domain Service | Operation |
-|---|---|
-| `PlaceOrderService` | <Одна операція: що перевіряє (політики), що змінює, який івент емітить>. |
-| `CancelOrderService` | <…>; емітить `OrderCancelledDE`. |
-| `<Назва>Service` *(internal — no UC)* | <Внутрішній сервіс без власного юзкейса — позначати явно>. |
-
-## Domain Events
-
-Тригеряться лише на значущі зміни (не на кожну зміну стану). Чутливі дані не потрапляють у пейлоади: <правила модуля — які ідентифікатори публічні, які заборонені>.
-
-| Event | Carries | Notes |
-|---|---|---|
-| `OrderPlacedDE` | order uuid, number | |
-| `OrderStatusChangedDE` | order uuid, old status, new status | |
-| `OrderCancelledDE` | order uuid, reason | <Нотатка, якщо є нюанс: хто слухає, чому окремий івент> |
-
-## Application Commands & Queries
-
-Шар Application тонкий: Command Use Case приймає Application Command (`AC`), Query Use Case — Application Query (`AQ`). UC оркеструє один чи кілька доменних сервісів — не 1:1 (внутрішні сервіси власного UC не мають).
-
-**Commands (`AC`):**
-
-| Area | Commands |
-|---|---|
-| <Група 1> | `PlaceOrderAC`, `CancelOrderAC` |
-| <Група 2> | `<...>AC` |
-
-**Queries (`AQ`):**
-
-| Query | Purpose |
-|---|---|
-| `GetOrderAQ` | <Що повертає>. |
-| `ListOrdersAQ` | <Що повертає; що свідомо НЕ віддається і чому>. |
-
-## Infrastructure
-
-*<Рівень фреймворку/периферії: моделі персистенсу, кеш, черги — лише те, що важливо знати про технічну реалізацію модуля. Відхилення від політики проекту фіксувати явно.>*
-
-### Models
-
-- `OrderModel` — <поля, касти, зв'язки, softDeletes; що зберігається зашифрованим/захешованим>.
-- `OrderLineModel` — <…>.
-
-### Cache / Async *(опційно)*
-
-- <Що кешується і чому; які операції асинхронні (джоби, шедулер) і чому саме вони.>
+## 10. Gamification
