@@ -1,5 +1,9 @@
 # PostIt — Business Logic
 
+## Additional info
+
+["some text"] - stands for features that will be implemented in future 
+
 ## 1. About PostIt
 
 PostIt is a web application where people share their ideas and problems and get solutions or opinions from other users, in a simple but effective discussion format. It is also a place to spend time without contributing anything — reading posts and discovering groups.
@@ -42,6 +46,30 @@ PostIt is a web application where people share their ideas and problems and get 
 **[Password fields have an "eye" toggle that shows the typed characters.]**
 
 ## 3. Guests and Users
+
+**Guest.** A convenience for people who do not want an account — for example, someone who found a solution through Google and wants to read it, but not write or vote. A guest sees private groups like everyone else and can find them through search, but their posts do not exist for a guest: getting in requires registration.
+
+**Profile.**
+- *Status* — what the person is doing right now, in a couple of words.
+- *Bio* — what the person has been doing and interested in for a long time.
+
+**Karma.** [A global rating shown on the profile: how much the user has contributed to PostIt. The contribution is assessed by other users — votes on the user's posts and comments, their anonymous moderation, and so on.] Karma is general, not tied to any topic: a person who writes about cooking has no reason to write about programming.
+
+**Sub-karma.** [Each group has its own sub-karma — the user's rating inside that group.]
+
+**Counters.** [Counters of the user's actions are collected], but stored only in the database — users never see them directly. They are the basis for achievements (see Gamification): e.g. "most active voter" for 1000 votes cast.
+
+**Following.** Following a user is purely tracking their activity — it is not friendship or anything like it. [A follower counter is planned; how exactly it works is not decided yet.]
+
+**Blocking.** [A user can block another user; after that they no longer see the blocked user's messages or activity. Blocked content is shown like deleted content, with "User is blocked — view anyway?"] Blocking is anonymous: the blocked user is never told.
+
+**Settings.**
+- *Swear words.* [Swear words are masked with asterisks and revealed on click.] They are shown right away only if the user is an adult and has enabled showing them. [On a minor's account the swear-words setting is disabled, the same as adult content.]
+- *Direct messages.* The user either allows or forbids [direct messages] from all users.
+
+**Notifications.**
+- [*Default* — e.g. a followed user changed their username, or someone commented under your post.] [Each kind can be turned off separately.]
+- [*Warning* — moderator warnings and bans.] These cannot be turned off: they will not arrive often.
 
 ## 4. Groups
 
