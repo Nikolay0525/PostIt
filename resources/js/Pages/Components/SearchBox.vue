@@ -21,7 +21,7 @@ const active = ref(-1);
 
 // On the search page the field shows what was searched for; anywhere else it starts empty.
 watch(
-    () => (page.component === 'Search' ? page.props.q : ''),
+    () => (page.component === 'Search/Index' ? page.props.q : ''),
     (q) => (term.value = q ?? ''),
     { immediate: true },
 );

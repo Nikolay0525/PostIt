@@ -66,7 +66,7 @@ class SearchController extends Controller
             default => null,
         };
 
-        return Inertia::render('Search', [
+        return Inertia::render('Search/Index', [
             'q' => trim((string) $request->query('q')),
             'type' => $type->value,
             'min_length' => SearchService::MIN_LENGTH,

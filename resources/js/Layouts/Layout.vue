@@ -19,7 +19,7 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
                         <Link
                             :href="route('home')"
                             class="nav-link"
-                            :class="{ 'nav-link-active': $page.component === 'Home' }"
+                            :class="{ 'nav-link-active': $page.component === 'Feed/Index' }"
                         >{{ $t('nav.home') }}</Link>
                     </div>
                 </div>
