@@ -525,12 +525,8 @@
 
   /* Guest hero */
   .hero {
-    @apply relative mx-auto mb-10 flex max-w-4xl flex-col items-center overflow-hidden rounded-3xl
-           border border-line px-6 py-16 text-center sm:py-24;
-    background-image:
-      radial-gradient(circle at 15% 20%, var(--color-brand-100) 0, transparent 45%),
-      radial-gradient(circle at 85% 80%, var(--color-brand-100) 0, transparent 45%),
-      linear-gradient(to bottom, var(--color-surface), var(--color-brand-50));
+    @apply relative mx-auto mb-10 flex max-w-2xl flex-col items-center overflow-hidden rounded-3xl
+           border border-line bg-surface px-6 py-16 text-center sm:py-24;
   }
   .hero-brand {
     @apply text-3xl font-semibold text-ink;
