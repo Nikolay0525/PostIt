@@ -22,8 +22,10 @@ PostIt is a web application where people share their ideas and problems and get 
 **Out of scope.** No paid content and no sponsorships, as other sites do — that goes too far.
 
 **Core principles** — not given up under any circumstances (the list may grow):
-- Exact upvote and downvote counts are hidden.
-- Rectangular visual style.
+- Anonymous social network to discuss
+- Transparent moderation process
+- Auto-selection of moderators
+- wide-range of possibilities of what you can discuss, platform itself has very little amount of rules 
 
 ## 2. Registration and Authentication
 
@@ -57,7 +59,7 @@ PostIt is a web application where people share their ideas and problems and get 
 
 **Sub-karma.** [Each group has its own sub-karma for each member; its purpose is to get the member into the group's moderator candidate pool (see Roles).] Whether it is visible to others is not decided yet. Even if it is, others *could* guess who the moderator is, but hardly *would*: the threshold may be low, and candidates may number in the hundreds or thousands.
 
-**Counters.** [Counters of the user's actions are collected], but stored only in the database — users never see them directly. They are the basis for achievements (see Gamification): e.g. "most active voter" for 1000 votes cast.
+**Counters.** [Counters of the user's actions are collected.] They work two ways: as statistics visible only to the user themselves, and as the basis for public achievements (see Gamification) — e.g. "most active voter" for 1000 votes cast. Some counters (e.g. reports sent) stay statistics only, with no achievement.
 
 **Following.** Following a user is purely tracking their activity — it is not friendship or anything like it. [A follower counter is planned; how exactly it works is not decided yet.]
 
@@ -149,6 +151,41 @@ The same rules apply to posts and comments.
 
 ## 8. Feed and Search
 
+**Recommended feed.** Made for finding something new: it shows posts from public groups the user is not subscribed to, uses filters and adapts to the user. It leans toward the new rather than the best: posts from the last 7 days come first, then those up to 30 days old, then older ones; within each of these, posts with a higher score come first. Posts in the user's languages come first, so the user sees everything available in them; once those run out, posts in other languages follow.
+
+**Following feed.** Posts from the groups the user is subscribed to, or from the people they follow. A guest is asked to log in.
+
+**Filters.** "Only new" (posts the user has not opened or voted on), "only my languages", and a period: week, month or all time.
+
+**Search.** A couple of words should be enough to find what you need. A group is found by typing its name in its own language; a post is found by words that may appear in its title or text. A person searches for their problem and finds a post about it. A private group is found like any other, but its posts are locked: the group is shown first, so the user can send a join request.
+
 ## 9. Site Administration
 
+**Who an administrator is.** Part of the development team — a vetted person, so there is no need to worry about how they do their job. Ordinary users cannot get this role: [it is granted through a database query]. There should always be more than one administrator.
+
+**Purpose.** The role exists purely to resolve cases with users, so an administrator has no reason to post or create groups. [An administrator is a regular user with an admin panel rather than a bare panel: they can act on reports, but also on their own initiative when they notice a violation while browsing the feed.]
+
+**Anonymity.** [An administrator can have an ordinary username, and nothing on their profile says they are an administrator.] An administrator does not see who is behind a moderator's mask, just as a moderator does not see the administrator's name. *Open question:* administrators are created by the developers, so they are close people or at least acquaintances of each other — anonymity between administrators may not hold; this needs more thought.
+
+**Boundaries.** An administrator acts only within platform rules. They cannot decide that someone deserves a ban for breaking a group's rules — that is for the group's moderators.
+
+**Reports.** [Reports made outside groups go to administrators. Moderators escalate to administrators reports that are critical: a violation of platform rules, or a user who is an active violator and deserves to be cut off from the platform.]
+
+**Sanctions.** [Both can be permanent or temporary; the term is decided by the administrator according to rules set by the site's management.]
+- [*Ban* — the user cannot log in to the site with their account.]
+- [*Mute* — the user cannot contribute anything: no posts, no comments, nothing — they can only view.]
+- [Rarely, deleting posts or comments for breaking platform rules.]
+
+**Appeals.** [A user can appeal an administrator's decision, so that another administrator reviews the case.]
+
+**Platform rules.** [Currently not shown anywhere. They can be shown after registration and then kept behind a button.]
+
 ## 10. Gamification
+
+**Achievements.** [An achievement is not necessarily "reach a certain amount of something": there are also one-off ones, such as "first post" or "a year on the platform".] [Counter-based achievements are built on the user's counters (see Guests and Users).]
+
+**Showcase.** [Nobody forces a user to put everything on display: the user chooses which achievements are shown on their profile showcase.]
+
+**Currency.** [Visual items are obtained for an on-site currency. One option is daily tasks that reward currency — e.g. make a post that collects a certain number of likes, views, etc.] The details are still to be thought through.
+
+**Shop of visual items.** [Many things can be bought: avatar frames, profile backgrounds, comment styling, custom emoji with game crossovers, and more.] Styling matters: a site that looks dull and uniform can turn into too serious social network — items add uniqueness.
