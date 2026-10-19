@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\CommentCreated;
 use App\Models\Comment;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -38,6 +39,10 @@ class CommentService
             }
         }
 
-        return $this->commentRepository->create($postId, $userId, $text, $parentId);
+        $comment = $this->commentRepository->create($postId, $userId, $text, $parentId);
+
+        CommentCreated::dispatch($comment);
+
+        return $comment;
     }
 }
