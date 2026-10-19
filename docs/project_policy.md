@@ -182,39 +182,59 @@ Application/[BoundedContext]/
 - **Життєвий цикл:** ентіті тригерить івент у внутрішню чергу → UseCase зберігає ентіті через репозиторій → Infrastructure після збереження робить `pullEvents()` і диспатчить кожен івент → лісенери приймають івенти та ініціюють відповідні команди вниз по вертикалі.
 - **Захист від рекурсивних ланцюгів** — відповідальність архітектурного дизайну, а не рантайм-механізмів; коректність перевіряється тестами.
 
-## Політика неймінгу
+## Naming Policy
 
-**Загальне:**
+Naming follows the standards built into PHP (PSR-1), Laravel and Vue. There are no custom conventions on top of them.
 
-- Класи, інтерфейси, абстракти, трейти, енуми — `PascalCase`.
-- Методи, змінні, параметри — `camelCase`; константи — `UPPER_SNAKE_CASE`.
-- Файл = ім'я класу; директорії — `PascalCase`.
+**Principle:** `snake_case` is for names that Laravel reads by name (database, routes, translations, request fields); `camelCase` is for names we give ourselves in PHP and JS.
 
-**Префікси / суфікси:**
+**Casing:**
 
-| Тип | Конвенція | Приклад |
+| What | Style | Example | Source |
+|---|---|---|---|
+| Classes, interfaces, traits, enums | `PascalCase` | `PostService`, `VoteParentType` | PSR-1 |
+| Enum cases | `PascalCase` | `JoinRequestStatus::Waiting` | Laravel |
+| Methods | `camelCase` | `castVote()` | PSR-1 |
+| Variables, parameters, properties | `camelCase` | `$viewerId` | Laravel |
+| Constants | `UPPER_SNAKE_CASE` | `SLUG_MAX_LENGTH` | PSR-1 |
+| Database tables | `snake_case`, plural | `posts`, `user_group_subscriptions` | Eloquent |
+| Database columns, model attributes | `snake_case` | `user_id`, `is_private` | Eloquent |
+| Request fields and JSON keys | `snake_case` | `date_of_birth`, `viewer_vote` | Laravel |
+| Route names | `snake_case`, dot-separated: `entity.action` | `posts.show`, `groups.random_post` | Laravel |
+| Translation and config keys | `snake_case`, dot-separated | `auth.login.forgot_password` | Laravel |
+| URLs | `kebab-case` | `/forgot-password` | web practice |
+| JS variables and functions | `camelCase` | `localUpvotes`, `isOwnContent` | JS |
+| Vue components and their files | `PascalCase` | `VoteButtons.vue` | Vue |
+| Vue props | `camelCase` in the declaration, `kebab-case` in templates | `targetType` / `target-type="post"` | Vue |
+
+**Suffixes and prefixes (PHP):**
+
+| Type | Convention | Example |
 |---|---|---|
-| Інтерфейс | префікс `I` | `IUserRepository` |
-| Абстрактний клас | префікс `A` | `AValueObject`, `AEntityId` |
-| Entity / Aggregate Root | без суфікса | `User` |
-| Value Object | суфікс `VO` | `EmailVO` |
-| Enum | без суфікса | `OrderStatus` |
-| Доменний сервіс | суфікс `Service` | `UserProvisioningService` |
-| Доменна політика | суфікс `DPolicy` | `BlockUserDPolicy` |
-| Domain Event | суфікс `DE` | `UserBlockedDE` |
-| Use Case | суфікс `UC` | `GetUserUC` |
-| Application Command | суфікс `AC` | `BlockUserAC` |
-| Application Query | суфікс `AQ` | `GetUserAQ` |
-| DTO | суфікс `DTO` | `UserDTO` |
-| Виняток | суфікс `Exception` | `UserNotFoundException` |
-| Реєстр винятків | суфікс `ExceptionRegistry` | `AccountExceptionRegistry`, `InfrastructureExceptionRegistry`, `CoreExceptionRegistry` |
-| База винятків | префікс `A` + суфікс `Exception` | `AAccountException`, `AInfrastructureException`, `ACoreException` |
-| Фасад БК | суфікс `Facade` | `AccountFacade` |
-| Service Provider фреймворку | суфікс `ServiceProvider` | `<ПроектХ>ServiceProvider` |
+| Model | singular, no suffix | `Post`, `GroupRuleVersion` |
+| Controller | `Controller` suffix | `PostController` |
+| Form Request | verb + entity + `Request` | `StorePostRequest`, `CastVoteRequest` |
+| API Resource | `Resource` suffix; `ListItemResource` for a list item | `PostResource`, `PostListItemResource` |
+| Service | `Service` suffix | `VoteService` |
+| Repository interface | `RepositoryInterface` suffix | `VoteRepositoryInterface` |
+| Repository implementation | technology prefix + `Repository` | `EloquentVoteRepository` |
+| Policy | model + `Policy` | `PostPolicy` |
+| Observer | model + `Observer` | `UserObserver` |
+| Middleware | an action, as a verb phrase | `SetLocale`, `HandleInertiaRequests` |
+| Trait | third-person verb (`Checks…`, `Computes…`) or `Has…`; lives in `Concerns/` next to its users | `ComputesControversy`, `HasEntityAttributes` |
+| Enum | no suffix | `PostSort` |
+| Factory / Seeder | model + `Factory` / `Seeder` | `PostFactory`, `PostSeeder` |
+| Test | class: `Test` suffix; method: `test` + description in `camelCase` | `PrivateGroupAccessTest::testRandomPostIs404ForGuestsAndOutsiders` |
+| Exception | `Exception` suffix | `InvalidArgumentException` |
 
-**Імпорти:** зовнішні класи/інтерфейси/трейти/енуми — через `use` вгорі файлу (FQCN у коді небажаний); у PHPDoc — ті самі короткі `use`-імпортовані імена, що й у коді; FQCN із провідним `\` — лише для неімпортованих типів; колізії імен — аліаси через `as`, логічні та лаконічні.
+> Existing test methods named `test_` + `snake_case` are not renamed; every new test method uses `camelCase`.
 
-**Директорії:** `PascalCase`, назва відповідає типу елемента; `OutsourceContract/` — фіксована назва.
+**Imports:** external classes/interfaces/traits/enums are imported with `use` at the top of the file (FQCNs in code are discouraged); PHPDoc uses the same short `use`-imported names as the code; an FQCN with a leading `\` only for types that are not imported; name collisions are resolved with `as` aliases that are logical and concise.
+
+**Directories and files:**
+- PHP: `PascalCase` directories following the namespace (PSR-4); file name = class name.
+- Vue pages: `Pages/<Entity>/<Action>.vue` (`Posts/Show.vue`); reusable components in `Pages/Components/`; layouts in `Layouts/`.
+- Helper JS modules (not components): lowercase directory and file names (`utils/format.js`).
 
 ## Політика анотацій (PHPDoc)
 
