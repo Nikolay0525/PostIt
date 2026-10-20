@@ -70,13 +70,17 @@ PostIt is a web application where people share their ideas and problems and get 
 - *Direct messages.* The user either allows or forbids [direct messages] from all users.
 
 **Notifications.**
-- [A notification always arrives and is kept. Muting does not stop it, it only stops it from being intrusive: no sound or pop-up.] [Each kind can be muted separately.] [All notifications can also be muted at once — until a chosen time, or until the user turns it back on.]
 - [There are two categories: *Default* and *Important*. Important notifications appear differently, so they stand out among the rest.]
+- [Whether a notification makes a sound is decided by the server at the moment it is created. A notification that came in silently stays silent; un-muting affects only the ones that come after.]
+- [Notification settings take two pages:]
+  - [*Kinds.* Each kind of notification has one of three states: with sound, silent, or off. An off notification is not kept or sent at all. Important kinds cannot be turned off, only silenced — a warning or a ban always arrives.]
+  - [*Groups.* The groups and posts the user has silenced. It works as a hierarchy: everything that comes from a silenced group is silent, and a post inside it cannot be left with sound.]
+- [All notifications can also be silenced at once — until a chosen time, or until the user turns it back on.]
 - [If a post or comment a notification points to is deleted, the notification stays and shows it as deleted, the same as everywhere else.]
 - [Direct messages are not notifications — they have their own tab.]
 
 Kinds of notifications, by role:
-- *Every user.* [A followed user changed their username — showing who changed it and to what.] [A new follower.] [A new post by a followed user; a new post in a followed group.] [A join request to a private group was accepted or declined — when joining by link is not allowed.] [Votes on your post or comment, at milestone counts like 100 or 1000 rather than for every vote.] [A new comment under your post.] [Feedback on a report you sent: the result, e.g. the offender was punished or found not guilty. The reported user is not told about the report.]
+- *Every user.* [A followed user changed their username — showing who changed it and to what.] [A new follower.] [A new post by a followed user; a new post in a followed group.] [A join request to a private group was accepted or declined — when joining by link is not allowed.] [Votes on your post or comment, at milestone counts like 100 or 1000 rather than for every vote.] [A new comment or reply under your post.] [A reply to your comment — a separate kind, so the post author whose comment was answered gets both.] [Feedback on a report you sent: the result, e.g. the offender was punished or found not guilty. The reported user is not told about the report.]
 - *Every user, Important.* [A warning, and its removal; administrators give owners a warning first. Whether moderators will also give warnings within a group is not decided yet.] [A ban and an unban, in a group or on the whole platform — an unban is an important event too.]
 - *Moderator.* [An invitation to the role, when the user is picked among the many who crossed the threshold (Important).] [A welcome on first taking the role after accepting.] [New moderation cases, such as reports sent by users, and closed cases.]
 - *Administrator.* [A welcome on taking the role.] [New cases and closed cases, the same as for moderators but on the administrator's level.]
