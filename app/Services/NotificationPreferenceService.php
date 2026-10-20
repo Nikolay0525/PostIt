@@ -19,10 +19,15 @@ class NotificationPreferenceService
     ) {}
 
     /**
-     * $groupId and $postId are where the notification comes from; null when it has no such source.
+     * $groupId, $postId and $commentId are where the notification comes from; null when it has no such source.
      */
-    public function statusFor(User $user, NotificationType $type, ?string $groupId = null, ?string $postId = null): NotificationStatus
-    {
+    public function statusFor(
+        User $user,
+        NotificationType $type,
+        ?string $groupId = null,
+        ?string $postId = null,
+        ?string $commentId = null,
+    ): NotificationStatus {
         $settings = $user->settings;
 
         $status = NotificationStatus::tryFrom($settings->notification_preferences[$type->value] ?? '')
@@ -36,7 +41,7 @@ class NotificationPreferenceService
         // Every mute below only silences: a kind the user turned off stays off.
         if ($status === NotificationStatus::Enabled
             && ($this->isEverythingMuted($user)
-                || $this->userRepository->isNotificationSourceMuted($user->id, $groupId, $postId))) {
+                || $this->userRepository->isNotificationSourceMuted($user->id, $groupId, $postId, $commentId))) {
             $status = NotificationStatus::Muted;
         }
 
@@ -61,6 +66,16 @@ class NotificationPreferenceService
     public function unmutePost(string $userId, string $postId): void
     {
         $this->userRepository->unmutePostNotifications($userId, $postId);
+    }
+
+    public function muteComment(string $userId, string $commentId): void
+    {
+        $this->userRepository->muteCommentNotifications($userId, $commentId);
+    }
+
+    public function unmuteComment(string $userId, string $commentId): void
+    {
+        $this->userRepository->unmuteCommentNotifications($userId, $commentId);
     }
 
     private function isEverythingMuted(User $user): bool

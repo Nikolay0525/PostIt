@@ -45,4 +45,22 @@ class CommentService
 
         return $comment;
     }
+
+    /**
+     * Following a comment brings a notification for each reply to it.
+     */
+    public function follow(string $commentId, string $userId): void
+    {
+        $this->commentRepository->follow($commentId, $userId);
+    }
+
+    public function unfollow(string $commentId, string $userId): void
+    {
+        $this->commentRepository->unfollow($commentId, $userId);
+    }
+
+    public function isFollowing(string $commentId, string $userId): bool
+    {
+        return $this->commentRepository->isFollowing($commentId, $userId);
+    }
 }

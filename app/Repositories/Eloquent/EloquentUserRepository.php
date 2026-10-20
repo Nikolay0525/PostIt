@@ -132,13 +132,32 @@ class EloquentUserRepository implements UserRepositoryInterface
         DB::table('notification_post_mutes')->where('user_id', $userId)->where('post_id', $postId)->delete();
     }
 
-    public function isNotificationSourceMuted(string $userId, ?string $groupId, ?string $postId): bool
+    public function muteCommentNotifications(string $userId, string $commentId): void
     {
-        $groupMuted = $groupId !== null && DB::table('notification_group_mutes')
-            ->where('user_id', $userId)->where('group_id', $groupId)->exists();
+        DB::table('notification_comment_mutes')->insertOrIgnore(['user_id' => $userId, 'comment_id' => $commentId]);
+    }
 
-        return $groupMuted || ($postId !== null && DB::table('notification_post_mutes')
-            ->where('user_id', $userId)->where('post_id', $postId)->exists());
+    public function unmuteCommentNotifications(string $userId, string $commentId): void
+    {
+        DB::table('notification_comment_mutes')->where('user_id', $userId)->where('comment_id', $commentId)->delete();
+    }
+
+    // Group → post → comment: a mute on any level of the source silences it.
+    public function isNotificationSourceMuted(string $userId, ?string $groupId, ?string $postId, ?string $commentId = null): bool
+    {
+        $levels = [
+            'notification_group_mutes' => ['group_id', $groupId],
+            'notification_post_mutes' => ['post_id', $postId],
+            'notification_comment_mutes' => ['comment_id', $commentId],
+        ];
+
+        foreach ($levels as $table => [$column, $id]) {
+            if ($id !== null && DB::table($table)->where('user_id', $userId)->where($column, $id)->exists()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function followQuery(string $followerId, string $authorId): Builder

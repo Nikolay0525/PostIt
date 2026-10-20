@@ -71,7 +71,14 @@ interface UserRepositoryInterface
     public function unmutePostNotifications(string $userId, string $postId): void;
 
     /**
-     * True when the user muted the group or the post a notification comes from.
+     * Idempotent: muting a comment already muted changes nothing.
      */
-    public function isNotificationSourceMuted(string $userId, ?string $groupId, ?string $postId): bool;
+    public function muteCommentNotifications(string $userId, string $commentId): void;
+
+    public function unmuteCommentNotifications(string $userId, string $commentId): void;
+
+    /**
+     * True when the user muted the group, the post or the comment a notification comes from.
+     */
+    public function isNotificationSourceMuted(string $userId, ?string $groupId, ?string $postId, ?string $commentId = null): bool;
 }

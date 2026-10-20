@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\User;
 use App\Services\CommentService;
 use App\Services\NotificationPreferenceService;
+use App\Services\PostService;
 use Database\Seeders\LanguageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -88,7 +89,7 @@ class NotificationPreferenceServiceTest extends TestCase
 
     public function test_a_disabled_kind_is_not_stored_and_a_muted_one_is_stored_silent(): void
     {
-        $post = Post::factory()->create();
+        $post = $this->followedPost();
         $post->author->settings->update(['notification_preferences' => [
             NotificationType::NewCommentUnderPost->value => NotificationStatus::Disabled->value,
         ]]);
@@ -176,13 +177,22 @@ class NotificationPreferenceServiceTest extends TestCase
 
     public function test_a_comment_in_a_muted_group_arrives_silent(): void
     {
-        $post = Post::factory()->create();
+        $post = $this->followedPost();
         $commenter = User::factory()->create();
         $this->preferences->muteGroup($post->user_id, $post->group_id);
 
         $this->app->make(CommentService::class)->createComment($post->id, $commenter->id, 'Shh');
 
         $this->assertTrue($post->author->notifications[0]->data['silent']);
+    }
+
+    // A factory post skips PostService, so its author follows it here, as they would in the app.
+    private function followedPost(): Post
+    {
+        $post = Post::factory()->create();
+        $this->app->make(PostService::class)->follow($post->id, $post->user_id);
+
+        return $post;
     }
 
     private function userWith(array $settings): User

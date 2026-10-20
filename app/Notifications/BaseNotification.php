@@ -50,9 +50,25 @@ abstract class BaseNotification extends Notification
         return null;
     }
 
+    protected function sourceCommentId(): ?string
+    {
+        return null;
+    }
+
+    // For a sender choosing between kinds: a turned-off kind lets a fallback kind go instead.
+    public function isDisabledFor(object $notifiable): bool
+    {
+        return $this->status($notifiable) === NotificationStatus::Disabled;
+    }
+
     private function status(object $notifiable): NotificationStatus
     {
-        return app(NotificationPreferenceService::class)
-            ->statusFor($notifiable, $this->type(), $this->sourceGroupId(), $this->sourcePostId());
+        return app(NotificationPreferenceService::class)->statusFor(
+            $notifiable,
+            $this->type(),
+            $this->sourceGroupId(),
+            $this->sourcePostId(),
+            $this->sourceCommentId(),
+        );
     }
 }

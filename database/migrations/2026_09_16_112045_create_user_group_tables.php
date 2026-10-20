@@ -291,6 +291,33 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Following decides whether notifications come at all; a mute only makes them silent.
+        // A post's author follows it from the start, anyone else by pressing "interested".
+        Schema::create('user_post_subscriptions', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('post_id')->constrained('posts')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'post_id']);
+        });
+
+        // Only a comment's author follows it (for replies), from the start, and can stop.
+        Schema::create('user_comment_subscriptions', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('comment_id')->constrained('comments')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'comment_id']);
+        });
+
+        Schema::create('notification_comment_mutes', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('comment_id')->constrained('comments')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'comment_id']);
+        });
+
         Schema::create('votes', function (Blueprint $table) {
             $table->uuid('parent_id');
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
@@ -329,6 +356,9 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::dropIfExists('notification_comment_mutes');
+        Schema::dropIfExists('user_comment_subscriptions');
+        Schema::dropIfExists('user_post_subscriptions');
         Schema::dropIfExists('notification_post_mutes');
         Schema::dropIfExists('notification_group_mutes');
         Schema::dropIfExists('users');

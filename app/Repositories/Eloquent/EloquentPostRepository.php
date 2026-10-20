@@ -5,12 +5,14 @@ namespace App\Repositories\Eloquent;
 use App\Enums\PostSort;
 use App\Enums\VoteParentType;
 use App\Models\Post;
+use App\Models\User;
 use App\Models\Vote;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class EloquentPostRepository implements PostRepositoryInterface
@@ -76,6 +78,30 @@ class EloquentPostRepository implements PostRepositoryInterface
     public function sharesCount(string $postId): int
     {
         return DB::table('post_shares')->where('post_id', $postId)->count();
+    }
+
+    public function follow(string $postId, string $userId): void
+    {
+        DB::table('user_post_subscriptions')->insertOrIgnore(['post_id' => $postId, 'user_id' => $userId]);
+    }
+
+    public function unfollow(string $postId, string $userId): void
+    {
+        DB::table('user_post_subscriptions')->where('post_id', $postId)->where('user_id', $userId)->delete();
+    }
+
+    public function isFollowing(string $postId, string $userId): bool
+    {
+        return DB::table('user_post_subscriptions')->where('post_id', $postId)->where('user_id', $userId)->exists();
+    }
+
+    public function followers(string $postId, array $exceptUserIds = []): Collection
+    {
+        return User::query()
+            ->with('settings')
+            ->whereIn('id', DB::table('user_post_subscriptions')->where('post_id', $postId)->select('user_id'))
+            ->whereNotIn('id', $exceptUserIds)
+            ->get();
     }
 
     // True when the post's group is in a language the user speaks. A plain EXISTS reads the same

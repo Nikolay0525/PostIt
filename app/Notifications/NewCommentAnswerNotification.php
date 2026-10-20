@@ -6,8 +6,8 @@ use App\Enums\NotificationType;
 use App\Models\Comment;
 
 /**
- * Someone replied to the recipient's comment. The post author may also get
- * NewCommentNotification for the same reply: these are different kinds, muted separately.
+ * Someone replied to the recipient's comment. Preferred over NewCommentUnderPostNotification
+ * for the same reply (see SendCommentNotifications).
  */
 class NewCommentAnswerNotification extends BaseNotification
 {
@@ -26,6 +26,12 @@ class NewCommentAnswerNotification extends BaseNotification
     protected function sourcePostId(): ?string
     {
         return $this->reply->post_id;
+    }
+
+    // The comment that was answered: muting it silences its replies.
+    protected function sourceCommentId(): ?string
+    {
+        return $this->reply->parent_id;
     }
 
     protected function payload(): array
