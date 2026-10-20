@@ -4,27 +4,21 @@ namespace App\Notifications;
 
 use App\Enums\NotificationType;
 use App\Models\Comment;
-use Illuminate\Notifications\Notification;
 
 /**
  * Someone replied to the recipient's comment. The post author may also get
  * NewCommentNotification for the same reply: these are different kinds, muted separately.
  */
-class NewCommentAnswerNotification extends Notification
+class NewCommentAnswerNotification extends BaseNotification
 {
     public function __construct(private Comment $reply) {}
 
-    public function via(object $notifiable): array
+    public function type(): NotificationType
     {
-        return ['database'];
+        return NotificationType::NewCommentAnswer;
     }
 
-    public function databaseType(object $notifiable): string
-    {
-        return NotificationType::NewCommentAnswer->value;
-    }
-
-    public function toArray(object $notifiable): array
+    protected function payload(): array
     {
         return [
             'post_id' => $this->reply->post_id,

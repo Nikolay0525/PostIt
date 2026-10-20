@@ -38,6 +38,7 @@ class NewCommentUnderPostNotificationTest extends TestCase
             'post_id' => $post->id,
             'comment_id' => $comment->id,
             'author_id' => $commenter->id,
+            'silent' => false,
         ], $notifications[0]->data);
         $this->assertNull($notifications[0]->read_at);
     }

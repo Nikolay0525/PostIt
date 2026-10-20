@@ -84,6 +84,11 @@ return new class extends Migration
             $table->boolean('enable_cookies')->default(false);
             $table->boolean('allow_messages')->default(true);
 
+            // Kind => NotificationStatus value; a kind missing from it is enabled.
+            $table->json('notification_preferences')->nullable();
+            $table->timestamp('muted_until')->nullable();
+            $table->boolean('muted_forever')->default(false);
+
             $table->timestamps();
         });
 

@@ -39,6 +39,7 @@ class NewCommentAnswerNotificationTest extends TestCase
             'post_id' => $post->id,
             'comment_id' => $reply->id,
             'author_id' => $replier->id,
+            'silent' => false,
         ], $notifications[0]->data);
     }
 

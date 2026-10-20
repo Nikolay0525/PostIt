@@ -28,6 +28,7 @@ class UserSettings extends Model
     protected $fillable = [
         'user_id', 'ui_language_code', 'dark_theme', 'theme_mode',
         'show_swear_words', 'show_adult_content', 'enable_cookies', 'allow_messages',
+        'notification_preferences', 'muted_until', 'muted_forever',
     ];
 
     protected function casts(): array
@@ -39,6 +40,9 @@ class UserSettings extends Model
             'show_adult_content' => 'boolean',
             'enable_cookies' => 'boolean',
             'allow_messages' => 'boolean',
+            'notification_preferences' => 'array',
+            'muted_until' => 'datetime',
+            'muted_forever' => 'boolean',
         ];
     }
 
