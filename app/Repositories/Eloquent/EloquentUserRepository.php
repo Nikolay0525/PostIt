@@ -111,6 +111,36 @@ class EloquentUserRepository implements UserRepositoryInterface
         return UserUserSubscription::query()->where('user_author_id', $authorId)->count();
     }
 
+    // Mute tables have composite primary keys and no models, like `user_speaking_languages`.
+    public function muteGroupNotifications(string $userId, string $groupId): void
+    {
+        DB::table('notification_group_mutes')->insertOrIgnore(['user_id' => $userId, 'group_id' => $groupId]);
+    }
+
+    public function unmuteGroupNotifications(string $userId, string $groupId): void
+    {
+        DB::table('notification_group_mutes')->where('user_id', $userId)->where('group_id', $groupId)->delete();
+    }
+
+    public function mutePostNotifications(string $userId, string $postId): void
+    {
+        DB::table('notification_post_mutes')->insertOrIgnore(['user_id' => $userId, 'post_id' => $postId]);
+    }
+
+    public function unmutePostNotifications(string $userId, string $postId): void
+    {
+        DB::table('notification_post_mutes')->where('user_id', $userId)->where('post_id', $postId)->delete();
+    }
+
+    public function isNotificationSourceMuted(string $userId, ?string $groupId, ?string $postId): bool
+    {
+        $groupMuted = $groupId !== null && DB::table('notification_group_mutes')
+            ->where('user_id', $userId)->where('group_id', $groupId)->exists();
+
+        return $groupMuted || ($postId !== null && DB::table('notification_post_mutes')
+            ->where('user_id', $userId)->where('post_id', $postId)->exists());
+    }
+
     private function followQuery(string $followerId, string $authorId): Builder
     {
         return UserUserSubscription::query()

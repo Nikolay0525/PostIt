@@ -108,6 +108,83 @@ class NotificationPreferenceServiceTest extends TestCase
         $this->assertTrue($notifications[0]->data['silent']);
     }
 
+    public function test_a_muted_group_silences_its_posts(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->create();
+        $other = Post::factory()->create();
+
+        $this->preferences->muteGroup($user->id, $post->group_id);
+
+        $this->assertSame(
+            NotificationStatus::Muted,
+            $this->preferences->statusFor($user, NotificationType::NewCommentUnderPost, $post->group_id, $post->id),
+        );
+        $this->assertSame(
+            NotificationStatus::Enabled,
+            $this->preferences->statusFor($user, NotificationType::NewCommentUnderPost, $other->group_id, $other->id),
+        );
+    }
+
+    public function test_a_muted_post_silences_only_itself(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->create();
+        $sibling = Post::factory()->create(['group_id' => $post->group_id]);
+
+        $this->preferences->mutePost($user->id, $post->id);
+
+        $this->assertSame(
+            NotificationStatus::Muted,
+            $this->preferences->statusFor($user, NotificationType::NewCommentUnderPost, $post->group_id, $post->id),
+        );
+        $this->assertSame(
+            NotificationStatus::Enabled,
+            $this->preferences->statusFor($user, NotificationType::NewCommentUnderPost, $sibling->group_id, $sibling->id),
+        );
+    }
+
+    public function test_muting_twice_and_unmuting(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::factory()->create();
+
+        $this->preferences->muteGroup($user->id, $post->group_id);
+        $this->preferences->muteGroup($user->id, $post->group_id);
+        $this->preferences->unmuteGroup($user->id, $post->group_id);
+
+        $this->assertSame(
+            NotificationStatus::Enabled,
+            $this->preferences->statusFor($user, NotificationType::NewCommentUnderPost, $post->group_id, $post->id),
+        );
+    }
+
+    public function test_a_muted_source_does_not_turn_a_disabled_kind_back_on(): void
+    {
+        $user = $this->userWith(['notification_preferences' => [
+            NotificationType::NewCommentUnderPost->value => NotificationStatus::Disabled->value,
+        ]]);
+        $post = Post::factory()->create();
+
+        $this->preferences->mutePost($user->id, $post->id);
+
+        $this->assertSame(
+            NotificationStatus::Disabled,
+            $this->preferences->statusFor($user, NotificationType::NewCommentUnderPost, $post->group_id, $post->id),
+        );
+    }
+
+    public function test_a_comment_in_a_muted_group_arrives_silent(): void
+    {
+        $post = Post::factory()->create();
+        $commenter = User::factory()->create();
+        $this->preferences->muteGroup($post->user_id, $post->group_id);
+
+        $this->app->make(CommentService::class)->createComment($post->id, $commenter->id, 'Shh');
+
+        $this->assertTrue($post->author->notifications[0]->data['silent']);
+    }
+
     private function userWith(array $settings): User
     {
         $user = User::factory()->create();

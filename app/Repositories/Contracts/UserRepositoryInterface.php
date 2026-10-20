@@ -55,4 +55,23 @@ interface UserRepositoryInterface
     public function isFollowing(string $followerId, string $authorId): bool;
 
     public function followersCount(string $authorId): int;
+
+    /**
+     * Idempotent: muting a group already muted changes nothing.
+     */
+    public function muteGroupNotifications(string $userId, string $groupId): void;
+
+    public function unmuteGroupNotifications(string $userId, string $groupId): void;
+
+    /**
+     * Idempotent: muting a post already muted changes nothing.
+     */
+    public function mutePostNotifications(string $userId, string $postId): void;
+
+    public function unmutePostNotifications(string $userId, string $postId): void;
+
+    /**
+     * True when the user muted the group or the post a notification comes from.
+     */
+    public function isNotificationSourceMuted(string $userId, ?string $groupId, ?string $postId): bool;
 }

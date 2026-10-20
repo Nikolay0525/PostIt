@@ -39,8 +39,20 @@ abstract class BaseNotification extends Notification
         ];
     }
 
+    // Where the notification comes from, for group and post mutes. A kind with a source overrides these.
+    protected function sourceGroupId(): ?string
+    {
+        return null;
+    }
+
+    protected function sourcePostId(): ?string
+    {
+        return null;
+    }
+
     private function status(object $notifiable): NotificationStatus
     {
-        return app(NotificationPreferenceService::class)->statusFor($notifiable, $this->type());
+        return app(NotificationPreferenceService::class)
+            ->statusFor($notifiable, $this->type(), $this->sourceGroupId(), $this->sourcePostId());
     }
 }

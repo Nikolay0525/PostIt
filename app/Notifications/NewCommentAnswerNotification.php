@@ -18,6 +18,16 @@ class NewCommentAnswerNotification extends BaseNotification
         return NotificationType::NewCommentAnswer;
     }
 
+    protected function sourceGroupId(): ?string
+    {
+        return $this->reply->post->group_id;
+    }
+
+    protected function sourcePostId(): ?string
+    {
+        return $this->reply->post_id;
+    }
+
     protected function payload(): array
     {
         return [

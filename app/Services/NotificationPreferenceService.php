@@ -6,14 +6,22 @@ use App\Enums\NotificationCategory;
 use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
 use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
 
 /**
- * Decides, for one recipient and one kind, whether a notification is sent and whether it is silent.
- * Group and post mutes will be added here, so notification classes never need to change.
+ * Decides, for one recipient and one kind, whether a notification is sent and whether it is silent,
+ * and keeps the groups and posts the user muted.
  */
 class NotificationPreferenceService
 {
-    public function statusFor(User $user, NotificationType $type): NotificationStatus
+    public function __construct(
+        protected UserRepositoryInterface $userRepository
+    ) {}
+
+    /**
+     * $groupId and $postId are where the notification comes from; null when it has no such source.
+     */
+    public function statusFor(User $user, NotificationType $type, ?string $groupId = null, ?string $postId = null): NotificationStatus
     {
         $settings = $user->settings;
 
@@ -25,12 +33,34 @@ class NotificationPreferenceService
             $status = NotificationStatus::Muted;
         }
 
-        // Muting everything only silences: a kind the user turned off stays off.
-        if ($status === NotificationStatus::Enabled && $this->isEverythingMuted($user)) {
+        // Every mute below only silences: a kind the user turned off stays off.
+        if ($status === NotificationStatus::Enabled
+            && ($this->isEverythingMuted($user)
+                || $this->userRepository->isNotificationSourceMuted($user->id, $groupId, $postId))) {
             $status = NotificationStatus::Muted;
         }
 
         return $status;
+    }
+
+    public function muteGroup(string $userId, string $groupId): void
+    {
+        $this->userRepository->muteGroupNotifications($userId, $groupId);
+    }
+
+    public function unmuteGroup(string $userId, string $groupId): void
+    {
+        $this->userRepository->unmuteGroupNotifications($userId, $groupId);
+    }
+
+    public function mutePost(string $userId, string $postId): void
+    {
+        $this->userRepository->mutePostNotifications($userId, $postId);
+    }
+
+    public function unmutePost(string $userId, string $postId): void
+    {
+        $this->userRepository->unmutePostNotifications($userId, $postId);
     }
 
     private function isEverythingMuted(User $user): bool

@@ -229,6 +229,16 @@ return new class extends Migration
             $table->primary(['user_id', 'group_id']);
         });
 
+        // Groups and posts whose notifications reach the user silently. A muted group silences
+        // everything from it, so a post inside it cannot be left loud.
+        Schema::create('notification_group_mutes', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('group_id')->constrained('groups')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'group_id']);
+        });
+
         Schema::create('group_moderators', function (Blueprint $table) {
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignUuid('group_id')->constrained('groups')->cascadeOnDelete();
@@ -260,6 +270,14 @@ return new class extends Migration
 
             // The post's URL is /groups/{group slug}/posts/{post slug}.
             $table->unique(['group_id', 'slug']);
+        });
+
+        Schema::create('notification_post_mutes', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('post_id')->constrained('posts')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'post_id']);
         });
 
         Schema::create('comments', function (Blueprint $table) {
@@ -311,6 +329,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::dropIfExists('notification_post_mutes');
+        Schema::dropIfExists('notification_group_mutes');
         Schema::dropIfExists('users');
         Schema::dropIfExists('group_rule_versions');
         Schema::dropIfExists('groups');

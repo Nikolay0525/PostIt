@@ -19,6 +19,16 @@ class NewCommentUnderPostNotification extends BaseNotification
         return NotificationType::NewCommentUnderPost;
     }
 
+    protected function sourceGroupId(): ?string
+    {
+        return $this->comment->post->group_id;
+    }
+
+    protected function sourcePostId(): ?string
+    {
+        return $this->comment->post_id;
+    }
+
     protected function payload(): array
     {
         return [
