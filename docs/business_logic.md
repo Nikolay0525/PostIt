@@ -86,6 +86,20 @@ Kinds of notifications, by role:
 - *Moderator.* [An invitation to the role, when the user is picked among the many who crossed the threshold (Important).] [A welcome on first taking the role after accepting.] [New moderation cases, such as reports sent by users, and closed cases.]
 - *Administrator.* [A welcome on taking the role.] [New cases and closed cases, the same as for moderators but on the administrator's level.]
 
+**Interface tours.** The audience is everyone, older people and adults above all, so the interface explains itself. Hover hints do not work on phones, and a forced walkthrough is unpleasant, so instead:
+- [The first time a user opens a page that has a tour, they are asked whether they want a short tour of it. The answers are "Yes", "No" (never ask again) and "Later" (ask on the next visit).]
+- [A tour shows its steps one by one, each with a short explanation and a "Continue" button; it can be skipped at any step. It works the same on every platform.]
+- [Each tour is answered separately: finishing one does not count for another. A tour can be started again from the account menu.]
+- [Guests never see tours: a guest is often someone who came from Google to read one thing, and nothing should get in their way.]
+- [The tours, each explaining what is on its page:]
+  - [*Navigation* — offered on whichever page the user lands first, since the navbar is on every page: the home button and the account menu; search; messages and notifications.]
+  - [*Feed* — the Following and Recommended tabs and their filters; the post card: what the title, the author and the group lead to; the counters.]
+  - [*Group* — joining, and what is different in a private group; the rules, which differ from group to group and must be followed; creating a post.]
+  - [*Post* — the text; voting; commenting and replying.]
+  - [*Own profile* — the status and the biography; editing the fields and the avatar; achievements.]
+  - [*Someone else's profile* — who the person is (status, biography); following them; achievements.]
+- [The post card and the counters are explained only in the Feed tour, so the other tours do not repeat them.]
+
 ## 4. Groups
 
 **Creation.** Any verified user can create a group and becomes its owner. There is no limit on the number of groups — only a throttle, so that group creation cannot be used for spam.
