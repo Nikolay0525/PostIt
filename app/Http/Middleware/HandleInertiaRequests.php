@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\ImageService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -45,6 +46,10 @@ class HandleInertiaRequests extends Middleware
                     'avatar_url' => ImageService::url($request->user()->avatar_url),
                 ]
                 : null,
+            // For the bell's badge on every page; the list itself loads when the dropdown opens.
+            'unread_notifications' => fn () => $request->user()
+                ? app(NotificationService::class)->unreadCount($request->user()->id)
+                : 0,
             'status' => fn () => $request->session()->get('status'),
             // Read by app.js so a saved theme mode applies without a reload; guests get null
             // (the 'browser' mode). The first paint uses the same values from <html> attributes.

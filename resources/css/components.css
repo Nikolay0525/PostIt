@@ -150,10 +150,29 @@
   .menu-item {
     @apply block w-full px-4 py-2.5 text-start text-sm text-ink transition hover:bg-canvas;
   }
+  .menu-heading-row {
+    @apply flex items-center justify-between gap-3;
+  }
+  .menu-heading-action {
+    @apply text-xs font-medium text-brand-600 transition hover:text-brand-700;
+  }
+  .menu-note {
+    @apply px-4 py-6 text-center text-sm text-muted;
+  }
+  /* A notification row is a button: opening it marks it read and leads to its post. */
+  .notification-row {
+    @apply flex w-full items-center gap-3 px-4 py-3 text-start transition hover:bg-canvas;
+  }
+  .notification-row-important {
+    @apply border-s-2 border-warning bg-warning-soft;
+  }
+  .notification-important-label {
+    @apply mb-0.5 block text-xs font-medium text-warning;
+  }
 
   /* Feed */
   .feed {
-    @apply mx-auto flex max-w-2xl flex-col gap-4;
+    @apply mx-auto flex max-w-3xl flex-col gap-4;
   }
   .feed-title {
     @apply text-xl font-semibold text-ink;

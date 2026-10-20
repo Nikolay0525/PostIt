@@ -24,6 +24,11 @@ class EloquentPostRepository implements PostRepositoryInterface
         return Post::find($id);
     }
 
+    public function findManyWithGroup(array $ids): Collection
+    {
+        return Post::query()->with('group')->whereIn('id', $ids)->get();
+    }
+
     public function create(string $groupId, string $userId, ?string $title, string $article, string $slug): Post
     {
         return Post::create([

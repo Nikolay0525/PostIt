@@ -4,10 +4,18 @@ namespace App\Repositories\Contracts;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Notifications\DatabaseNotification;
 
 interface UserRepositoryInterface
 {
     public function find(string $id): ?User;
+
+    /**
+     * @param  list<string>  $ids
+     * @return Collection<int, User>
+     */
+    public function findMany(array $ids): Collection;
 
     public function findWithSettingsAndCounters(string $id): ?User;
 
@@ -81,4 +89,19 @@ interface UserRepositoryInterface
      * True when the user muted the group, the post or the comment a notification comes from.
      */
     public function isNotificationSourceMuted(string $userId, ?string $groupId, ?string $postId, ?string $commentId = null): bool;
+
+    /**
+     * The user's newest notifications, read and unread.
+     *
+     * @return Collection<int, DatabaseNotification>
+     */
+    public function latestNotifications(string $userId, int $limit): Collection;
+
+    public function unreadNotificationsCount(string $userId): int;
+
+    public function findNotification(string $userId, string $notificationId): ?DatabaseNotification;
+
+    public function markNotificationRead(DatabaseNotification $notification): void;
+
+    public function markAllNotificationsRead(string $userId): void;
 }

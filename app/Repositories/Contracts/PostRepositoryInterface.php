@@ -25,6 +25,15 @@ interface PostRepositoryInterface
     public function find(string $id): ?Post;
 
     /**
+     * Unlike the other reads, deleted posts are included, so the caller can show them as deleted.
+     * Each carries its group.
+     *
+     * @param  list<string>  $ids
+     * @return Collection<int, Post>
+     */
+    public function findManyWithGroup(array $ids): Collection;
+
+    /**
      * By the post's slug, which is unique within its group (used in page URLs).
      */
     public function findWithStatsBySlug(string $groupId, string $slug, ?string $viewerId = null): ?Post;

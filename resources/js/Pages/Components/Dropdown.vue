@@ -6,10 +6,17 @@ defineProps({
     triggerClass: { type: String, default: 'icon-btn' },
 });
 
+// `open` lets a menu load its content only when it is actually opened.
+const emit = defineEmits(['open']);
+
 const open = ref(false);
 const root = ref(null);
 
 const close = () => (open.value = false);
+const toggle = () => {
+    open.value = !open.value;
+    if (open.value) emit('open');
+};
 
 // Clicking anywhere outside closes the menu, which also means opening
 // another dropdown closes this one.
@@ -38,7 +45,7 @@ onBeforeUnmount(() => {
             :aria-label="label"
             aria-haspopup="true"
             :aria-expanded="open"
-            @click="open = !open"
+            @click="toggle"
         >
             <slot name="trigger" />
         </button>

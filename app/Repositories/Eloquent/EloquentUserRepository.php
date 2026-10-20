@@ -9,6 +9,8 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -19,6 +21,11 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function find(string $id): ?User
     {
         return User::find($id);
+    }
+
+    public function findMany(array $ids): Collection
+    {
+        return User::query()->whereIn('id', $ids)->get();
     }
 
     public function findWithSettingsAndCounters(string $id): ?User
@@ -158,6 +165,39 @@ class EloquentUserRepository implements UserRepositoryInterface
         }
 
         return false;
+    }
+
+    public function latestNotifications(string $userId, int $limit): Collection
+    {
+        return $this->notificationsQuery($userId)->latest()->limit($limit)->get();
+    }
+
+    public function unreadNotificationsCount(string $userId): int
+    {
+        return $this->notificationsQuery($userId)->whereNull('read_at')->count();
+    }
+
+    public function findNotification(string $userId, string $notificationId): ?DatabaseNotification
+    {
+        return $this->notificationsQuery($userId)->find($notificationId);
+    }
+
+    public function markNotificationRead(DatabaseNotification $notification): void
+    {
+        $notification->markAsRead();
+    }
+
+    public function markAllNotificationsRead(string $userId): void
+    {
+        $this->notificationsQuery($userId)->whereNull('read_at')->update(['read_at' => now()]);
+    }
+
+    // Laravel's `notifications` table is polymorphic; here the recipient is always a user.
+    private function notificationsQuery(string $userId): Builder
+    {
+        return DatabaseNotification::query()
+            ->where('notifiable_type', (new User)->getMorphClass())
+            ->where('notifiable_id', $userId);
     }
 
     private function followQuery(string $followerId, string $authorId): Builder
