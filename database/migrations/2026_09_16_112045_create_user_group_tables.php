@@ -89,6 +89,9 @@ return new class extends Migration
             $table->timestamp('muted_until')->nullable();
             $table->boolean('muted_forever')->default(false);
 
+            // Tour => TourStatus value; a tour missing from it has not been offered yet.
+            $table->json('tours')->nullable();
+
             $table->timestamps();
         });
 

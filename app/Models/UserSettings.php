@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\ThemeMode;
+use App\Enums\Tour;
+use App\Enums\TourStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -28,7 +30,7 @@ class UserSettings extends Model
     protected $fillable = [
         'user_id', 'ui_language_code', 'dark_theme', 'theme_mode',
         'show_swear_words', 'show_adult_content', 'enable_cookies', 'allow_messages',
-        'notification_preferences', 'muted_until', 'muted_forever',
+        'notification_preferences', 'muted_until', 'muted_forever', 'tours',
     ];
 
     protected function casts(): array
@@ -43,7 +45,15 @@ class UserSettings extends Model
             'notification_preferences' => 'array',
             'muted_until' => 'datetime',
             'muted_forever' => 'boolean',
+            'tours' => 'array',
         ];
+    }
+
+    // Null when the tour has not been answered yet; a tour added later is simply missing from
+    // older users' `tours`, so "missing" is the one way to say "not answered".
+    public function tourStatus(Tour $tour): ?TourStatus
+    {
+        return TourStatus::tryFrom($this->tours[$tour->value] ?? '');
     }
 
     public function user(): BelongsTo
