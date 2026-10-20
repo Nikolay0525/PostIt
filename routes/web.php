@@ -6,6 +6,7 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
@@ -62,6 +63,8 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:30,1')->name('settings.update');
     Route::patch('/settings/theme', [SettingsController::class, 'updateTheme'])
         ->middleware('throttle:60,1')->name('settings.theme');
+    Route::patch('/settings/tours', [SettingsController::class, 'updateTour'])
+        ->middleware('throttle:30,1')->name('settings.tours');
 
     // The owner edits their profile right on its page (JSON, see ProfileController).
     Route::patch('/profile', [ProfileController::class, 'update'])
@@ -92,6 +95,14 @@ Route::middleware(['auth'])->group(function () {
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.subscribe');
     Route::delete('/groups/{id}/subscribe', [MembershipController::class, 'unsubscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.unsubscribe');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->middleware('throttle:60,1')->name('notifications.index');
+    // Before /notifications/{id}/open, so "read-all" is never taken for an id.
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])
+        ->middleware('throttle:30,1')->name('notifications.read_all');
+    Route::post('/notifications/{id}/open', [NotificationController::class, 'open'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('notifications.open');
 
     Route::post('/users/{id}/follow', [FollowController::class, 'store'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('users.follow');

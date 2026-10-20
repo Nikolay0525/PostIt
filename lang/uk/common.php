@@ -6,5 +6,7 @@ return [
     'back' => 'Назад',
     'back_to' => 'Назад до :name',
     'cancel' => 'Скасувати',
+    'show_password' => 'Показати пароль',
+    'hide_password' => 'Сховати пароль',
 
 ];

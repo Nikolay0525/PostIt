@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\PostSort;
+use App\Events\PostCreated;
 use App\Models\Post;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Support\FeedFilters;
@@ -72,13 +73,37 @@ class PostService
     {
         for ($attempt = 1; ; $attempt++) {
             try {
-                return $this->postRepository->create($groupId, $userId, $title, $article, $this->generateSlug($title, $article));
+                $post = $this->postRepository->create($groupId, $userId, $title, $article, $this->generateSlug($title, $article));
             } catch (UniqueConstraintViolationException $e) {
                 if ($attempt >= self::SLUG_ATTEMPTS) {
                     throw $e;
                 }
+
+                continue;
             }
+
+            PostCreated::dispatch($post);
+
+            return $post;
         }
+    }
+
+    /**
+     * Following a post brings a notification for each new comment under it.
+     */
+    public function follow(string $postId, string $userId): void
+    {
+        $this->postRepository->follow($postId, $userId);
+    }
+
+    public function unfollow(string $postId, string $userId): void
+    {
+        $this->postRepository->unfollow($postId, $userId);
+    }
+
+    public function isFollowing(string $postId, string $userId): bool
+    {
+        return $this->postRepository->isFollowing($postId, $userId);
     }
 
     public function recordView(string $postId, string $userId): void

@@ -31,7 +31,7 @@ class HomeControllerTest extends TestCase
 
         $this->get('/')
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->component('Home')
+                ->component('Feed/Index')
                 ->where('feed', 'recommended')
                 ->where('source', 'groups')
                 ->where('posts.data.0.id', $post->id));

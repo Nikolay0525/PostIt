@@ -4,6 +4,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import Dropdown from '@/Pages/Components/Dropdown.vue';
 import PostFeed from '@/Pages/Components/PostFeed.vue';
+import { usePageTours } from '@/utils/tours';
 
 const props = defineProps({
     // 'recommended' (the default) or 'following'.
@@ -17,6 +18,9 @@ const props = defineProps({
 });
 
 const page = usePage();
+
+// The home page is where a new user starts, so its tour covers the navbar and the feed in one go.
+usePageTours(['navigation', 'feed']);
 
 const tabs = ['recommended', 'following'];
 const sources = ['groups', 'people'];
@@ -73,7 +77,7 @@ const activeFilters = computed(() =>
     </section>
 
     <section class="feed">
-        <div class="feed-tabs-row">
+        <div class="feed-tabs-row" data-tour="feed.tabs">
             <div class="feed-tabs" role="tablist" :aria-label="$t('home.tabs_label')">
                 <button
                     v-for="tab in tabs"
@@ -158,11 +162,13 @@ const activeFilters = computed(() =>
             :hint="$t($page.props.auth.user ? 'home.recommended_hint.member' : 'home.recommended_hint.guest')"
             :empty="$t(activeFilters ? 'home.filters.empty' : 'home.recommended_empty')"
             :posts="posts"
+            tour-card="feed.card"
         />
         <PostFeed
             v-else
             :empty="$t(activeFilters ? 'home.filters.empty' : `home.empty.${source}`)"
             :posts="posts"
+            tour-card="feed.card"
         />
     </section>
 </template>

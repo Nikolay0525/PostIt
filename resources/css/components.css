@@ -150,10 +150,34 @@
   .menu-item {
     @apply block w-full px-4 py-2.5 text-start text-sm text-ink transition hover:bg-canvas;
   }
+  /* "Would you like a tour?" — in a corner, so it never covers what the user came to read. */
+  .tour-prompt {
+    @apply fixed inset-x-4 bottom-4 z-30 rounded-2xl border border-line bg-surface p-5 shadow-lg
+           sm:inset-x-auto sm:end-6 sm:bottom-6 sm:w-96;
+  }
+  .menu-heading-row {
+    @apply flex items-center justify-between gap-3;
+  }
+  .menu-heading-action {
+    @apply text-xs font-medium text-brand-600 transition hover:text-brand-700;
+  }
+  .menu-note {
+    @apply px-4 py-6 text-center text-sm text-muted;
+  }
+  /* A notification row is a button: opening it marks it read and leads to its post. */
+  .notification-row {
+    @apply flex w-full items-center gap-3 px-4 py-3 text-start transition hover:bg-canvas;
+  }
+  .notification-row-important {
+    @apply border-s-2 border-warning bg-warning-soft;
+  }
+  .notification-important-label {
+    @apply mb-0.5 block text-xs font-medium text-warning;
+  }
 
   /* Feed */
   .feed {
-    @apply mx-auto flex max-w-2xl flex-col gap-4;
+    @apply mx-auto flex max-w-3xl flex-col gap-4;
   }
   .feed-title {
     @apply text-xl font-semibold text-ink;
@@ -525,12 +549,8 @@
 
   /* Guest hero */
   .hero {
-    @apply relative mx-auto mb-10 flex max-w-4xl flex-col items-center overflow-hidden rounded-3xl
-           border border-line px-6 py-16 text-center sm:py-24;
-    background-image:
-      radial-gradient(circle at 15% 20%, var(--color-brand-100) 0, transparent 45%),
-      radial-gradient(circle at 85% 80%, var(--color-brand-100) 0, transparent 45%),
-      linear-gradient(to bottom, var(--color-surface), var(--color-brand-50));
+    @apply relative mx-auto mb-10 flex max-w-3xl flex-col items-center overflow-hidden rounded-3xl
+           border border-line bg-surface px-6 py-16 text-center sm:py-24;
   }
   .hero-brand {
     @apply text-3xl font-semibold text-ink;

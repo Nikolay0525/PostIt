@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\CommentCreated;
 use App\Models\Comment;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -38,6 +39,28 @@ class CommentService
             }
         }
 
-        return $this->commentRepository->create($postId, $userId, $text, $parentId);
+        $comment = $this->commentRepository->create($postId, $userId, $text, $parentId);
+
+        CommentCreated::dispatch($comment);
+
+        return $comment;
+    }
+
+    /**
+     * Following a comment brings a notification for each reply to it.
+     */
+    public function follow(string $commentId, string $userId): void
+    {
+        $this->commentRepository->follow($commentId, $userId);
+    }
+
+    public function unfollow(string $commentId, string $userId): void
+    {
+        $this->commentRepository->unfollow($commentId, $userId);
+    }
+
+    public function isFollowing(string $commentId, string $userId): bool
+    {
+        return $this->commentRepository->isFollowing($commentId, $userId);
     }
 }

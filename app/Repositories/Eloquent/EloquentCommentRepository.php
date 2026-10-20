@@ -9,6 +9,7 @@ use App\Repositories\Contracts\CommentRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class EloquentCommentRepository implements CommentRepositoryInterface
 {
@@ -26,6 +27,21 @@ class EloquentCommentRepository implements CommentRepositoryInterface
             'text' => $text,
             'is_deleted' => false,
         ]);
+    }
+
+    public function follow(string $commentId, string $userId): void
+    {
+        DB::table('user_comment_subscriptions')->insertOrIgnore(['comment_id' => $commentId, 'user_id' => $userId]);
+    }
+
+    public function unfollow(string $commentId, string $userId): void
+    {
+        DB::table('user_comment_subscriptions')->where('comment_id', $commentId)->where('user_id', $userId)->delete();
+    }
+
+    public function isFollowing(string $commentId, string $userId): bool
+    {
+        return DB::table('user_comment_subscriptions')->where('comment_id', $commentId)->where('user_id', $userId)->exists();
     }
 
     public function paginateThreadsForPost(string $postId, int $perPage, ?string $viewerId = null): LengthAwarePaginator

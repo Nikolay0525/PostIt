@@ -9,6 +9,8 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -19,6 +21,11 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function find(string $id): ?User
     {
         return User::find($id);
+    }
+
+    public function findMany(array $ids): Collection
+    {
+        return User::query()->whereIn('id', $ids)->get();
     }
 
     public function findWithSettingsAndCounters(string $id): ?User
@@ -109,6 +116,88 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function followersCount(string $authorId): int
     {
         return UserUserSubscription::query()->where('user_author_id', $authorId)->count();
+    }
+
+    // Mute tables have composite primary keys and no models, like `user_speaking_languages`.
+    public function muteGroupNotifications(string $userId, string $groupId): void
+    {
+        DB::table('notification_group_mutes')->insertOrIgnore(['user_id' => $userId, 'group_id' => $groupId]);
+    }
+
+    public function unmuteGroupNotifications(string $userId, string $groupId): void
+    {
+        DB::table('notification_group_mutes')->where('user_id', $userId)->where('group_id', $groupId)->delete();
+    }
+
+    public function mutePostNotifications(string $userId, string $postId): void
+    {
+        DB::table('notification_post_mutes')->insertOrIgnore(['user_id' => $userId, 'post_id' => $postId]);
+    }
+
+    public function unmutePostNotifications(string $userId, string $postId): void
+    {
+        DB::table('notification_post_mutes')->where('user_id', $userId)->where('post_id', $postId)->delete();
+    }
+
+    public function muteCommentNotifications(string $userId, string $commentId): void
+    {
+        DB::table('notification_comment_mutes')->insertOrIgnore(['user_id' => $userId, 'comment_id' => $commentId]);
+    }
+
+    public function unmuteCommentNotifications(string $userId, string $commentId): void
+    {
+        DB::table('notification_comment_mutes')->where('user_id', $userId)->where('comment_id', $commentId)->delete();
+    }
+
+    // Group → post → comment: a mute on any level of the source silences it.
+    public function isNotificationSourceMuted(string $userId, ?string $groupId, ?string $postId, ?string $commentId = null): bool
+    {
+        $levels = [
+            'notification_group_mutes' => ['group_id', $groupId],
+            'notification_post_mutes' => ['post_id', $postId],
+            'notification_comment_mutes' => ['comment_id', $commentId],
+        ];
+
+        foreach ($levels as $table => [$column, $id]) {
+            if ($id !== null && DB::table($table)->where('user_id', $userId)->where($column, $id)->exists()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function latestNotifications(string $userId, int $limit): Collection
+    {
+        return $this->notificationsQuery($userId)->latest()->limit($limit)->get();
+    }
+
+    public function unreadNotificationsCount(string $userId): int
+    {
+        return $this->notificationsQuery($userId)->whereNull('read_at')->count();
+    }
+
+    public function findNotification(string $userId, string $notificationId): ?DatabaseNotification
+    {
+        return $this->notificationsQuery($userId)->find($notificationId);
+    }
+
+    public function markNotificationRead(DatabaseNotification $notification): void
+    {
+        $notification->markAsRead();
+    }
+
+    public function markAllNotificationsRead(string $userId): void
+    {
+        $this->notificationsQuery($userId)->whereNull('read_at')->update(['read_at' => now()]);
+    }
+
+    // Laravel's `notifications` table is polymorphic; here the recipient is always a user.
+    private function notificationsQuery(string $userId): Builder
+    {
+        return DatabaseNotification::query()
+            ->where('notifiable_type', (new User)->getMorphClass())
+            ->where('notifiable_id', $userId);
     }
 
     private function followQuery(string $followerId, string $authorId): Builder

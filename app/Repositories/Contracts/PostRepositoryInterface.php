@@ -4,8 +4,10 @@ namespace App\Repositories\Contracts;
 
 use App\Enums\PostSort;
 use App\Models\Post;
+use App\Models\User;
 use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Every returned post carries its author, group and the aggregates
@@ -21,6 +23,15 @@ interface PostRepositoryInterface
      * Used where the post itself is needed (e.g. authorization checks), not its display data.
      */
     public function find(string $id): ?Post;
+
+    /**
+     * Unlike the other reads, deleted posts are included, so the caller can show them as deleted.
+     * Each carries its group.
+     *
+     * @param  list<string>  $ids
+     * @return Collection<int, Post>
+     */
+    public function findManyWithGroup(array $ids): Collection;
 
     /**
      * By the post's slug, which is unique within its group (used in page URLs).
@@ -90,6 +101,23 @@ interface PostRepositoryInterface
     public function recordShare(string $postId, string $userId): void;
 
     public function sharesCount(string $postId): int;
+
+    /**
+     * Idempotent: following a post already followed changes nothing.
+     */
+    public function follow(string $postId, string $userId): void;
+
+    public function unfollow(string $postId, string $userId): void;
+
+    public function isFollowing(string $postId, string $userId): bool;
+
+    /**
+     * Users following the post, except the given ones. Each carries `settings`.
+     *
+     * @param  list<string>  $exceptUserIds
+     * @return Collection<int, User>
+     */
+    public function followers(string $postId, array $exceptUserIds = []): Collection;
 
     /**
      * A random, non-deleted post's slug from the group, or null when it has none. For "I'm feeling lucky".

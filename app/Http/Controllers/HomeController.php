@@ -35,7 +35,7 @@ class HomeController extends Controller
             period: FeedPeriod::tryFrom((string) $request->query('period')) ?? FeedPeriod::All,
         );
 
-        return Inertia::render('Home', [
+        return Inertia::render('Feed/Index', [
             'feed' => $feed->value,
             'source' => $source->value,
             'filters' => [

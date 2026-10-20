@@ -84,6 +84,14 @@ return new class extends Migration
             $table->boolean('enable_cookies')->default(false);
             $table->boolean('allow_messages')->default(true);
 
+            // Kind => NotificationStatus value; a kind missing from it is enabled.
+            $table->json('notification_preferences')->nullable();
+            $table->timestamp('muted_until')->nullable();
+            $table->boolean('muted_forever')->default(false);
+
+            // Tour => TourStatus value; a tour missing from it has not been offered yet.
+            $table->json('tours')->nullable();
+
             $table->timestamps();
         });
 
@@ -126,11 +134,10 @@ return new class extends Migration
 
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('text', 100);
-            $table->string('url', 100)->nullable();
-            $table->boolean('is_read')->default(false);
-            $table->integer('type');
+            $table->string('type');
+            $table->uuidMorphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });
 
@@ -225,6 +232,16 @@ return new class extends Migration
             $table->primary(['user_id', 'group_id']);
         });
 
+        // Groups and posts whose notifications reach the user silently. A muted group silences
+        // everything from it, so a post inside it cannot be left loud.
+        Schema::create('notification_group_mutes', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('group_id')->constrained('groups')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'group_id']);
+        });
+
         Schema::create('group_moderators', function (Blueprint $table) {
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignUuid('group_id')->constrained('groups')->cascadeOnDelete();
@@ -258,6 +275,14 @@ return new class extends Migration
             $table->unique(['group_id', 'slug']);
         });
 
+        Schema::create('notification_post_mutes', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('post_id')->constrained('posts')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'post_id']);
+        });
+
         Schema::create('comments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('post_id')->constrained('posts')->cascadeOnDelete();
@@ -267,6 +292,33 @@ return new class extends Migration
             $table->boolean('is_deleted')->default(false);
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
+        });
+
+        // Following decides whether notifications come at all; a mute only makes them silent.
+        // A post's author follows it from the start, anyone else by pressing "interested".
+        Schema::create('user_post_subscriptions', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('post_id')->constrained('posts')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'post_id']);
+        });
+
+        // Only a comment's author follows it (for replies), from the start, and can stop.
+        Schema::create('user_comment_subscriptions', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('comment_id')->constrained('comments')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'comment_id']);
+        });
+
+        Schema::create('notification_comment_mutes', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('comment_id')->constrained('comments')->cascadeOnDelete();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['user_id', 'comment_id']);
         });
 
         Schema::create('votes', function (Blueprint $table) {
@@ -307,6 +359,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::dropIfExists('notification_comment_mutes');
+        Schema::dropIfExists('user_comment_subscriptions');
+        Schema::dropIfExists('user_post_subscriptions');
+        Schema::dropIfExists('notification_post_mutes');
+        Schema::dropIfExists('notification_group_mutes');
         Schema::dropIfExists('users');
         Schema::dropIfExists('group_rule_versions');
         Schema::dropIfExists('groups');

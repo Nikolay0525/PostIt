@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\ImageService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,6 +45,15 @@ class HandleInertiaRequests extends Middleware
                     ...$request->user()->only('id', 'username'),
                     'avatar_url' => ImageService::url($request->user()->avatar_url),
                 ]
+                : null,
+            // For the bell's badge on every page; the list itself loads when the dropdown opens.
+            'unread_notifications' => fn () => $request->user()
+                ? app(NotificationService::class)->unreadCount($request->user()->id)
+                : 0,
+            // Tour => 'completed' | 'declined'; a tour missing from it is offered. Guests get null:
+            // they never see tours.
+            'tours' => fn () => $request->user()
+                ? (object) ($request->user()->settings->tours ?? [])
                 : null,
             'status' => fn () => $request->session()->get('status'),
             // Read by app.js so a saved theme mode applies without a reload; guests get null

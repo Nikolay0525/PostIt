@@ -30,7 +30,7 @@ class SearchControllerTest extends TestCase
             $this->get($url)
                 ->assertOk()
                 ->assertInertia(fn (AssertableInertia $page) => $page
-                    ->component('Search')
+                    ->component('Search/Index')
                     ->where('posts', null)
                     ->where('groups', null)
                     ->where('people', null));

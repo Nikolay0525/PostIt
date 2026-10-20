@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Tour;
+use App\Enums\TourStatus;
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Http\Requests\UpdateThemeRequest;
+use App\Http\Requests\UpdateTourRequest;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Services\SettingsService;
 use Illuminate\Http\RedirectResponse;
@@ -55,6 +58,18 @@ class SettingsController extends Controller
     public function updateTheme(UpdateThemeRequest $request): HttpResponse
     {
         $this->settingsService->updateManualTheme($request->user(), $request->boolean('dark'));
+
+        return response()->noContent();
+    }
+
+    // "Later" is never sent: the tour is just offered again on the next visit.
+    public function updateTour(UpdateTourRequest $request): HttpResponse
+    {
+        $this->settingsService->answerTour(
+            $request->user(),
+            $request->enum('tour', Tour::class),
+            $request->enum('status', TourStatus::class),
+        );
 
         return response()->noContent();
     }

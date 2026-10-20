@@ -31,4 +31,13 @@ interface CommentRepositoryInterface
      * Does not check that $parentId belongs to $postId — that invariant is the Service's job.
      */
     public function create(string $postId, string $userId, string $text, ?string $parentId = null): Comment;
+
+    /**
+     * Idempotent: following a comment already followed changes nothing.
+     */
+    public function follow(string $commentId, string $userId): void;
+
+    public function unfollow(string $commentId, string $userId): void;
+
+    public function isFollowing(string $commentId, string $userId): bool;
 }

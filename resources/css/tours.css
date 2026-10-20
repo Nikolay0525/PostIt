@@ -1,0 +1,49 @@
+/* driver.js popovers in the site's colors, so they follow the light and dark theme.
+   Outside Tailwind's layers on purpose: driver.css is unlayered, and layered rules would lose to it. */
+:root {
+  /* Corner radius of the tour popover and its buttons. */
+  --tour-radius: 2px;
+}
+.driver-popover.tour-popover {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  border-radius: var(--tour-radius);
+  max-width: 320px;
+  padding: 1.25rem;
+}
+.tour-popover .driver-popover-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.tour-popover .driver-popover-description {
+  margin-top: 0.375rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-ink);
+}
+.tour-popover .driver-popover-progress-text {
+  color: var(--color-muted);
+}
+.tour-popover .driver-popover-close-btn {
+  color: var(--color-muted);
+}
+/* Large, clear buttons: the tour is aimed at people who are not used to the web. */
+.tour-popover .driver-popover-footer button {
+  border: 1px solid var(--color-line);
+  border-radius: var(--tour-radius);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  padding: 0.4rem 0.85rem;
+  text-shadow: none;
+}
+.tour-popover .driver-popover-footer .driver-popover-next-btn {
+  border-color: var(--color-brand-600);
+  background: var(--color-brand-600);
+  color: #fff;
+}
+.tour-popover .driver-popover-arrow-side-left { border-left-color: var(--color-surface); }
+.tour-popover .driver-popover-arrow-side-right { border-right-color: var(--color-surface); }
+.tour-popover .driver-popover-arrow-side-top { border-top-color: var(--color-surface); }
+.tour-popover .driver-popover-arrow-side-bottom { border-bottom-color: var(--color-surface); }

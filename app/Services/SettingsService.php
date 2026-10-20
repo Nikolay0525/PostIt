@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\Tour;
+use App\Enums\TourStatus;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -50,5 +52,18 @@ class SettingsService
     public function updateManualTheme(User $user, bool $dark): void
     {
         $this->userRepository->updateSettings($user->id, ['dark_theme' => $dark]);
+    }
+
+    // Answers to other tours are kept; answering the same tour again replaces the answer.
+    public function answerTour(User $user, Tour $tour, TourStatus $status): void
+    {
+        // Read from the database, not from an already loaded relation, so an earlier answer is never lost.
+        $current = $this->userRepository->findForSettings($user->id)->settings->tours ?? [];
+        $tours = [...$current, $tour->value => $status->value];
+
+        $this->userRepository->updateSettings($user->id, ['tours' => json_encode($tours)]);
+
+        // Later reads in this request (e.g. the shared `tours` prop) see the new answer.
+        $user->unsetRelation('settings');
     }
 }
