@@ -12,8 +12,10 @@ enum NotificationType: string
     case NewGroupPost = 'new_group_post';
     case AcceptedGroupInvite = 'accepted_group_invite';
     case DeclinedGroupInvite = 'declined_group_invite';
-    case NewVote = 'new_vote';
-    case NewComment = 'new_comment';
+    case NewVotesUnderPost = 'new_votes_under_post';
+    case NewVotesUnderComment = 'new_votes_under_comment';
+    case NewCommentUnderPost = 'new_comment_under_post';
+    case NewCommentAnswer = 'new_comment_answer';
 
     case ReportCreated = 'report_created';
     case ReportReviewed = 'report_reviewed';

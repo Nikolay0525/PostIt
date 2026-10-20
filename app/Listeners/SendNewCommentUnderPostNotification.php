@@ -3,9 +3,9 @@
 namespace App\Listeners;
 
 use App\Events\CommentCreated;
-use App\Notifications\NewCommentNotification;
+use App\Notifications\NewCommentUnderPostNotification;
 
-class SendNewCommentNotification
+class SendNewCommentUnderPostNotification
 {
     public function handle(CommentCreated $event): void
     {
@@ -17,6 +17,6 @@ class SendNewCommentNotification
             return;
         }
 
-        $postAuthor->notify(new NewCommentNotification($comment));
+        $postAuthor->notify(new NewCommentUnderPostNotification($comment));
     }
 }

@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notification;
  * Stores only ids: the frontend builds the text in the viewer's language,
  * and a deleted post or comment is shown as deleted.
  */
-class NewCommentNotification extends Notification
+class NewCommentUnderPostNotification extends Notification
 {
     public function __construct(private Comment $comment) {}
 
@@ -23,7 +23,7 @@ class NewCommentNotification extends Notification
     // Stored in the `type` column instead of the class name, so it matches the muted-kinds list.
     public function databaseType(object $notifiable): string
     {
-        return NotificationType::NewComment->value;
+        return NotificationType::NewCommentUnderPost->value;
     }
 
     public function toArray(object $notifiable): array

@@ -10,7 +10,7 @@ use Database\Seeders\LanguageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class NewCommentNotificationTest extends TestCase
+class NewCommentUnderPostNotificationTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -33,7 +33,7 @@ class NewCommentNotificationTest extends TestCase
 
         $notifications = $post->author->notifications;
         $this->assertCount(1, $notifications);
-        $this->assertSame(NotificationType::NewComment->value, $notifications[0]->type);
+        $this->assertSame(NotificationType::NewCommentUnderPost->value, $notifications[0]->type);
         $this->assertSame([
             'post_id' => $post->id,
             'comment_id' => $comment->id,
