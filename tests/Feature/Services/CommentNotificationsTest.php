@@ -4,6 +4,7 @@ namespace Tests\Feature\Services;
 
 use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
+use App\Listeners\SendCommentNotifications;
 use App\Models\Group;
 use App\Models\Post;
 use App\Models\User;
@@ -11,7 +12,9 @@ use App\Services\CommentService;
 use App\Services\NotificationPreferenceService;
 use App\Services\PostService;
 use Database\Seeders\LanguageSeeder;
+use Illuminate\Events\CallQueuedListener;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CommentNotificationsTest extends TestCase
@@ -193,6 +196,17 @@ class CommentNotificationsTest extends TestCase
         $this->comments->createComment($post->id, $replier->id, 'Answer', $parent->id);
 
         $this->assertTrue($commenter->notifications[0]->data['silent']);
+    }
+
+    public function test_comment_notifications_are_sent_through_the_queue(): void
+    {
+        Queue::fake();
+        $post = $this->publish();
+
+        $this->comments->createComment($post->id, User::factory()->create()->id, 'Later');
+
+        Queue::assertPushed(CallQueuedListener::class, fn (CallQueuedListener $job) => $job->class === SendCommentNotifications::class);
+        $this->assertCount(0, $post->author->notifications);
     }
 
     // Through PostService, as in the app, so the author follows the post.

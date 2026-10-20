@@ -4,6 +4,7 @@ namespace App\Events;
 
 use App\Models\Comment;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
 
 /**
  * A comment (top-level or reply) was added to a post.
@@ -11,7 +12,8 @@ use Illuminate\Foundation\Events\Dispatchable;
  */
 class CommentCreated
 {
-    use Dispatchable;
+    // SerializesModels: queued listeners get the comment by id and reload it, not a stale copy.
+    use Dispatchable, SerializesModels;
 
     public function __construct(public Comment $comment) {}
 }

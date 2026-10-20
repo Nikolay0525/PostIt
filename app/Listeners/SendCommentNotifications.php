@@ -7,6 +7,7 @@ use App\Notifications\NewCommentAnswerNotification;
 use App\Notifications\NewCommentUnderPostNotification;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Services\CommentService;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -14,7 +15,9 @@ use Illuminate\Support\Facades\Notification;
  * gets NewCommentAnswer, as the more specific one; if they turned that kind off, they are treated
  * as a plain post follower instead. Everyone else following the post gets NewCommentUnderPost.
  */
-class SendCommentNotifications
+// Queued: a post may have thousands of followers, and the commenter should not wait for them.
+// After commit, so the worker never looks for a comment that is not saved yet.
+class SendCommentNotifications implements ShouldQueueAfterCommit
 {
     public function __construct(
         private CommentService $comments,
