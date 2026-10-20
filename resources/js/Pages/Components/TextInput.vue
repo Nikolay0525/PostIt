@@ -24,15 +24,16 @@ const inputType = computed(() =>
         :type="inputType"
         v-model="model"
         class="field-input"
-        :class="{ 'has-error': message, 'pr-10': isPassword }"
+        :class="{ 'has-error': message, 'pe-10': isPassword }"
       />
       <button
         v-if="isPassword"
         type="button"
         @click="visible = !visible"
-        :aria-label="visible ? 'Hide password' : 'Show password'"
+        :aria-label="visible ? $t('common.hide_password') : $t('common.show_password')"
+        :title="visible ? $t('common.hide_password') : $t('common.show_password')"
         :aria-pressed="visible"
-        class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+        class="absolute inset-y-0 end-0 flex items-center px-3 text-muted hover:text-ink"
       >
         <svg
           v-if="visible"
