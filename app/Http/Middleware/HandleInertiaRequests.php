@@ -50,6 +50,11 @@ class HandleInertiaRequests extends Middleware
             'unread_notifications' => fn () => $request->user()
                 ? app(NotificationService::class)->unreadCount($request->user()->id)
                 : 0,
+            // Tour => 'completed' | 'declined'; a tour missing from it is offered. Guests get null:
+            // they never see tours.
+            'tours' => fn () => $request->user()
+                ? (object) ($request->user()->settings->tours ?? [])
+                : null,
             'status' => fn () => $request->session()->get('status'),
             // Read by app.js so a saved theme mode applies without a reload; guests get null
             // (the 'browser' mode). The first paint uses the same values from <html> attributes.

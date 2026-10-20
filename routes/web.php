@@ -63,6 +63,8 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:30,1')->name('settings.update');
     Route::patch('/settings/theme', [SettingsController::class, 'updateTheme'])
         ->middleware('throttle:60,1')->name('settings.theme');
+    Route::patch('/settings/tours', [SettingsController::class, 'updateTour'])
+        ->middleware('throttle:30,1')->name('settings.tours');
 
     // The owner edits their profile right on its page (JSON, see ProfileController).
     Route::patch('/profile', [ProfileController::class, 'update'])
