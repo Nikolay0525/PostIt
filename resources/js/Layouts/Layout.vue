@@ -3,6 +3,7 @@ import InboxMenu from '@/Pages/Components/InboxMenu.vue';
 import NotificationsMenu from '@/Pages/Components/NotificationsMenu.vue';
 import SearchBox from '@/Pages/Components/SearchBox.vue';
 import ThemeToggle from '@/Pages/Components/ThemeToggle.vue';
+import TourPrompt from '@/Pages/Components/TourPrompt.vue';
 import UserMenu from '@/Pages/Components/UserMenu.vue';
 </script>
 
@@ -11,7 +12,7 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
         <header class="border-b border-line bg-surface">
             <nav class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-8">
-                    <Link :href="route('home')" class="brand-mark">
+                    <Link :href="route('home')" class="brand-mark" data-tour="navigation.home">
                         Post<span class="brand-mark-accent">It.</span>
                     </Link>
 
@@ -24,14 +25,17 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
                     </div>
                 </div>
 
-                <SearchBox class="order-last w-full sm:order-none sm:w-auto sm:flex-1" />
+                <SearchBox class="order-last w-full sm:order-none sm:w-auto sm:flex-1" data-tour="navigation.search" />
 
                 <div class="flex items-center gap-4">
                     <ThemeToggle />
                     <template v-if="$page.props.auth.user">
-                        <InboxMenu />
-                        <NotificationsMenu />
-                        <UserMenu />
+                        <!-- One tour step highlights both, so they share a wrapper. -->
+                        <div class="flex items-center gap-4" data-tour="navigation.inbox">
+                            <InboxMenu />
+                            <NotificationsMenu />
+                        </div>
+                        <UserMenu data-tour="navigation.account" />
                     </template>
                     <template v-else>
                         <Link
@@ -48,5 +52,8 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
         <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <slot />
         </main>
+
+        <!-- Offers the current page's tours (see usePageTours); the navbar's on any page. -->
+        <TourPrompt />
     </div>
 </template>

@@ -10,6 +10,8 @@ defineProps({
     // What to say when there are no posts; the generic line by default.
     empty: { type: String, default: '' },
     posts: Object,
+    // A tour step (e.g. "feed.card") marked on the first card, for the page's interface tour.
+    tourCard: { type: String, default: null },
 });
 </script>
 
@@ -23,7 +25,12 @@ defineProps({
         <p v-if="!posts.data.length" class="text-sm text-muted">{{ empty || $t('posts.none') }}</p>
 
         <InfiniteScroll data="posts" class="feed-list">
-            <PostCard v-for="post in posts.data" :key="post.id" :post="post" />
+            <PostCard
+                v-for="(post, index) in posts.data"
+                :key="post.id"
+                :post="post"
+                :data-tour="tourCard && index === 0 ? tourCard : undefined"
+            />
 
             <template #loading>
                 <p class="text-sm text-muted">{{ $t('posts.loading') }}</p>

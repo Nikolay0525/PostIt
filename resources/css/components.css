@@ -150,6 +150,11 @@
   .menu-item {
     @apply block w-full px-4 py-2.5 text-start text-sm text-ink transition hover:bg-canvas;
   }
+  /* "Would you like a tour?" — in a corner, so it never covers what the user came to read. */
+  .tour-prompt {
+    @apply fixed inset-x-4 bottom-4 z-30 rounded-2xl border border-line bg-surface p-5 shadow-lg
+           sm:inset-x-auto sm:end-6 sm:bottom-6 sm:w-96;
+  }
   .menu-heading-row {
     @apply flex items-center justify-between gap-3;
   }
@@ -544,7 +549,7 @@
 
   /* Guest hero */
   .hero {
-    @apply relative mx-auto mb-10 flex max-w-2xl flex-col items-center overflow-hidden rounded-3xl
+    @apply relative mx-auto mb-10 flex max-w-3xl flex-col items-center overflow-hidden rounded-3xl
            border border-line bg-surface px-6 py-16 text-center sm:py-24;
   }
   .hero-brand {

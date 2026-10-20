@@ -89,7 +89,8 @@ Kinds of notifications, by role:
 **Interface tours.** The audience is everyone, older people and adults above all, so the interface explains itself. Hover hints do not work on phones, and a forced walkthrough is unpleasant, so instead:
 - [The first time a user opens a page that has a tour, they are asked whether they want a short tour of it. The answers are "Yes", "No" (never ask again) and "Later" (ask on the next visit).]
 - [A tour shows its steps one by one, each with a short explanation and a "Continue" button; it can be skipped at any step. It works the same on every platform.]
-- [Each tour is answered separately: finishing one does not count for another. A tour can be started again from the account menu.]
+- [Each tour is answered separately: finishing one does not count for another.]
+- [When a page has several tours not answered yet (the navigation one is always among them until answered), they are offered with one prompt and run one after another, so the user is never asked twice in a row. The answer counts for each of them. The account menu always runs the full tour of the current page.]
 - [Guests never see tours: a guest is often someone who came from Google to read one thing, and nothing should get in their way.]
 - [The tours, each explaining what is on its page:]
   - [*Navigation* — offered on whichever page the user lands first, since the navbar is on every page: the home button and the account menu; search; messages and notifications.]
