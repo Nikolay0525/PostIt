@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, useId } from "vue";
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -9,6 +9,8 @@ const props = defineProps({
 
 const model = defineModel({ type: null, required: true });
 
+// Ties the label to its input, so clicking the label focuses it and screen readers announce it.
+const id = useId();
 const visible = ref(false);
 const isPassword = computed(() => props.type === "password");
 const inputType = computed(() =>
@@ -18,9 +20,10 @@ const inputType = computed(() =>
 
 <template>
   <div>
-    <label class="field-label">{{ name }}</label>
+    <label :for="id" class="field-label">{{ name }}</label>
     <div class="relative">
       <input
+        :id="id"
         :type="inputType"
         v-model="model"
         class="field-input"

@@ -26,3 +26,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /lang/php_*.json
+/tests/Playwright/test-results
+/tests/Playwright/report
+/tests/Playwright/.cache
