@@ -4,6 +4,9 @@ import { ACCOUNT_MENU, USER, fillLoginForm, logIn } from '../support/session.js'
 test('guest sees the home page with log in and sign up links', async ({ page }) => {
     await page.goto('/');
 
+    // The home page adds nothing to the site name in the tab title.
+    await expect(page).toHaveTitle('PostIt');
+
     // The guest feed has its own log in prompt too, so look in the navbar.
     const nav = page.getByRole('navigation');
     await expect(nav.getByRole('link', { name: 'Log in' })).toBeVisible();
@@ -23,5 +26,6 @@ test('wrong password keeps the user on the login page with an error', async ({ p
 
     await expect(page.locator('.field-error')).toBeVisible();
     await expect(page).toHaveURL('/login');
+    await expect(page).toHaveTitle('PostIt | Log in');
     await expect(page.locator(ACCOUNT_MENU)).toHaveCount(0);
 });

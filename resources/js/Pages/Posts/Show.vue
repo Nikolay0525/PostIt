@@ -69,6 +69,7 @@ const submitComment = async () => {
                     maxlength="500"
                     dir="auto"
                     :placeholder="$t('comments.placeholder')"
+                    :aria-label="$t('comments.placeholder')"
                     :disabled="posting"
                 ></textarea>
                 <button type="submit" class="btn-primary self-end" :disabled="posting || !commentText.trim()">{{ $t('comments.submit') }}</button>
