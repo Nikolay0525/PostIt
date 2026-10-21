@@ -53,7 +53,7 @@ const submit = () => {
             <TextInput :name="$t('posts.create.title_label')" v-model="form.title" :message="form.errors.title" />
 
             <div>
-                <label class="field-label">{{ $t('posts.create.article') }}</label>
+                <label for="post-article" class="field-label">{{ $t('posts.create.article') }}</label>
 
                 <div class="markdown-toolbar mb-2">
                     <button
@@ -73,6 +73,7 @@ const submit = () => {
                 </div>
 
                 <textarea
+                    id="post-article"
                     ref="articleInput"
                     v-model="form.article"
                     class="field-input"

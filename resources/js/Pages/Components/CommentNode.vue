@@ -106,6 +106,7 @@ const submitReply = async () => {
                         maxlength="500"
                         dir="auto"
                         :placeholder="$t('comments.reply_placeholder')"
+                        :aria-label="$t('comments.reply_placeholder')"
                         :disabled="replying"
                     ></textarea>
                     <span class="flex gap-2 self-end">

@@ -187,7 +187,7 @@ const hasStatus = computed(() => info.status_emoji || info.status_text);
                     <img v-if="info.avatar_url" :src="info.avatar_url" alt="" class="h-full w-full object-cover" />
                     <template v-else>{{ profile.username.charAt(0).toUpperCase() }}</template>
                 </span>
-                <input v-if="is_self" ref="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar" />
+                <input v-if="is_self" ref="avatarInput" type="file" :aria-label="$t('users.edit.change_photo')" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar" />
 
                 <div class="min-w-0 flex-1">
                     <h1 class="group-name profile-text" dir="auto">{{ profile.username }}</h1>
@@ -222,7 +222,7 @@ const hasStatus = computed(() => info.status_emoji || info.status_text);
 
             <form v-if="editing" class="profile-edit-form" @submit.prevent="saveProfile">
                 <div>
-                    <p class="field-label">{{ $t('users.edit.status') }}</p>
+                    <label class="field-label" for="profile-status">{{ $t('users.edit.status') }}</label>
                     <div class="emoji-picker" role="radiogroup" :aria-label="$t('users.edit.status_emoji')">
                         <button
                             type="button"
@@ -245,6 +245,7 @@ const hasStatus = computed(() => info.status_emoji || info.status_text);
                         >{{ emoji }}</button>
                     </div>
                     <input
+                        id="profile-status"
                         v-model="draft.status_text"
                         type="text"
                         class="field-input mt-2"
