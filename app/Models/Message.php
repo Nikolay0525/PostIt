@@ -23,6 +23,8 @@ class Message extends BaseEntity
     protected function casts(): array
     {
         return [
+            'head' => 'encrypted',
+            'body' => 'encrypted',
             'read_at' => 'datetime',
             'replied_at' => 'datetime',
         ];

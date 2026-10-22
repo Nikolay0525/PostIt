@@ -4,6 +4,7 @@
 | --- | --- |
 | Status | Draft |
 | Last updated | 2026-10-21 |
+|Stack| Laravel + Inertia + Vue · |
 | Owner | Nikolay0525 |
 
 > This policy defines the mandatory requirements for the code of PostIt — a community discussion web application (see [business_logic.md](business_logic.md)).
