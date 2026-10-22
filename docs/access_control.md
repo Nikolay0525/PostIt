@@ -7,10 +7,6 @@
 |Stack| Laravel + Inertia + Vue · |
 | Owner | Nikolay0525 |
 
-Status: Active · 
-Stack: Laravel + Inertia + Vue · 
-Last updated: 2026-10-21
-
 This document records the identification, authentication and access-control
 decisions for PostIt. It is intentionally concise; rules it refers to are
 enforced in code (routes, Form Requests, the `AuthService`, Eloquent casts and
