@@ -25,12 +25,13 @@ class UserSettings extends Model
     // Same as the column default, so a row created in this request has it before any reload.
     protected $attributes = [
         'theme_mode' => ThemeMode::Browser->value,
+        'amount_of_attached_subscriptions' => 10,
     ];
 
     protected $fillable = [
         'user_id', 'ui_language_code', 'dark_theme', 'theme_mode',
         'show_swear_words', 'show_adult_content', 'enable_cookies', 'allow_messages',
-        'notification_preferences', 'muted_until', 'muted_forever', 'tours',
+        'amount_of_attached_subscriptions', 'notification_preferences', 'muted_until', 'muted_forever', 'tours',
     ];
 
     protected function casts(): array
@@ -42,6 +43,7 @@ class UserSettings extends Model
             'show_adult_content' => 'boolean',
             'enable_cookies' => 'boolean',
             'allow_messages' => 'boolean',
+            'amount_of_attached_subscriptions' => 'integer',
             'notification_preferences' => 'array',
             'muted_until' => 'datetime',
             'muted_forever' => 'boolean',

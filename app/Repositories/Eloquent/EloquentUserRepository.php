@@ -118,6 +118,16 @@ class EloquentUserRepository implements UserRepositoryInterface
         return UserUserSubscription::query()->where('user_author_id', $authorId)->count();
     }
 
+    public function followedBy(string $followerId): Collection
+    {
+        return User::query()
+            ->join('user_user_subscriptions', 'user_user_subscriptions.user_author_id', '=', 'users.id')
+            ->where('user_user_subscriptions.user_follower_id', $followerId)
+            ->withCasts(['attached_on_feed' => 'boolean'])
+            ->orderBy('users.username')
+            ->get(['users.id', 'users.username', 'users.avatar_url', 'user_user_subscriptions.attached_on_feed']);
+    }
+
     // Mute tables have composite primary keys and no models, like `user_speaking_languages`.
     public function muteGroupNotifications(string $userId, string $groupId): void
     {

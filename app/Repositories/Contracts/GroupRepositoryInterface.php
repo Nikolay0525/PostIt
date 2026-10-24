@@ -57,6 +57,15 @@ interface GroupRepositoryInterface
     public function membershipsVisibleTo(string $userId, ?string $viewerId): Collection;
 
     /**
+     * Every group the user is subscribed to, by name, private ones included — the user's own
+     * list (the subscriptions menu), not what others see on their profile. Each carries
+     * `attached_on_feed`: whether it is on the user's side panel.
+     *
+     * @return Collection<int, Group>
+     */
+    public function subscribedBy(string $userId): Collection;
+
+    /**
      * Creates the membership row. Idempotent — a no-op if already subscribed. Only meaningful
      * for a public group; a private group's membership is created by an approved
      * GroupJoinRequest instead (JoinRequestService, not built yet) — the Service/Policy layer is

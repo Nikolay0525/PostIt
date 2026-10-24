@@ -16,6 +16,11 @@ class UserGroupSubscription extends Model
     protected $fillable = [
         'user_id',
         'group_id',
+        'attached_on_feed',
+    ];
+
+    protected $casts = [
+        'attached_on_feed' => 'boolean',
     ];
 
     public function user(): BelongsTo

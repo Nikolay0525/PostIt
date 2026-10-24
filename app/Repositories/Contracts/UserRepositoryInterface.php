@@ -65,6 +65,14 @@ interface UserRepositoryInterface
     public function followersCount(string $authorId): int;
 
     /**
+     * The people the user follows, by username — for the user's own subscriptions menu. Each
+     * carries `attached_on_feed`: whether they are on the user's side panel.
+     *
+     * @return Collection<int, User>
+     */
+    public function followedBy(string $followerId): Collection;
+
+    /**
      * Idempotent: muting a group already muted changes nothing.
      */
     public function muteGroupNotifications(string $userId, string $groupId): void;

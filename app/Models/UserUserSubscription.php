@@ -16,6 +16,11 @@ class UserUserSubscription extends Model
     protected $fillable = [
         'user_follower_id',
         'user_author_id',
+        'attached_on_feed',
+    ];
+
+    protected $casts = [
+        'attached_on_feed' => 'boolean',
     ];
 
     public function follower(): BelongsTo

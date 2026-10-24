@@ -63,7 +63,7 @@ class Group extends BaseEntity
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_group_subscriptions', 'group_id', 'user_id')
-            ->withPivot('created_at');
+            ->withPivot('created_at', 'attached_on_feed');
     }
 
     public function moderators(): BelongsToMany

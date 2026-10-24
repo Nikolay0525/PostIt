@@ -85,7 +85,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'user_user_subscriptions',
             'user_follower_id',
             'user_author_id'
-        )->withPivot('created_at');
+        )->withPivot('created_at', 'attached_on_feed');
     }
 
     public function followers(): BelongsToMany
@@ -116,7 +116,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'user_group_subscriptions',
             'user_id',
             'group_id'
-        )->withPivot('created_at');
+        )->withPivot('created_at', 'attached_on_feed');
     }
 
     public function moderatedGroups(): BelongsToMany

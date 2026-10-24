@@ -106,6 +106,19 @@ class EloquentGroupRepository implements GroupRepositoryInterface
             ->get(['id', 'slug', 'name', 'icon_url', 'is_private']);
     }
 
+    public function subscribedBy(string $userId): Collection
+    {
+        return Group::query()
+            ->join('user_group_subscriptions', 'user_group_subscriptions.group_id', '=', 'groups.id')
+            ->where('user_group_subscriptions.user_id', $userId)
+            ->withCasts(['attached_on_feed' => 'boolean'])
+            ->orderBy('groups.name')
+            ->get([
+                'groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private',
+                'user_group_subscriptions.attached_on_feed',
+            ]);
+    }
+
     // `UserGroupSubscription` has a composite primary key, which Eloquent does not support
     // natively: insertOrIgnore()/a WHERE-scoped delete() are used instead of instance methods,
     // same reasoning as EloquentVoteRepository.
