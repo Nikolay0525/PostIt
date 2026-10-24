@@ -37,6 +37,12 @@ class FollowService
         return $followerId !== null && $this->userRepository->isFollowing($followerId, $authorId);
     }
 
+    // No cap on how many people are attached, same as groups (MembershipService).
+    public function setAttachedOnFeed(string $followerId, string $authorId, bool $attached): void
+    {
+        $this->userRepository->setFollowAttachedOnFeed($followerId, $authorId, $attached);
+    }
+
     public function followersCount(string $authorId): int
     {
         return $this->userRepository->followersCount($authorId);

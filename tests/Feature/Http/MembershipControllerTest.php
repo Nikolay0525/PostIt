@@ -144,4 +144,31 @@ class MembershipControllerTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_a_new_membership_is_attached_and_can_be_detached_and_attached_again(): void
+    {
+        $user = User::factory()->create();
+        $group = Group::factory()->create(['is_private' => false]);
+        $row = ['group_id' => $group->id, 'user_id' => $user->id];
+
+        $this->actingAs($user)->postJson("/groups/{$group->id}/subscribe");
+        $this->assertDatabaseHas('user_group_subscriptions', [...$row, 'attached_on_feed' => true]);
+
+        $this->actingAs($user)->deleteJson("/groups/{$group->id}/attach")
+            ->assertOk()->assertExactJson(['attached_on_feed' => false]);
+        $this->assertDatabaseHas('user_group_subscriptions', [...$row, 'attached_on_feed' => false]);
+
+        $this->actingAs($user)->postJson("/groups/{$group->id}/attach")
+            ->assertOk()->assertExactJson(['attached_on_feed' => true]);
+        $this->assertDatabaseHas('user_group_subscriptions', [...$row, 'attached_on_feed' => true]);
+    }
+
+    public function test_a_group_the_user_is_not_in_cannot_be_attached(): void
+    {
+        $user = User::factory()->create();
+        $group = Group::factory()->create(['is_private' => false]);
+
+        $this->actingAs($user)->postJson("/groups/{$group->id}/attach")->assertNotFound();
+        $this->assertDatabaseCount('user_group_subscriptions', 0);
+    }
 }

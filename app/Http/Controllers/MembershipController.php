@@ -44,4 +44,26 @@ class MembershipController extends Controller
 
         return response()->json(['is_member' => false]);
     }
+
+    public function attach(Request $request, string $groupId): JsonResponse
+    {
+        return $this->setAttachedOnFeed($request, $groupId, true);
+    }
+
+    public function detach(Request $request, string $groupId): JsonResponse
+    {
+        return $this->setAttachedOnFeed($request, $groupId, false);
+    }
+
+    // Only a group the user is in can be on their side panel; 404 otherwise, same as a missing group.
+    private function setAttachedOnFeed(Request $request, string $groupId, bool $attached): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        abort_unless($this->membershipService->isMember($groupId, $userId), 404);
+
+        $this->membershipService->setAttachedOnFeed($groupId, $userId, $attached);
+
+        return response()->json(['attached_on_feed' => $attached]);
+    }
 }

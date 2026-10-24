@@ -66,6 +66,11 @@ interface GroupRepositoryInterface
     public function subscribedBy(string $userId): Collection;
 
     /**
+     * Shows or hides the group on the user's side panel. A no-op when the user is not subscribed.
+     */
+    public function setAttachedOnFeed(string $groupId, string $userId, bool $attached): void;
+
+    /**
      * Creates the membership row. Idempotent — a no-op if already subscribed. Only meaningful
      * for a public group; a private group's membership is created by an approved
      * GroupJoinRequest instead (JoinRequestService, not built yet) — the Service/Policy layer is

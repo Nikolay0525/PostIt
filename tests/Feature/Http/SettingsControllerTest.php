@@ -33,6 +33,7 @@ class SettingsControllerTest extends TestCase
             'show_adult_content' => false,
             'enable_cookies' => true,
             'allow_messages' => false,
+            'amount_of_attached_subscriptions' => 15,
         ], $overrides);
     }
 
@@ -66,6 +67,7 @@ class SettingsControllerTest extends TestCase
                 ->where('settings.ui_language_code', 'uk')
                 ->where('settings.speaking_languages', ['uk'])
                 ->where('settings.allow_messages', true)
+                ->where('settings.amount_of_attached_subscriptions', 10)
                 ->where('settings.theme_mode', 'browser')
                 ->where('settings.show_adult_content', false)
                 ->where('can_enable_adult_content', true)
@@ -88,6 +90,7 @@ class SettingsControllerTest extends TestCase
         $this->assertTrue($settings->show_swear_words);
         $this->assertTrue($settings->enable_cookies);
         $this->assertFalse($settings->allow_messages);
+        $this->assertSame(15, $settings->amount_of_attached_subscriptions);
         $this->assertSame(['de', 'uk'], $this->speakingCodes($user));
     }
 
@@ -225,5 +228,17 @@ class SettingsControllerTest extends TestCase
         $this->get('/login')
             ->assertDontSee('data-theme-mode', false)
             ->assertInertia(fn (AssertableInertia $page) => $page->where('theme', null));
+    }
+
+    public function test_the_attached_subscriptions_amount_must_be_within_its_range(): void
+    {
+        $user = User::factory()->create();
+
+        foreach ([0, UpdateSettingsRequest::MAX_ATTACHED_SUBSCRIPTIONS + 1, 'many'] as $amount) {
+            $this->actingAs($user)->patch('/settings', $this->payload(['amount_of_attached_subscriptions' => $amount]))
+                ->assertSessionHasErrors('amount_of_attached_subscriptions');
+        }
+
+        $this->assertSame(10, UserSettings::find($user->id)->amount_of_attached_subscriptions);
     }
 }

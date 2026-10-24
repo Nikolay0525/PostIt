@@ -73,6 +73,11 @@ interface UserRepositoryInterface
     public function followedBy(string $followerId): Collection;
 
     /**
+     * Shows or hides the author on the follower's side panel. A no-op when not following them.
+     */
+    public function setFollowAttachedOnFeed(string $followerId, string $authorId, bool $attached): void;
+
+    /**
      * Idempotent: muting a group already muted changes nothing.
      */
     public function muteGroupNotifications(string $userId, string $groupId): void;

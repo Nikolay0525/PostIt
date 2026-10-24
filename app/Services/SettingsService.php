@@ -29,7 +29,7 @@ class SettingsService
      * Saves the preferences and replaces the speaking languages together, so a failure never
      * leaves one half saved.
      *
-     * @param  array{ui_language_code: string, theme_mode: string, show_swear_words: bool, show_adult_content: bool, enable_cookies: bool, allow_messages: bool}  $settings
+     * @param  array{ui_language_code: string, theme_mode: string, show_swear_words: bool, show_adult_content: bool, enable_cookies: bool, allow_messages: bool, amount_of_attached_subscriptions: int}  $settings
      * @param  list<string>  $speakingLanguageCodes
      *
      * @throws InvalidArgumentException when a minor tries to enable adult content

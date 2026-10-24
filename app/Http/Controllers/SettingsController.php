@@ -35,11 +35,13 @@ class SettingsController extends Controller
                 'show_adult_content' => $user->settings->show_adult_content,
                 'enable_cookies' => $user->settings->enable_cookies,
                 'allow_messages' => $user->settings->allow_messages,
+                'amount_of_attached_subscriptions' => $user->settings->amount_of_attached_subscriptions,
             ],
             'can_enable_adult_content' => $user->isAdult(),
             'ui_languages' => $this->languageRepository->uiLanguages(),
             'speaking_languages' => $this->languageRepository->speakingLanguages(),
             'max_speaking_languages' => UpdateSettingsRequest::MAX_SPEAKING_LANGUAGES,
+            'max_attached_subscriptions' => UpdateSettingsRequest::MAX_ATTACHED_SUBSCRIPTIONS,
         ]);
     }
 

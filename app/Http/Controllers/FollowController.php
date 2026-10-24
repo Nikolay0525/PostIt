@@ -44,6 +44,28 @@ class FollowController extends Controller
         return $this->state(false, $author->id);
     }
 
+    public function attach(Request $request, string $userId): JsonResponse
+    {
+        return $this->setAttachedOnFeed($request, $userId, true);
+    }
+
+    public function detach(Request $request, string $userId): JsonResponse
+    {
+        return $this->setAttachedOnFeed($request, $userId, false);
+    }
+
+    // Only someone the user follows can be on their side panel; 404 otherwise.
+    private function setAttachedOnFeed(Request $request, string $authorId, bool $attached): JsonResponse
+    {
+        $followerId = $request->user()->id;
+
+        abort_unless($this->followService->isFollowing($followerId, $authorId), 404);
+
+        $this->followService->setAttachedOnFeed($followerId, $authorId, $attached);
+
+        return response()->json(['attached_on_feed' => $attached]);
+    }
+
     private function state(bool $isFollowing, string $authorId): JsonResponse
     {
         return response()->json([
