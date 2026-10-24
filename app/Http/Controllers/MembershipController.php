@@ -60,7 +60,7 @@ class MembershipController extends Controller
     {
         $userId = $request->user()->id;
 
-        abort_unless($this->membershipService->isMember($groupId, $userId), 404);
+        abort_unless($this->groupRepository->isMember($groupId, $userId), 404);
 
         $this->membershipService->setAttachedOnFeed($groupId, $userId, $attached);
 
