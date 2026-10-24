@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Enums\GroupModeratorRole;
+use App\Enums\VoteParentType;
 use App\Models\Group;
 use App\Models\GroupModerator;
 use App\Models\GroupRuleVersion;
@@ -108,15 +109,59 @@ class EloquentGroupRepository implements GroupRepositoryInterface
 
     public function subscribedBy(string $userId): Collection
     {
-        return Group::query()
-            ->join('user_group_subscriptions', 'user_group_subscriptions.group_id', '=', 'groups.id')
-            ->where('user_group_subscriptions.user_id', $userId)
+        return $this->subscriptionsOf($userId)
             ->withCasts(['attached_on_feed' => 'boolean'])
             ->orderBy('groups.name')
             ->get([
                 'groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private',
                 'user_group_subscriptions.attached_on_feed',
             ]);
+    }
+
+    public function attachedOnFeed(string $userId, int $limit): Collection
+    {
+        // select() before withCount(): with the join, get($columns) would be ignored in favour of `*`.
+        return $this->subscriptionsOf($userId)
+            ->where('user_group_subscriptions.attached_on_feed', true)
+            ->select(['groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private'])
+            // New = posted since the user joined, by someone else, and not opened or voted on yet
+            // (the same "seen" as the feed's "Only new" filter).
+            ->withCount(['posts as new_posts_count' => fn (Builder $posts) => $posts
+                ->where('posts.is_deleted', false)
+                ->where('posts.user_id', '!=', $userId)
+                ->whereColumn('posts.created_at', '>=', 'user_group_subscriptions.created_at')
+                ->whereNotIn('posts.id', fn ($views) => $views
+                    ->select('post_id')
+                    ->from('post_views')
+                    ->where('user_id', $userId))
+                ->whereNotIn('posts.id', fn ($votes) => $votes
+                    ->select('parent_id')
+                    ->from('votes')
+                    ->where('user_id', $userId)
+                    ->where('parent_type', VoteParentType::Post))])
+            ->orderByDesc('new_posts_count')
+            ->orderBy('groups.name')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function syncAttachedOnFeed(string $userId, array $groupIds): void
+    {
+        UserGroupSubscription::query()
+            ->where('user_id', $userId)
+            ->update(['attached_on_feed' => false]);
+
+        UserGroupSubscription::query()
+            ->where('user_id', $userId)
+            ->whereIn('group_id', $groupIds)
+            ->update(['attached_on_feed' => true]);
+    }
+
+    private function subscriptionsOf(string $userId): Builder
+    {
+        return Group::query()
+            ->join('user_group_subscriptions', 'user_group_subscriptions.group_id', '=', 'groups.id')
+            ->where('user_group_subscriptions.user_id', $userId);
     }
 
     public function setAttachedOnFeed(string $groupId, string $userId, bool $attached): void

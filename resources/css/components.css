@@ -186,7 +186,7 @@
      Following a smaller segmented switch. The line is on the row, so it runs under the button
      too; the active tab's border sits on top of it (-mb-px). */
   .feed-tabs-row {
-    @apply flex items-end justify-between gap-3 border-b border-line;
+    @apply flex min-h-11 items-end justify-between gap-3 border-b border-line;
   }
   .feed-tabs {
     @apply flex gap-6;
@@ -570,5 +570,41 @@
   }
   .checkbox-input {
     @apply h-4 w-4 rounded-sm border-line text-brand-600 focus:ring-brand-100;
+  }
+
+  /* Home page. The feed is always in the middle of the page: equal columns on both sides, the
+     side panel in the left one. Only from xl are those columns wide enough for it. */
+  .home-layout {
+    @apply xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)] xl:items-start xl:gap-6;
+  }
+  /* Below xl a drawer, shut until the feed's panel button opens it (no hover on touch). */
+  .side-panel {
+    @apply fixed inset-y-0 start-0 z-40 flex w-72 max-w-[85vw] -translate-x-full flex-col gap-5 overflow-y-auto
+           border-e border-line bg-surface p-4 shadow-xl transition-transform duration-200
+           rtl:translate-x-full
+           xl:sticky xl:top-6 xl:z-auto xl:col-start-1 xl:row-start-1 xl:max-h-[calc(100vh-3rem)] xl:w-full
+           xl:translate-x-0 xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:rtl:translate-x-0;
+  }
+  .side-panel.is-open {
+    @apply translate-x-0 rtl:translate-x-0;
+  }
+  .side-panel-backdrop {
+    @apply fixed inset-0 z-30 bg-black/40 xl:hidden;
+  }
+  .side-panel-section {
+    @apply flex flex-col gap-1;
+  }
+  /* Looks like the feed's tab row, so the first one's line runs level with the feed's. */
+  .side-panel-heading {
+    @apply mb-1 justify-start;
+  }
+  .side-panel-new {
+    @apply ms-auto shrink-0 rounded-full bg-brand-600 px-1.5 text-[10px] font-semibold leading-4 text-white;
+  }
+  .side-panel-row {
+    @apply flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-ink transition hover:bg-canvas;
+  }
+  .side-panel-manage {
+    @apply mt-auto px-2 text-xs font-medium text-brand-600 transition hover:text-brand-700;
   }
 }

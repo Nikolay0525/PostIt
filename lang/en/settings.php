@@ -19,6 +19,20 @@ return [
         'content' => 'Content',
         'privacy' => 'Privacy',
         'appearance' => 'Appearance',
+        'subscriptions' => 'My subscriptions',
+    ],
+
+    'subscriptions' => [
+        'hint' => 'Ticked groups and people appear on the side panel of the home page. A new subscription is ticked automatically. Ticks are saved with Save.',
+        'amount' => 'How many to show on the panel',
+        'amount_hint' => 'Separately for groups and for people, from 1 to :max. The rest are under “All”.',
+        'search_placeholder' => 'Find a group or a person…',
+        'groups' => 'Groups',
+        'people' => 'People',
+        'no_groups' => 'You are not in any group yet.',
+        'no_people' => 'You don’t follow anyone yet.',
+        'no_match' => 'Nothing found.',
+        'attached_count' => ':attached of :total on the panel',
     ],
 
     'toggles' => [

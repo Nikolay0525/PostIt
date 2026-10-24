@@ -7,7 +7,9 @@ use App\Enums\TourStatus;
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Http\Requests\UpdateThemeRequest;
 use App\Http\Requests\UpdateTourRequest;
+use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\SettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +21,9 @@ class SettingsController extends Controller
 {
     public function __construct(
         protected SettingsService $settingsService,
-        protected LanguageRepositoryInterface $languageRepository
+        protected LanguageRepositoryInterface $languageRepository,
+        protected GroupRepositoryInterface $groupRepository,
+        protected UserRepositoryInterface $userRepository
     ) {}
 
     public function edit(Request $request): Response
@@ -42,6 +46,11 @@ class SettingsController extends Controller
             'speaking_languages' => $this->languageRepository->speakingLanguages(),
             'max_speaking_languages' => UpdateSettingsRequest::MAX_SPEAKING_LANGUAGES,
             'max_attached_subscriptions' => UpdateSettingsRequest::MAX_ATTACHED_SUBSCRIPTIONS,
+            // Ticked ones show on the home page's side panel; the ticks are saved with the form.
+            'subscriptions' => [
+                'groups' => $this->groupRepository->subscribedBy($user->id),
+                'people' => $this->userRepository->followedBy($user->id),
+            ],
         ]);
     }
 
@@ -51,6 +60,8 @@ class SettingsController extends Controller
             $request->user(),
             $request->settings(),
             $request->validated('speaking_languages'),
+            $request->validated('attached_groups'),
+            $request->validated('attached_people'),
         );
 
         return redirect()->route('settings.edit')->with('status', 'settings-saved');

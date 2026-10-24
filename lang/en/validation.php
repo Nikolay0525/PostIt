@@ -222,6 +222,7 @@ return [
         'show_adult_content' => 'show adult content',
         'enable_cookies' => 'cookies',
         'allow_messages' => 'allow messages',
+        'amount_of_attached_subscriptions' => 'number shown on the side panel',
 
         // Groups (name, slug: lang/*/attributes.php)
         'description' => 'description',

@@ -73,9 +73,24 @@ interface UserRepositoryInterface
     public function followedBy(string $followerId): Collection;
 
     /**
+     * The first `$limit` people the follower attached to their side panel, by username.
+     *
+     * @return Collection<int, User>
+     */
+    public function followsAttachedOnFeed(string $followerId, int $limit): Collection;
+
+    /**
      * Shows or hides the author on the follower's side panel. A no-op when not following them.
      */
     public function setFollowAttachedOnFeed(string $followerId, string $authorId, bool $attached): void;
+
+    /**
+     * Exactly these of the people the follower follows are on their side panel; the rest are
+     * taken off. An id of someone not followed is ignored. The caller wraps it in a transaction.
+     *
+     * @param  list<string>  $authorIds
+     */
+    public function syncFollowsAttachedOnFeed(string $followerId, array $authorIds): void;
 
     /**
      * Idempotent: muting a group already muted changes nothing.

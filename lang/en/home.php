@@ -14,6 +14,21 @@ return [
         'groups' => 'Groups',
         'people' => 'People',
     ],
+    'side_panel' => [
+        'label' => 'Your groups and people',
+        'open' => 'Show your groups and people',
+        'close' => 'Close',
+        'show_posts' => [
+            'groups' => 'Show posts from your groups',
+            'people' => 'Show posts from people you follow',
+        ],
+        'empty' => [
+            'groups' => 'No groups on the panel. Tick some in Settings.',
+            'people' => 'No people on the panel. Tick some in Settings.',
+        ],
+        'new_posts' => ':num new post|:num new posts',
+        'manage' => 'All subscriptions →',
+    ],
     'recommended_hint' => [
         'guest' => 'Popular posts from open groups, freshest first.',
         'member' => 'Popular in groups you haven\'t joined yet: your languages first, then the freshest.',

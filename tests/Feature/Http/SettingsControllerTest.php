@@ -4,6 +4,7 @@ namespace Tests\Feature\Http;
 
 use App\Enums\ThemeMode;
 use App\Http\Requests\UpdateSettingsRequest;
+use App\Models\Group;
 use App\Models\User;
 use App\Models\UserSettings;
 use Database\Seeders\LanguageSeeder;
@@ -34,6 +35,8 @@ class SettingsControllerTest extends TestCase
             'enable_cookies' => true,
             'allow_messages' => false,
             'amount_of_attached_subscriptions' => 15,
+            'attached_groups' => [],
+            'attached_people' => [],
         ], $overrides);
     }
 
@@ -240,5 +243,50 @@ class SettingsControllerTest extends TestCase
         }
 
         $this->assertSame(10, UserSettings::find($user->id)->amount_of_attached_subscriptions);
+    }
+
+    public function test_saving_puts_exactly_the_ticked_groups_and_people_on_the_side_panel(): void
+    {
+        [$user, $kept, $dropped, $stranger] = User::factory()->count(4)->create();
+        [$keptGroup, $droppedGroup, $otherGroup] = Group::factory()->count(3)->create();
+        foreach ([$keptGroup, $droppedGroup] as $group) {
+            DB::table('user_group_subscriptions')->insert(['user_id' => $user->id, 'group_id' => $group->id]);
+        }
+        foreach ([$kept, $dropped] as $author) {
+            DB::table('user_user_subscriptions')->insert(['user_follower_id' => $user->id, 'user_author_id' => $author->id]);
+        }
+
+        // Ids the user is not subscribed to are ignored, not added.
+        $this->actingAs($user)->patch('/settings', $this->payload([
+            'attached_groups' => [$keptGroup->id, $otherGroup->id],
+            'attached_people' => [$kept->id, $stranger->id],
+        ]))->assertRedirect('/settings');
+
+        $attached = fn (string $table, string $owner, string $column) => DB::table($table)
+            ->where($owner, $user->id)->where('attached_on_feed', true)->pluck($column)->all();
+        $this->assertSame([$keptGroup->id], $attached('user_group_subscriptions', 'user_id', 'group_id'));
+        $this->assertSame([$kept->id], $attached('user_user_subscriptions', 'user_follower_id', 'user_author_id'));
+        $this->assertDatabaseCount('user_group_subscriptions', 2);
+        $this->assertDatabaseCount('user_user_subscriptions', 2);
+    }
+
+    public function test_the_page_lists_the_users_groups_and_people_with_what_is_on_the_side_panel(): void
+    {
+        [$user, $author] = User::factory()->count(2)->create();
+        $group = Group::factory()->create(['is_private' => true]);
+        DB::table('user_group_subscriptions')->insert(['user_id' => $user->id, 'group_id' => $group->id]);
+        DB::table('user_user_subscriptions')->insert(['user_follower_id' => $user->id, 'user_author_id' => $author->id, 'attached_on_feed' => false]);
+
+        $this->actingAs($user)->get('/settings')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('max_attached_subscriptions', UpdateSettingsRequest::MAX_ATTACHED_SUBSCRIPTIONS)
+                ->has('subscriptions.groups', 1)
+                ->where('subscriptions.groups.0.id', $group->id)
+                ->where('subscriptions.groups.0.is_private', true)
+                ->where('subscriptions.groups.0.attached_on_feed', true)
+                ->has('subscriptions.people', 1)
+                ->where('subscriptions.people.0.username', $author->username)
+                ->where('subscriptions.people.0.attached_on_feed', false));
     }
 }

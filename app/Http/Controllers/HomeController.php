@@ -6,6 +6,8 @@ use App\Enums\FeedPeriod;
 use App\Enums\FeedSource;
 use App\Enums\FeedType;
 use App\Http\Resources\PostResource;
+use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\PostService;
 use App\Support\FeedFilters;
 use Illuminate\Http\Request;
@@ -15,7 +17,9 @@ use Inertia\Response;
 class HomeController extends Controller
 {
     public function __construct(
-        protected PostService $postService
+        protected PostService $postService,
+        protected GroupRepositoryInterface $groupRepository,
+        protected UserRepositoryInterface $userRepository
     ) {}
 
     public function index(Request $request): Response
@@ -52,6 +56,25 @@ class HomeController extends Controller
                     $source === FeedSource::People => $this->postService->getFollowedAuthorsPosts($userId, $filters),
                     default => $this->postService->getSubscribedPosts($userId, $filters),
                 })),
+            // The groups and people the user attached, up to their `amount_of_attached_subscriptions`
+            // of each; null for a guest. A closure, so switching tabs (a partial reload) skips it.
+            'side_panel' => fn () => $this->sidePanel($request),
         ]);
+    }
+
+    private function sidePanel(Request $request): ?array
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return null;
+        }
+
+        $limit = $user->settings->amount_of_attached_subscriptions;
+
+        return [
+            'groups' => $this->groupRepository->attachedOnFeed($user->id, $limit),
+            'people' => $this->userRepository->followsAttachedOnFeed($user->id, $limit),
+        ];
     }
 }

@@ -120,12 +120,37 @@ class EloquentUserRepository implements UserRepositoryInterface
 
     public function followedBy(string $followerId): Collection
     {
+        return $this->followsOf($followerId)
+            ->withCasts(['attached_on_feed' => 'boolean'])
+            ->get(['users.id', 'users.username', 'users.avatar_url', 'user_user_subscriptions.attached_on_feed']);
+    }
+
+    public function followsAttachedOnFeed(string $followerId, int $limit): Collection
+    {
+        return $this->followsOf($followerId)
+            ->where('user_user_subscriptions.attached_on_feed', true)
+            ->limit($limit)
+            ->get(['users.id', 'users.username', 'users.avatar_url']);
+    }
+
+    public function syncFollowsAttachedOnFeed(string $followerId, array $authorIds): void
+    {
+        UserUserSubscription::query()
+            ->where('user_follower_id', $followerId)
+            ->update(['attached_on_feed' => false]);
+
+        UserUserSubscription::query()
+            ->where('user_follower_id', $followerId)
+            ->whereIn('user_author_id', $authorIds)
+            ->update(['attached_on_feed' => true]);
+    }
+
+    private function followsOf(string $followerId): Builder
+    {
         return User::query()
             ->join('user_user_subscriptions', 'user_user_subscriptions.user_author_id', '=', 'users.id')
             ->where('user_user_subscriptions.user_follower_id', $followerId)
-            ->withCasts(['attached_on_feed' => 'boolean'])
-            ->orderBy('users.username')
-            ->get(['users.id', 'users.username', 'users.avatar_url', 'user_user_subscriptions.attached_on_feed']);
+            ->orderBy('users.username');
     }
 
     public function setFollowAttachedOnFeed(string $followerId, string $authorId, bool $attached): void

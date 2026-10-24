@@ -1,9 +1,10 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import Dropdown from '@/Pages/Components/Dropdown.vue';
 import PostFeed from '@/Pages/Components/PostFeed.vue';
+import SidePanel from '@/Pages/Components/SidePanel.vue';
 import { usePageTours } from '@/utils/tours';
 
 const props = defineProps({
@@ -15,7 +16,12 @@ const props = defineProps({
     filters: Object,
     // Paginated by <InfiniteScroll>. null for a guest on the Following tab.
     posts: Object,
+    // The groups and people attached in Settings ({ groups, people }); null for a guest.
+    side_panel: Object,
 });
+
+// Only matters on a narrow screen, where the panel is a drawer.
+const panelOpen = ref(false);
 
 const page = usePage();
 
@@ -76,99 +82,125 @@ const activeFilters = computed(() =>
         </div>
     </section>
 
-    <section class="feed">
-        <div class="feed-tabs-row" data-tour="feed.tabs">
-            <div class="feed-tabs" role="tablist" :aria-label="$t('home.tabs_label')">
+    <div class="home-layout">
+        <SidePanel
+            v-if="side_panel"
+            :panel="side_panel"
+            :open="panelOpen"
+            :active-source="feed === 'following' ? source : null"
+            @close="panelOpen = false"
+            @show-source="(source) => show('following', source)"
+        />
+
+        <section class="feed w-full min-w-0 xl:col-start-2 xl:row-start-1">
+            <div class="feed-tabs-row" data-tour="feed.tabs">
                 <button
-                    v-for="tab in tabs"
-                    :key="tab"
+                    v-if="side_panel"
                     type="button"
-                    role="tab"
-                    class="feed-tab"
-                    :class="{ 'is-active': feed === tab }"
-                    :aria-selected="feed === tab"
-                    @click="show(tab)"
-                >{{ $t(`home.tabs.${tab}`) }}</button>
+                    class="feed-filter-btn xl:hidden"
+                    aria-controls="side-panel"
+                    :aria-expanded="panelOpen"
+                    :aria-label="$t('home.side_panel.open')"
+                    @click="panelOpen = true"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5" />
+                    </svg>
+                </button>
+
+                <div class="feed-tabs me-auto" role="tablist" :aria-label="$t('home.tabs_label')">
+                    <button
+                        v-for="tab in tabs"
+                        :key="tab"
+                        type="button"
+                        role="tab"
+                        class="feed-tab"
+                        :class="{ 'is-active': feed === tab }"
+                        :aria-selected="feed === tab"
+                        @click="show(tab)"
+                    >{{ $t(`home.tabs.${tab}`) }}</button>
+                </div>
+
+                <!-- On every tab; not for a guest on Following, who sees a log-in prompt there instead. -->
+                <Dropdown v-if="posts" :label="$t('home.filters.label')" trigger-class="feed-filter-btn">
+                    <template #trigger>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5z" />
+                        </svg>
+                        <!-- Icon only on a phone, where the panel button shares the row. -->
+                        <span class="hidden sm:inline">{{ $t('home.filters.label') }}</span>
+                        <span v-if="activeFilters" class="feed-filter-count">{{ activeFilters }}</span>
+                    </template>
+
+                    <div class="feed-filter-panel">
+                        <!-- These two need to know who's reading: views, votes, languages. -->
+                        <template v-if="page.props.auth.user">
+                            <label class="settings-toggle">
+                                <input type="checkbox" class="checkbox-input mt-0.5" :checked="filters.new" @change="setFilter('new', $event.target.checked)" />
+                                <span>
+                                    <span class="block text-sm font-medium text-ink">{{ $t('home.filters.new.label') }}</span>
+                                    <span class="block text-xs text-muted">{{ $t('home.filters.new.hint') }}</span>
+                                </span>
+                            </label>
+                            <label class="settings-toggle">
+                                <input type="checkbox" class="checkbox-input mt-0.5" :checked="filters.langs" @change="setFilter('langs', $event.target.checked)" />
+                                <span>
+                                    <span class="block text-sm font-medium text-ink">{{ $t('home.filters.langs.label') }}</span>
+                                    <span class="block text-xs text-muted">{{ $t('home.filters.langs.hint') }}</span>
+                                </span>
+                            </label>
+                        </template>
+                        <p v-else class="text-xs text-muted">
+                            <AuthPrompt action="filters" />
+                        </p>
+
+                        <fieldset class="flex flex-col gap-2">
+                            <legend class="settings-heading">{{ $t('home.filters.period.label') }}</legend>
+                            <label v-for="period in periods" :key="period" class="settings-toggle">
+                                <input
+                                    type="radio"
+                                    name="feed-period"
+                                    class="checkbox-input mt-0.5 rounded-full"
+                                    :value="period"
+                                    :checked="filters.period === period"
+                                    @change="setFilter('period', period)"
+                                />
+                                <span class="text-sm text-ink">{{ $t(`home.filters.period.${period}`) }}</span>
+                            </label>
+                        </fieldset>
+                    </div>
+                </Dropdown>
             </div>
 
-            <!-- On every tab; not for a guest on Following, who sees a log-in prompt there instead. -->
-            <Dropdown v-if="posts" :label="$t('home.filters.label')" trigger-class="feed-filter-btn">
-                <template #trigger>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                        <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5z" />
-                    </svg>
-                    {{ $t('home.filters.label') }}
-                    <span v-if="activeFilters" class="feed-filter-count">{{ activeFilters }}</span>
-                </template>
+            <div v-if="feed === 'following'" class="feed-switch" role="group" :aria-label="$t('home.sources_label')">
+                <button
+                    v-for="key in sources"
+                    :key="key"
+                    type="button"
+                    class="feed-switch-option"
+                    :class="{ 'is-active': source === key }"
+                    :aria-pressed="source === key"
+                    @click="show('following', key)"
+                >{{ $t(`home.sources.${key}`) }}</button>
+            </div>
 
-                <div class="feed-filter-panel">
-                    <!-- These two need to know who's reading: views, votes, languages. -->
-                    <template v-if="page.props.auth.user">
-                        <label class="settings-toggle">
-                            <input type="checkbox" class="checkbox-input mt-0.5" :checked="filters.new" @change="setFilter('new', $event.target.checked)" />
-                            <span>
-                                <span class="block text-sm font-medium text-ink">{{ $t('home.filters.new.label') }}</span>
-                                <span class="block text-xs text-muted">{{ $t('home.filters.new.hint') }}</span>
-                            </span>
-                        </label>
-                        <label class="settings-toggle">
-                            <input type="checkbox" class="checkbox-input mt-0.5" :checked="filters.langs" @change="setFilter('langs', $event.target.checked)" />
-                            <span>
-                                <span class="block text-sm font-medium text-ink">{{ $t('home.filters.langs.label') }}</span>
-                                <span class="block text-xs text-muted">{{ $t('home.filters.langs.hint') }}</span>
-                            </span>
-                        </label>
-                    </template>
-                    <p v-else class="text-xs text-muted">
-                        <AuthPrompt action="filters" />
-                    </p>
+            <p v-if="!posts" class="post-login-prompt">
+                <AuthPrompt action="following" />
+            </p>
 
-                    <fieldset class="flex flex-col gap-2">
-                        <legend class="settings-heading">{{ $t('home.filters.period.label') }}</legend>
-                        <label v-for="period in periods" :key="period" class="settings-toggle">
-                            <input
-                                type="radio"
-                                name="feed-period"
-                                class="checkbox-input mt-0.5 rounded-full"
-                                :value="period"
-                                :checked="filters.period === period"
-                                @change="setFilter('period', period)"
-                            />
-                            <span class="text-sm text-ink">{{ $t(`home.filters.period.${period}`) }}</span>
-                        </label>
-                    </fieldset>
-                </div>
-            </Dropdown>
-        </div>
-
-        <div v-if="feed === 'following'" class="feed-switch" role="group" :aria-label="$t('home.sources_label')">
-            <button
-                v-for="key in sources"
-                :key="key"
-                type="button"
-                class="feed-switch-option"
-                :class="{ 'is-active': source === key }"
-                :aria-pressed="source === key"
-                @click="show('following', key)"
-            >{{ $t(`home.sources.${key}`) }}</button>
-        </div>
-
-        <p v-if="!posts" class="post-login-prompt">
-            <AuthPrompt action="following" />
-        </p>
-
-        <PostFeed
-            v-else-if="feed === 'recommended'"
-            :hint="$t($page.props.auth.user ? 'home.recommended_hint.member' : 'home.recommended_hint.guest')"
-            :empty="$t(activeFilters ? 'home.filters.empty' : 'home.recommended_empty')"
-            :posts="posts"
-            tour-card="feed.card"
-        />
-        <PostFeed
-            v-else
-            :empty="$t(activeFilters ? 'home.filters.empty' : `home.empty.${source}`)"
-            :posts="posts"
-            tour-card="feed.card"
-        />
-    </section>
+            <PostFeed
+                v-else-if="feed === 'recommended'"
+                :hint="$t($page.props.auth.user ? 'home.recommended_hint.member' : 'home.recommended_hint.guest')"
+                :empty="$t(activeFilters ? 'home.filters.empty' : 'home.recommended_empty')"
+                :posts="posts"
+                tour-card="feed.card"
+            />
+            <PostFeed
+                v-else
+                :empty="$t(activeFilters ? 'home.filters.empty' : `home.empty.${source}`)"
+                :posts="posts"
+                tour-card="feed.card"
+            />
+        </section>
+    </div>
 </template>

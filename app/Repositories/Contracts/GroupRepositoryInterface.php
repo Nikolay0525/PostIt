@@ -66,9 +66,26 @@ interface GroupRepositoryInterface
     public function subscribedBy(string $userId): Collection;
 
     /**
+     * The first `$limit` groups the user attached to their side panel: the most new posts first,
+     * then by name. Each carries `new_posts_count` — posts since the user joined, by others, not
+     * opened or voted on yet.
+     *
+     * @return Collection<int, Group>
+     */
+    public function attachedOnFeed(string $userId, int $limit): Collection;
+
+    /**
      * Shows or hides the group on the user's side panel. A no-op when the user is not subscribed.
      */
     public function setAttachedOnFeed(string $groupId, string $userId, bool $attached): void;
+
+    /**
+     * Exactly these of the user's groups are on their side panel; the rest are taken off. An id
+     * of a group the user is not in is ignored. The caller wraps it in a transaction.
+     *
+     * @param  list<string>  $groupIds
+     */
+    public function syncAttachedOnFeed(string $userId, array $groupIds): void;
 
     /**
      * Creates the membership row. Idempotent — a no-op if already subscribed. Only meaningful
