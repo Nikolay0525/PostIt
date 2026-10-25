@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\User;
 use App\Models\Vote;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\ExcludesSeenPosts;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 class EloquentPostRepository implements PostRepositoryInterface
 {
-    use SearchesText;
+    use ExcludesSeenPosts, SearchesText;
 
     public function find(string $id): ?Post
     {
@@ -153,17 +154,7 @@ class EloquentPostRepository implements PostRepositoryInterface
         $this->withinDays($query, $filters->period->days());
 
         if ($filters->onlyNew) {
-            // Opened or voted on = already seen.
-            $query
-                ->whereNotIn('posts.id', fn ($views) => $views
-                    ->select('post_id')
-                    ->from('post_views')
-                    ->where('user_id', $userId))
-                ->whereNotIn('posts.id', fn ($votes) => $votes
-                    ->select('parent_id')
-                    ->from('votes')
-                    ->where('user_id', $userId)
-                    ->where('parent_type', VoteParentType::Post));
+            $this->whereNotSeenBy($query, $userId);
         }
 
         if ($filters->onlyMyLanguages) {

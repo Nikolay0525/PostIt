@@ -7,9 +7,9 @@ return [
     'tabs_label' => 'Feed',
     'tabs' => [
         'recommended' => 'Recommended',
-        'following' => 'Following',
+        'groups' => 'Groups',
+        'people' => 'People',
     ],
-    'sources_label' => 'Show posts from',
     'sources' => [
         'groups' => 'Groups',
         'people' => 'People',
@@ -18,10 +18,6 @@ return [
         'label' => 'Your groups and people',
         'open' => 'Show your groups and people',
         'close' => 'Close',
-        'show_posts' => [
-            'groups' => 'Show posts from your groups',
-            'people' => 'Show posts from people you follow',
-        ],
         'empty' => [
             'groups' => 'No groups on the panel. Tick some in Settings.',
             'people' => 'No people on the panel. Tick some in Settings.',
@@ -33,7 +29,7 @@ return [
         'guest' => 'Popular posts from open groups, freshest first.',
         'member' => 'Popular in groups you haven\'t joined yet: your languages first, then the freshest.',
     ],
-    'recommended_empty' => 'Nothing new for you yet — check back later or look at your Following tab.',
+    'recommended_empty' => 'Nothing new for you yet — check back later or look at your Groups and People tabs.',
     'filters' => [
         'label' => 'Filters',
         'new' => [

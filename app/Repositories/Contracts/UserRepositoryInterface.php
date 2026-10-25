@@ -73,7 +73,9 @@ interface UserRepositoryInterface
     public function followedBy(string $followerId): Collection;
 
     /**
-     * Every person the follower attached to their side panel, by username.
+     * Every person the follower attached to their side panel: the most new posts first, then by
+     * username. Each carries `new_posts_count` — posts since the follow began, not opened or
+     * voted on yet, and only ones the follower may see (public groups, or private ones they're in).
      *
      * @return Collection<int, User>
      */

@@ -6,16 +6,14 @@ import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 // always there, left of the feed; on a narrow one it stays hidden until the feed's panel button
 // opens it as a drawer — there is no hover on a touch screen, so it opens with a tap.
 const props = defineProps({
-    // { groups: [{ id, slug, name, is_private, new_posts_count }], people: [{ id, username, avatar_url }] }.
-    // Groups with the most new posts come first, then by name; people by name.
+    // { groups: [{ id, slug, name, is_private, new_posts_count }], people: [{ id, username, avatar_url, new_posts_count }] }.
+    // In both, the most new posts first, then by name. A post by someone you follow in a group
+    // you're in counts in both, and reading it once takes it off both.
     panel: { type: Object, required: true },
     open: Boolean,
-    // 'groups' / 'people' while the Following feed shows that source, so its heading reads as active.
-    activeSource: { type: String, default: null },
 });
 
-// show-source: a section heading switches the Following feed to that source.
-const emit = defineEmits(['close', 'show-source']);
+const emit = defineEmits(['close']);
 
 const closeButton = ref(null);
 
@@ -31,11 +29,6 @@ watch(() => props.open, async (open) => {
         closeButton.value?.focus();
     }
 });
-
-const showSource = (source) => {
-    emit('show-source', source);
-    emit('close');
-};
 
 onMounted(() => document.addEventListener('keydown', onKeydown));
 onBeforeUnmount(() => {
@@ -59,14 +52,9 @@ onBeforeUnmount(() => {
         </div>
 
         <section v-for="kind in ['groups', 'people']" :key="kind" class="side-panel-section">
+            <!-- Only a label: which posts the feed shows is switched in the feed itself. -->
             <div class="feed-tabs-row side-panel-heading">
-                <button
-                    type="button"
-                    class="feed-tab"
-                    :class="{ 'is-active': activeSource === kind }"
-                    :title="$t(`home.side_panel.show_posts.${kind}`)"
-                    @click="showSource(kind)"
-                >{{ $t(`home.sources.${kind}`) }}</button>
+                <h2 class="side-panel-title">{{ $t(`home.sources.${kind}`) }}</h2>
             </div>
 
             <ul v-if="panel[kind].length" class="flex flex-col">
@@ -94,6 +82,11 @@ onBeforeUnmount(() => {
                     >
                         <UserAvatar :url="item.avatar_url" :username="item.username" class="avatar-sm" />
                         <span class="min-w-0 truncate" dir="auto">{{ item.username }}</span>
+                        <span
+                            v-if="item.new_posts_count"
+                            class="side-panel-new"
+                            :title="$tChoice('home.side_panel.new_posts', item.new_posts_count, { num: item.new_posts_count })"
+                        >{{ item.new_posts_count }}</span>
                     </Link>
                 </li>
             </ul>

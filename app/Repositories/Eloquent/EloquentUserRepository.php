@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserSettings;
 use App\Models\UserUserSubscription;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\ExcludesSeenPosts;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +17,7 @@ use Illuminate\Support\Str;
 
 class EloquentUserRepository implements UserRepositoryInterface
 {
-    use SearchesText;
+    use ExcludesSeenPosts, SearchesText;
 
     public function find(string $id): ?User
     {
@@ -122,14 +123,34 @@ class EloquentUserRepository implements UserRepositoryInterface
     {
         return $this->followsOf($followerId)
             ->withCasts(['attached_on_feed' => 'boolean'])
+            ->orderBy('users.username')
             ->get(['users.id', 'users.username', 'users.avatar_url', 'user_user_subscriptions.attached_on_feed']);
     }
 
     public function followsAttachedOnFeed(string $followerId): Collection
     {
+        // select() before withCount(): with the join, get($columns) would be ignored in favour of `*`.
         return $this->followsOf($followerId)
             ->where('user_user_subscriptions.attached_on_feed', true)
-            ->get(['users.id', 'users.username', 'users.avatar_url']);
+            ->select(['users.id', 'users.username', 'users.avatar_url'])
+            // New = posted since the follow began, not seen yet (ExcludesSeenPosts), and visible to
+            // the follower like in the People feed: a public group, or a private one they're in —
+            // otherwise the badge would give away posts they can't open.
+            ->withCount(['posts as new_posts_count' => fn (Builder $posts) => $this->whereNotSeenBy($posts
+                ->where('posts.is_deleted', false)
+                ->whereColumn('posts.created_at', '>=', 'user_user_subscriptions.created_at')
+                ->where(fn (Builder $visible) => $visible
+                    ->whereIn('posts.group_id', fn ($groups) => $groups
+                        ->select('id')
+                        ->from('groups')
+                        ->where('is_private', false))
+                    ->orWhereIn('posts.group_id', fn ($groups) => $groups
+                        ->select('group_id')
+                        ->from('user_group_subscriptions')
+                        ->where('user_id', $followerId))), $followerId)])
+            ->orderByDesc('new_posts_count')
+            ->orderBy('users.username')
+            ->get();
     }
 
     public function syncFollowsAttachedOnFeed(string $followerId, array $authorIds): void
@@ -148,8 +169,7 @@ class EloquentUserRepository implements UserRepositoryInterface
     {
         return User::query()
             ->join('user_user_subscriptions', 'user_user_subscriptions.user_author_id', '=', 'users.id')
-            ->where('user_user_subscriptions.user_follower_id', $followerId)
-            ->orderBy('users.username');
+            ->where('user_user_subscriptions.user_follower_id', $followerId);
     }
 
     public function setFollowAttachedOnFeed(string $followerId, string $authorId, bool $attached): void

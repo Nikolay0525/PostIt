@@ -41,7 +41,7 @@ return [
     'feed' => [
         'tabs' => [
             'title' => 'Your feed',
-            'text' => 'Recommended shows popular posts from all of PostIt. Following shows only posts from groups you joined and people you follow. Filters narrow the list: only new posts, only your languages, or a period of time.',
+            'text' => 'Recommended shows popular posts from all of PostIt. Groups shows posts from the groups you joined, People — from the people you follow. Filters narrow the list: only new posts, only your languages, or a period of time.',
         ],
         'card' => [
             'title' => 'A post',

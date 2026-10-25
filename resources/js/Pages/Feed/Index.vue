@@ -28,8 +28,14 @@ const page = usePage();
 // The home page is where a new user starts, so its tour covers the navbar and the feed in one go.
 usePageTours(['navigation', 'feed']);
 
-const tabs = ['recommended', 'following'];
-const sources = ['groups', 'people'];
+// One row, no second switch: the Following feed's two sources are tabs of their own, so either is
+// one tap away. On the server they stay feed=following + source=groups|people.
+const tabs = [
+    { key: 'recommended', feed: 'recommended', source: null },
+    { key: 'groups', feed: 'following', source: 'groups' },
+    { key: 'people', feed: 'following', source: 'people' },
+];
+const isActive = (tab) => tab.feed === props.feed && (tab.source === null || tab.source === props.source);
 const periods = ['all', 'month', 'week'];
 
 // Only what differs from the defaults goes into the URL, so plain Recommended stays "/". The
@@ -87,9 +93,7 @@ const activeFilters = computed(() =>
             v-if="side_panel"
             :panel="side_panel"
             :open="panelOpen"
-            :active-source="feed === 'following' ? source : null"
             @close="panelOpen = false"
-            @show-source="(source) => show('following', source)"
         />
 
         <section class="feed w-full min-w-0 xl:col-start-2 xl:row-start-1">
@@ -111,14 +115,14 @@ const activeFilters = computed(() =>
                 <div class="feed-tabs me-auto" role="tablist" :aria-label="$t('home.tabs_label')">
                     <button
                         v-for="tab in tabs"
-                        :key="tab"
+                        :key="tab.key"
                         type="button"
                         role="tab"
                         class="feed-tab"
-                        :class="{ 'is-active': feed === tab }"
-                        :aria-selected="feed === tab"
-                        @click="show(tab)"
-                    >{{ $t(`home.tabs.${tab}`) }}</button>
+                        :class="{ 'is-active': isActive(tab) }"
+                        :aria-selected="isActive(tab)"
+                        @click="show(tab.feed, tab.source ?? source)"
+                    >{{ $t(`home.tabs.${tab.key}`) }}</button>
                 </div>
 
                 <!-- On every tab; not for a guest on Following, who sees a log-in prompt there instead. -->
@@ -170,18 +174,6 @@ const activeFilters = computed(() =>
                         </fieldset>
                     </div>
                 </Dropdown>
-            </div>
-
-            <div v-if="feed === 'following'" class="feed-switch" role="group" :aria-label="$t('home.sources_label')">
-                <button
-                    v-for="key in sources"
-                    :key="key"
-                    type="button"
-                    class="feed-switch-option"
-                    :class="{ 'is-active': source === key }"
-                    :aria-pressed="source === key"
-                    @click="show('following', key)"
-                >{{ $t(`home.sources.${key}`) }}</button>
             </div>
 
             <p v-if="!posts" class="post-login-prompt">

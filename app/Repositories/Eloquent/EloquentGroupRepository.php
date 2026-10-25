@@ -3,12 +3,12 @@
 namespace App\Repositories\Eloquent;
 
 use App\Enums\GroupModeratorRole;
-use App\Enums\VoteParentType;
 use App\Models\Group;
 use App\Models\GroupModerator;
 use App\Models\GroupRuleVersion;
 use App\Models\UserGroupSubscription;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\ExcludesSeenPosts;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class EloquentGroupRepository implements GroupRepositoryInterface
 {
-    use SearchesText;
+    use ExcludesSeenPosts, SearchesText;
 
     public function find(string $id): ?Group
     {
@@ -124,21 +124,11 @@ class EloquentGroupRepository implements GroupRepositoryInterface
         return $this->subscriptionsOf($userId)
             ->where('user_group_subscriptions.attached_on_feed', true)
             ->select(['groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private'])
-            // New = posted since the user joined, by someone else, and not opened or voted on yet
-            // (the same "seen" as the feed's "Only new" filter).
-            ->withCount(['posts as new_posts_count' => fn (Builder $posts) => $posts
+            // New = posted since the user joined, by someone else, and not seen yet (ExcludesSeenPosts).
+            ->withCount(['posts as new_posts_count' => fn (Builder $posts) => $this->whereNotSeenBy($posts
                 ->where('posts.is_deleted', false)
                 ->where('posts.user_id', '!=', $userId)
-                ->whereColumn('posts.created_at', '>=', 'user_group_subscriptions.created_at')
-                ->whereNotIn('posts.id', fn ($views) => $views
-                    ->select('post_id')
-                    ->from('post_views')
-                    ->where('user_id', $userId))
-                ->whereNotIn('posts.id', fn ($votes) => $votes
-                    ->select('parent_id')
-                    ->from('votes')
-                    ->where('user_id', $userId)
-                    ->where('parent_type', VoteParentType::Post))])
+                ->whereColumn('posts.created_at', '>=', 'user_group_subscriptions.created_at'), $userId)])
             ->orderByDesc('new_posts_count')
             ->orderBy('groups.name')
             ->get();

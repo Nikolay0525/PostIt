@@ -182,6 +182,36 @@ class HomeControllerTest extends TestCase
                 ->where('side_panel.groups.2.new_posts_count', 0));
     }
 
+    public function test_a_post_counts_for_both_its_group_and_its_author_until_it_is_read_once(): void
+    {
+        [$user, $author, $quiet] = User::factory()->count(3)->create();
+        $group = Group::factory()->create(['is_private' => false]);
+        $hidden = Group::factory()->create(['is_private' => true]);
+        $this->travel(-1)->days();
+        $this->join($user, $group);
+        app(FollowService::class)->follow($user->id, $author->id);
+        app(FollowService::class)->follow($user->id, $quiet->id);
+        $this->travelBack();
+
+        $post = Post::factory()->create(['group_id' => $group->id, 'user_id' => $author->id, 'created_at' => now()]);
+        // In a private group the user isn't in: not counted, it would give away a post they can't open.
+        Post::factory()->create(['group_id' => $hidden->id, 'user_id' => $author->id, 'created_at' => now()]);
+
+        $this->actingAs($user)->get('/')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('side_panel.groups.0.new_posts_count', 1)
+                ->where('side_panel.people.0.username', $author->username)
+                ->where('side_panel.people.0.new_posts_count', 1)
+                ->where('side_panel.people.1.new_posts_count', 0));
+
+        DB::table('post_views')->insert(['post_id' => $post->id, 'user_id' => $user->id, 'viewed_at' => now()]);
+
+        $this->actingAs($user)->get('/')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('side_panel.groups.0.new_posts_count', 0)
+                ->where('side_panel.people.0.new_posts_count', 0));
+    }
+
     private function join(User $user, Group $group): void
     {
         UserGroupSubscription::query()->insert(['user_id' => $user->id, 'group_id' => $group->id, 'created_at' => now()]);
