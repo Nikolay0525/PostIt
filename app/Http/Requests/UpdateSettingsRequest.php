@@ -11,9 +11,6 @@ class UpdateSettingsRequest extends FormRequest
 {
     public const MAX_SPEAKING_LANGUAGES = 10;
 
-    // How many attached groups, and separately people, the side panel shows at most.
-    public const MAX_ATTACHED_SUBSCRIPTIONS = 50;
-
     // Only the signed-in user's own settings can be edited, and the route is behind `auth`.
     public function authorize(): bool
     {
@@ -39,7 +36,6 @@ class UpdateSettingsRequest extends FormRequest
             ],
             'enable_cookies' => ['required', 'boolean'],
             'allow_messages' => ['required', 'boolean'],
-            'amount_of_attached_subscriptions' => ['required', 'integer', 'min:1', 'max:'.self::MAX_ATTACHED_SUBSCRIPTIONS],
             // Ids of the user's own groups and people to keep on the side panel; others are ignored.
             'attached_groups' => ['present', 'array'],
             'attached_groups.*' => ['uuid'],
@@ -49,7 +45,7 @@ class UpdateSettingsRequest extends FormRequest
     }
 
     /**
-     * @return array{ui_language_code: string, theme_mode: string, show_swear_words: bool, show_adult_content: bool, enable_cookies: bool, allow_messages: bool, amount_of_attached_subscriptions: int}
+     * @return array{ui_language_code: string, theme_mode: string, show_swear_words: bool, show_adult_content: bool, enable_cookies: bool, allow_messages: bool}
      */
     public function settings(): array
     {
@@ -60,7 +56,6 @@ class UpdateSettingsRequest extends FormRequest
             'show_adult_content' => $this->boolean('show_adult_content'),
             'enable_cookies' => $this->boolean('enable_cookies'),
             'allow_messages' => $this->boolean('allow_messages'),
-            'amount_of_attached_subscriptions' => $this->integer('amount_of_attached_subscriptions'),
         ];
     }
 }

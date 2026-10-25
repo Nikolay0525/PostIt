@@ -34,7 +34,6 @@ class SettingsControllerTest extends TestCase
             'show_adult_content' => false,
             'enable_cookies' => true,
             'allow_messages' => false,
-            'amount_of_attached_subscriptions' => 15,
             'attached_groups' => [],
             'attached_people' => [],
         ], $overrides);
@@ -70,7 +69,6 @@ class SettingsControllerTest extends TestCase
                 ->where('settings.ui_language_code', 'uk')
                 ->where('settings.speaking_languages', ['uk'])
                 ->where('settings.allow_messages', true)
-                ->where('settings.amount_of_attached_subscriptions', 10)
                 ->where('settings.theme_mode', 'browser')
                 ->where('settings.show_adult_content', false)
                 ->where('can_enable_adult_content', true)
@@ -93,7 +91,6 @@ class SettingsControllerTest extends TestCase
         $this->assertTrue($settings->show_swear_words);
         $this->assertTrue($settings->enable_cookies);
         $this->assertFalse($settings->allow_messages);
-        $this->assertSame(15, $settings->amount_of_attached_subscriptions);
         $this->assertSame(['de', 'uk'], $this->speakingCodes($user));
     }
 
@@ -233,18 +230,6 @@ class SettingsControllerTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page->where('theme', null));
     }
 
-    public function test_the_attached_subscriptions_amount_must_be_within_its_range(): void
-    {
-        $user = User::factory()->create();
-
-        foreach ([0, UpdateSettingsRequest::MAX_ATTACHED_SUBSCRIPTIONS + 1, 'many'] as $amount) {
-            $this->actingAs($user)->patch('/settings', $this->payload(['amount_of_attached_subscriptions' => $amount]))
-                ->assertSessionHasErrors('amount_of_attached_subscriptions');
-        }
-
-        $this->assertSame(10, UserSettings::find($user->id)->amount_of_attached_subscriptions);
-    }
-
     public function test_saving_puts_exactly_the_ticked_groups_and_people_on_the_side_panel(): void
     {
         [$user, $kept, $dropped, $stranger] = User::factory()->count(4)->create();
@@ -280,7 +265,6 @@ class SettingsControllerTest extends TestCase
         $this->actingAs($user)->get('/settings')
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('max_attached_subscriptions', UpdateSettingsRequest::MAX_ATTACHED_SUBSCRIPTIONS)
                 ->has('subscriptions.groups', 1)
                 ->where('subscriptions.groups.0.id', $group->id)
                 ->where('subscriptions.groups.0.is_private', true)

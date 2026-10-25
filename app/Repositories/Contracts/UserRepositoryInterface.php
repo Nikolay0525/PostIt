@@ -73,11 +73,11 @@ interface UserRepositoryInterface
     public function followedBy(string $followerId): Collection;
 
     /**
-     * The first `$limit` people the follower attached to their side panel, by username.
+     * Every person the follower attached to their side panel, by username.
      *
      * @return Collection<int, User>
      */
-    public function followsAttachedOnFeed(string $followerId, int $limit): Collection;
+    public function followsAttachedOnFeed(string $followerId): Collection;
 
     /**
      * Shows or hides the author on the follower's side panel. A no-op when not following them.

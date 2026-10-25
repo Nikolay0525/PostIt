@@ -56,25 +56,23 @@ class HomeController extends Controller
                     $source === FeedSource::People => $this->postService->getFollowedAuthorsPosts($userId, $filters),
                     default => $this->postService->getSubscribedPosts($userId, $filters),
                 })),
-            // The groups and people the user attached, up to their `amount_of_attached_subscriptions`
-            // of each; null for a guest. A closure, so switching tabs (a partial reload) skips it.
+            // Every group and person the user attached; null for a guest. A closure, so switching
+            // tabs (a partial reload) skips it.
             'side_panel' => fn () => $this->sidePanel($request),
         ]);
     }
 
     private function sidePanel(Request $request): ?array
     {
-        $user = $request->user();
+        $userId = $request->user()?->id;
 
-        if ($user === null) {
+        if ($userId === null) {
             return null;
         }
 
-        $limit = $user->settings->amount_of_attached_subscriptions;
-
         return [
-            'groups' => $this->groupRepository->attachedOnFeed($user->id, $limit),
-            'people' => $this->userRepository->followsAttachedOnFeed($user->id, $limit),
+            'groups' => $this->groupRepository->attachedOnFeed($userId),
+            'people' => $this->userRepository->followsAttachedOnFeed($userId),
         ];
     }
 }

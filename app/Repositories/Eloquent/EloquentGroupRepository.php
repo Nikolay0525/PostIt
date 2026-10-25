@@ -118,7 +118,7 @@ class EloquentGroupRepository implements GroupRepositoryInterface
             ]);
     }
 
-    public function attachedOnFeed(string $userId, int $limit): Collection
+    public function attachedOnFeed(string $userId): Collection
     {
         // select() before withCount(): with the join, get($columns) would be ignored in favour of `*`.
         return $this->subscriptionsOf($userId)
@@ -141,7 +141,6 @@ class EloquentGroupRepository implements GroupRepositoryInterface
                     ->where('parent_type', VoteParentType::Post))])
             ->orderByDesc('new_posts_count')
             ->orderBy('groups.name')
-            ->limit($limit)
             ->get();
     }
 

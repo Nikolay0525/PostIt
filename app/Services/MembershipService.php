@@ -20,8 +20,7 @@ class MembershipService
         $this->groupRepository->unsubscribe($groupId, $userId);
     }
 
-    // No cap on how many groups are attached: the side panel shows the first
-    // `amount_of_attached_subscriptions` of them and links to the rest.
+    // No cap on how many groups are attached: the side panel shows all of them.
     public function setAttachedOnFeed(string $groupId, string $userId, bool $attached): void
     {
         $this->groupRepository->setAttachedOnFeed($groupId, $userId, $attached);

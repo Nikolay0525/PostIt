@@ -9,7 +9,6 @@ const props = defineProps({
     ui_languages: Array,
     speaking_languages: Array,
     max_speaking_languages: Number,
-    max_attached_subscriptions: Number,
     // { groups: [{ id, slug, name, icon_url, is_private, attached_on_feed }], people: [{ id, username, avatar_url, attached_on_feed }] }, by name.
     subscriptions: Object,
     status: String,
@@ -218,21 +217,6 @@ const submit = () => {
             <fieldset id="subscriptions" class="settings-section scroll-mt-6">
                 <legend class="settings-heading">{{ $t('settings.sections.subscriptions') }}</legend>
                 <p class="field-hint mt-0">{{ $t('settings.subscriptions.hint') }}</p>
-
-                <div>
-                    <label class="field-label" for="attached-amount">{{ $t('settings.subscriptions.amount') }}</label>
-                    <input
-                        id="attached-amount"
-                        v-model.number="form.amount_of_attached_subscriptions"
-                        type="number"
-                        min="1"
-                        :max="max_attached_subscriptions"
-                        class="field-input w-24"
-                        :class="{ 'has-error': form.errors.amount_of_attached_subscriptions }"
-                    />
-                    <p class="field-hint">{{ $t('settings.subscriptions.amount_hint', { max: max_attached_subscriptions }) }}</p>
-                    <p v-if="form.errors.amount_of_attached_subscriptions" class="field-error">{{ form.errors.amount_of_attached_subscriptions }}</p>
-                </div>
 
                 <input
                     v-if="subscriptions.groups.length || subscriptions.people.length"

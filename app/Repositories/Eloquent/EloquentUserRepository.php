@@ -125,11 +125,10 @@ class EloquentUserRepository implements UserRepositoryInterface
             ->get(['users.id', 'users.username', 'users.avatar_url', 'user_user_subscriptions.attached_on_feed']);
     }
 
-    public function followsAttachedOnFeed(string $followerId, int $limit): Collection
+    public function followsAttachedOnFeed(string $followerId): Collection
     {
         return $this->followsOf($followerId)
             ->where('user_user_subscriptions.attached_on_feed', true)
-            ->limit($limit)
             ->get(['users.id', 'users.username', 'users.avatar_url']);
     }
 

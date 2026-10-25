@@ -217,7 +217,6 @@ return [
         'show_adult_content' => 'показувати вміст 18+',
         'enable_cookies' => 'файли cookie',
         'allow_messages' => 'дозволити повідомлення',
-        'amount_of_attached_subscriptions' => 'кількість на бічній панелі',
 
         // Groups (name, slug: lang/*/attributes.php)
         'description' => 'опис',

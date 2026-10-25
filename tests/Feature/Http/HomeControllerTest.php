@@ -130,10 +130,9 @@ class HomeControllerTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page->where('side_panel', null));
     }
 
-    public function test_the_side_panel_shows_only_attached_subscriptions_by_name_up_to_the_users_amount(): void
+    public function test_the_side_panel_shows_every_attached_subscription_and_only_those(): void
     {
         $user = User::factory()->create();
-        $user->settings()->update(['amount_of_attached_subscriptions' => 2]);
 
         foreach (['Delta', 'Alpha', 'Charlie', 'Bravo'] as $name) {
             $this->join($user, Group::factory()->create(['name' => $name]));
@@ -149,7 +148,8 @@ class HomeControllerTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('side_panel.groups.0.name', 'Bravo')
                 ->where('side_panel.groups.1.name', 'Charlie')
-                ->has('side_panel.groups', 2)
+                ->where('side_panel.groups.2.name', 'Delta')
+                ->has('side_panel.groups', 3)
                 ->has('side_panel.people', 1)
                 ->where('side_panel.people.0.username', $author->username));
     }
