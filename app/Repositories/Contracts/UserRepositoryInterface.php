@@ -82,11 +82,6 @@ interface UserRepositoryInterface
     public function followsAttachedOnFeed(string $followerId): Collection;
 
     /**
-     * Shows or hides the author on the follower's side panel. A no-op when not following them.
-     */
-    public function setFollowAttachedOnFeed(string $followerId, string $authorId, bool $attached): void;
-
-    /**
      * Exactly these of the people the follower follows are on their side panel; the rest are
      * taken off. An id of someone not followed is ignored. The caller wraps it in a transaction.
      *

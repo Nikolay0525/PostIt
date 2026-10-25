@@ -153,14 +153,6 @@ class EloquentGroupRepository implements GroupRepositoryInterface
             ->where('user_group_subscriptions.user_id', $userId);
     }
 
-    public function setAttachedOnFeed(string $groupId, string $userId, bool $attached): void
-    {
-        UserGroupSubscription::query()
-            ->where('group_id', $groupId)
-            ->where('user_id', $userId)
-            ->update(['attached_on_feed' => $attached]);
-    }
-
     // `UserGroupSubscription` has a composite primary key, which Eloquent does not support
     // natively: insertOrIgnore()/a WHERE-scoped delete() are used instead of instance methods,
     // same reasoning as EloquentVoteRepository.

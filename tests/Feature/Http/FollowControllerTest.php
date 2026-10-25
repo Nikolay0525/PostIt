@@ -78,28 +78,12 @@ class FollowControllerTest extends TestCase
         $this->actingAs($user)->deleteJson('/users/'.Str::uuid().'/follow')->assertNotFound();
     }
 
-    public function test_a_new_follow_is_attached_and_can_be_detached_and_attached_again(): void
+    public function test_a_new_follow_is_attached_to_the_side_panel(): void
     {
         [$follower, $author] = User::factory()->count(2)->create();
-        $row = ['user_follower_id' => $follower->id, 'user_author_id' => $author->id];
 
         $this->actingAs($follower)->postJson("/users/{$author->id}/follow");
-        $this->assertDatabaseHas('user_user_subscriptions', [...$row, 'attached_on_feed' => true]);
 
-        $this->actingAs($follower)->deleteJson("/users/{$author->id}/attach")
-            ->assertOk()->assertExactJson(['attached_on_feed' => false]);
-        $this->assertDatabaseHas('user_user_subscriptions', [...$row, 'attached_on_feed' => false]);
-
-        $this->actingAs($follower)->postJson("/users/{$author->id}/attach")
-            ->assertOk()->assertExactJson(['attached_on_feed' => true]);
-        $this->assertDatabaseHas('user_user_subscriptions', [...$row, 'attached_on_feed' => true]);
-    }
-
-    public function test_someone_the_user_does_not_follow_cannot_be_attached(): void
-    {
-        [$user, $stranger] = User::factory()->count(2)->create();
-
-        $this->actingAs($user)->postJson("/users/{$stranger->id}/attach")->assertNotFound();
-        $this->assertDatabaseCount('user_user_subscriptions', 0);
+        $this->assertDatabaseHas('user_user_subscriptions', ['user_follower_id' => $follower->id, 'user_author_id' => $author->id, 'attached_on_feed' => true]);
     }
 }

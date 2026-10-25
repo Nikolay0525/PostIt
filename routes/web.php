@@ -95,10 +95,6 @@ Route::middleware(['auth'])->group(function () {
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.subscribe');
     Route::delete('/groups/{id}/subscribe', [MembershipController::class, 'unsubscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.unsubscribe');
-    Route::post('/groups/{id}/attach', [MembershipController::class, 'attach'])
-        ->whereUuid('id')->middleware('throttle:60,1')->name('groups.attach');
-    Route::delete('/groups/{id}/attach', [MembershipController::class, 'detach'])
-        ->whereUuid('id')->middleware('throttle:60,1')->name('groups.detach');
 
     Route::get('/notifications', [NotificationController::class, 'index'])
         ->middleware('throttle:60,1')->name('notifications.index');
@@ -112,8 +108,4 @@ Route::middleware(['auth'])->group(function () {
         ->whereUuid('id')->middleware('throttle:60,1')->name('users.follow');
     Route::delete('/users/{id}/follow', [FollowController::class, 'destroy'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('users.unfollow');
-    Route::post('/users/{id}/attach', [FollowController::class, 'attach'])
-        ->whereUuid('id')->middleware('throttle:60,1')->name('users.attach');
-    Route::delete('/users/{id}/attach', [FollowController::class, 'detach'])
-        ->whereUuid('id')->middleware('throttle:60,1')->name('users.detach');
 });

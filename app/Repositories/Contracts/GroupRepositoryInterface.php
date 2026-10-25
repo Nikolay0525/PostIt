@@ -75,11 +75,6 @@ interface GroupRepositoryInterface
     public function attachedOnFeed(string $userId): Collection;
 
     /**
-     * Shows or hides the group on the user's side panel. A no-op when the user is not subscribed.
-     */
-    public function setAttachedOnFeed(string $groupId, string $userId, bool $attached): void;
-
-    /**
      * Exactly these of the user's groups are on their side panel; the rest are taken off. An id
      * of a group the user is not in is ignored. The caller wraps it in a transaction.
      *

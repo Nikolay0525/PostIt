@@ -172,11 +172,6 @@ class EloquentUserRepository implements UserRepositoryInterface
             ->where('user_user_subscriptions.user_follower_id', $followerId);
     }
 
-    public function setFollowAttachedOnFeed(string $followerId, string $authorId, bool $attached): void
-    {
-        $this->followQuery($followerId, $authorId)->update(['attached_on_feed' => $attached]);
-    }
-
     // Mute tables have composite primary keys and no models, like `user_speaking_languages`.
     public function muteGroupNotifications(string $userId, string $groupId): void
     {
