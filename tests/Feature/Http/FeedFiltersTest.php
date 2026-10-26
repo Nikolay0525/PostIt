@@ -6,7 +6,6 @@ use App\Models\Group;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\UserGroupSubscription;
-use App\Models\Vote;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\FollowService;
 use Database\Seeders\LanguageSeeder;
@@ -44,7 +43,8 @@ class FeedFiltersTest extends TestCase
         $voted = $this->makePost();
         $unseen = $this->makePost();
         $this->openPost($user, $opened);
-        Vote::factory()->onPost($voted)->create(['user_id' => $user->id, 'positive' => false]);
+        // Through the endpoint, as a real vote: VoteService is what notes the post as seen.
+        $this->actingAs($user)->postJson('/votes', ['target_type' => 'post', 'target_id' => $voted->id, 'positive' => false])->assertOk();
 
         $this->assertSame([$unseen->id], $this->ids($user, '/?new=1'));
     }

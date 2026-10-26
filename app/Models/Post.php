@@ -53,7 +53,7 @@ class Post extends BaseEntity
         return $this->belongsToMany(User::class, 'post_shares', 'post_id', 'user_id');
     }
 
-    // Users who opened this post's page (`post_views`), each recorded once.
+    // Users who have seen this post (`post_views`: in a list, its page, a vote), each recorded once.
     public function viewedBy(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'post_views', 'post_id', 'user_id');

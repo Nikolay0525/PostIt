@@ -1,10 +1,13 @@
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
+import { postJson } from '@/utils/http';
+import { takePanel } from '@/utils/sidePanel';
 
-// The groups and people the user attached in Settings, on the home page. On a wide screen it is
-// always there, left of the feed; on a narrow one it stays hidden until the feed's panel button
-// opens it as a drawer — there is no hover on a touch screen, so it opens with a tap.
+// The groups and people the user attached in Settings, drawn by the layout on pages that pass
+// `side_panel`. On a wide screen it is always there, left of the page; on a narrow one it stays
+// hidden until a panel button opens it as a drawer — there is no hover on a touch screen, so it
+// opens with a tap.
 const props = defineProps({
     // { groups: [{ id, slug, name, is_private, new_posts_count }], people: [{ id, username, avatar_url, new_posts_count }] }.
     // In both, the most new posts first, then by name. A post by someone you follow in a group
@@ -29,6 +32,26 @@ watch(() => props.open, async (open) => {
         closeButton.value?.focus();
     }
 });
+
+// "Read all" (✓ next to a counter): every new post of that group or person counts as seen. The
+// answer is the fresh panel, as for a "seen" batch. If it fails the counter simply stays.
+const reading = reactive(new Set());
+const readAll = async (kind, item) => {
+    const key = `${kind}:${item.id}`;
+    if (reading.has(key)) return;
+
+    reading.add(key);
+    try {
+        const data = await postJson(`/${kind === 'groups' ? 'groups' : 'users'}/${item.id}/seen`);
+        if (data?.side_panel) takePanel(data.side_panel);
+    } catch (error) {
+        console.error('Read all failed:', error);
+    } finally {
+        reading.delete(key);
+    }
+};
+
+const itemName = (kind, item) => (kind === 'groups' ? item.name : item.username);
 
 onMounted(() => document.addEventListener('keydown', onKeydown));
 onBeforeUnmount(() => {
@@ -58,7 +81,7 @@ onBeforeUnmount(() => {
             </div>
 
             <ul v-if="panel[kind].length" class="flex flex-col">
-                <li v-for="item in panel[kind]" :key="item.id">
+                <li v-for="item in panel[kind]" :key="item.id" class="side-panel-item group">
                     <Link
                         v-if="kind === 'groups'"
                         :href="route('groups.show', item.slug)"
@@ -88,6 +111,16 @@ onBeforeUnmount(() => {
                             :title="$tChoice('home.side_panel.new_posts', item.new_posts_count, { num: item.new_posts_count })"
                         >{{ item.new_posts_count }}</span>
                     </Link>
+                    <!-- Beside the link, not in it: a button inside a link would open the page too. -->
+                    <button
+                        v-if="item.new_posts_count"
+                        type="button"
+                        class="side-panel-read"
+                        :aria-label="$t('home.side_panel.read_all', { name: itemName(kind, item) })"
+                        :title="$t('home.side_panel.read_all', { name: itemName(kind, item) })"
+                        :disabled="reading.has(`${kind}:${item.id}`)"
+                        @click="readAll(kind, item)"
+                    >✓</button>
                 </li>
             </ul>
             <p v-else class="px-2 text-xs text-muted">{{ $t(`home.side_panel.empty.${kind}`) }}</p>

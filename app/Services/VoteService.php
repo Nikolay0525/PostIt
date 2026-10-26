@@ -6,13 +6,15 @@ use App\Enums\VoteParentType;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
+use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\VoteRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
 class VoteService
 {
     public function __construct(
-        protected VoteRepositoryInterface $voteRepository
+        protected VoteRepositoryInterface $voteRepository,
+        protected PostRepositoryInterface $postRepository
     ) {}
 
     /**
@@ -24,6 +26,12 @@ class VoteService
     public function castVote(User $user, Post|Comment $target, VoteParentType $type, bool $positive): array
     {
         $viewerVote = DB::transaction(function () use ($user, $target, $type, $positive) {
+            // Voting on a post means having seen it (post_views), even if the card was never
+            // whole on screen. Taking the vote back doesn't make it unseen.
+            if ($type === VoteParentType::Post) {
+                $this->postRepository->recordView($target->id, $user->id);
+            }
+
             $existing = $this->voteRepository->find($target->id, $user->id, $type);
 
             if ($existing === null) {

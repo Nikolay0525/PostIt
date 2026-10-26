@@ -71,23 +71,56 @@ class EloquentPostRepository implements PostRepositoryInterface
 
     // `post_views`/`post_shares` are link tables with a composite key and no model: insertOrIgnore
     // makes a repeat a no-op without a lookup first, and can't race into a duplicate-key error.
+    // The caller has checked the user may see the post (its page, a vote on it).
     public function recordView(string $postId, string $userId): void
     {
         DB::table('post_views')->insertOrIgnore(['post_id' => $postId, 'user_id' => $userId, 'viewed_at' => now()]);
     }
 
-    // One INSERT … SELECT: only posts the user may see go in (an id of a private group's post, a
-    // deleted or a made-up one is dropped), and a repeat is a no-op, as with recordView().
-    public function recordImpressions(array $postIds, string $userId): void
+    // An id of a private group's post, a deleted or a made-up one is dropped (insertViews), and
+    // a repeat is a no-op, as with recordView().
+    public function recordViews(array $postIds, string $userId): void
     {
-        $visible = $this->visibleTo(Post::query(), $userId)
-            ->whereIn('posts.id', $postIds)
+        $this->insertViews(Post::query()->whereIn('posts.id', $postIds), $userId);
+    }
+
+    // "Read all": exactly the posts the side panel counts as new there — since the user joined
+    // (an earlier post never counted) — so a big old group doesn't turn into thousands of rows.
+    // Not a member: the subquery is empty, the comparison is never true, nothing is noted.
+    public function recordViewsInGroup(string $groupId, string $userId): void
+    {
+        $this->insertViews(Post::query()
+            ->where('posts.group_id', $groupId)
+            ->where('posts.created_at', '>=', fn ($joined) => $joined
+                ->select('created_at')
+                ->from('user_group_subscriptions')
+                ->where('group_id', $groupId)
+                ->where('user_id', $userId)), $userId);
+    }
+
+    // The same for a person: their posts since the follow began; nothing when not following.
+    public function recordViewsByAuthor(string $authorId, string $userId): void
+    {
+        $this->insertViews(Post::query()
+            ->where('posts.user_id', $authorId)
+            ->where('posts.created_at', '>=', fn ($followed) => $followed
+                ->select('created_at')
+                ->from('user_user_subscriptions')
+                ->where('user_author_id', $authorId)
+                ->where('user_follower_id', $userId)), $userId);
+    }
+
+    // One INSERT … SELECT whatever the number of posts: only ones the user may see and not deleted
+    // go in, and a post already noted keeps its first time.
+    private function insertViews(Builder $posts, string $userId): void
+    {
+        $visible = $this->visibleTo($posts, $userId)
             ->where('posts.is_deleted', false)
             ->select('posts.id')
             ->selectRaw('? as user_id', [$userId])
-            ->selectRaw('? as seen_at', [now()]);
+            ->selectRaw('? as viewed_at', [now()]);
 
-        DB::table('post_impressions')->insertOrIgnoreUsing(['post_id', 'user_id', 'seen_at'], $visible);
+        DB::table('post_views')->insertOrIgnoreUsing(['post_id', 'user_id', 'viewed_at'], $visible);
     }
 
     public function recordShare(string $postId, string $userId): void

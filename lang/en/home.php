@@ -23,6 +23,7 @@ return [
             'people' => 'No people on the panel. Tick some in Settings.',
         ],
         'new_posts' => ':num new post|:num new posts',
+        'read_all' => 'Mark everything in :name as read',
         'manage' => 'All subscriptions →',
     ],
     'recommended_hint' => [

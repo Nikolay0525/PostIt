@@ -54,14 +54,15 @@ class GroupSeeder extends Seeder
                 ]);
             }
 
-            // Members: a random subset of users. The first one also owns the group.
+            // Members: a random subset of users. The first one also owns the group. Joined a day
+            // ago, so posts seeded after that (UnreadPostsSeeder) count as new for them.
             $memberIds = $userIds->shuffle()->take(random_int(3, $userIds->count()));
 
             foreach ($memberIds as $userId) {
                 DB::table('user_group_subscriptions')->insertOrIgnore([
                     'user_id' => $userId,
                     'group_id' => $group->id,
-                    'created_at' => now(),
+                    'created_at' => now()->subDay(),
                 ]);
             }
 

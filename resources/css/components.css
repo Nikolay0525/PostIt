@@ -593,8 +593,19 @@
   .side-panel-new {
     @apply ms-auto shrink-0 rounded-full bg-brand-600 px-1.5 text-[10px] font-semibold leading-4 text-white;
   }
+  .side-panel-item {
+    @apply flex items-center gap-1;
+  }
   .side-panel-row {
-    @apply flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-ink transition hover:bg-canvas;
+    @apply flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-ink transition hover:bg-canvas;
+  }
+  /* "Read all". With a mouse it shows on hovering the row (or on keyboard focus); on a touch
+     screen there is no hover, so it's always there while the row has new posts. */
+  .side-panel-read {
+    @apply flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent
+           text-sm text-muted transition hover:bg-canvas hover:text-brand-600
+           focus-visible:opacity-100 disabled:cursor-wait disabled:opacity-50
+           pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100;
   }
   .side-panel-manage {
     @apply mt-auto px-2 text-xs font-medium text-brand-600 transition hover:text-brand-700;

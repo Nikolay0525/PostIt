@@ -13,7 +13,7 @@ use App\Enums\FeedPeriod;
 final readonly class FeedFilters
 {
     public function __construct(
-        // Hide posts the user has opened (post_views) or voted on.
+        // Hide posts the user has seen (post_views: in a list, opened or voted on).
         public bool $onlyNew = false,
         // A strict filter on the user's speaking languages (on Recommended: instead of the
         // default language priority).

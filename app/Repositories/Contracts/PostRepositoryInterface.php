@@ -91,17 +91,30 @@ interface PostRepositoryInterface
     public function create(string $groupId, string $userId, ?string $title, string $article, string $slug): Post;
 
     /**
-     * Notes that the user opened the post. Idempotent: the first view is kept.
+     * Notes that the user has seen the post (opened its page, voted on it). Idempotent: the first
+     * time is kept. The caller has checked they may see it.
      */
     public function recordView(string $postId, string $userId): void;
 
     /**
-     * Notes that the user saw these posts whole in a list. Ids of posts they may not see, deleted
-     * or unknown ones are skipped; a post already noted keeps its first time.
+     * Notes that the user has seen these posts (whole in a list). Ids of posts they may not see,
+     * deleted or unknown ones are skipped; a post already noted keeps its first time.
      *
      * @param  list<string>  $postIds
      */
-    public function recordImpressions(array $postIds, string $userId): void;
+    public function recordViews(array $postIds, string $userId): void;
+
+    /**
+     * "Read all" in a group: notes every post the user may see there since they joined. Nothing
+     * when they aren't a member.
+     */
+    public function recordViewsInGroup(string $groupId, string $userId): void;
+
+    /**
+     * "Read all" for a person: notes every post of theirs the user may see since the follow
+     * began. Nothing when not following them.
+     */
+    public function recordViewsByAuthor(string $authorId, string $userId): void;
 
     /**
      * Notes that the user shared the post. Idempotent, so each user counts once.

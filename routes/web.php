@@ -89,6 +89,11 @@ Route::middleware(['auth'])->group(function () {
     // Batches from utils/seen.js: one every 5 s at most while scrolling, plus one on leaving a page.
     Route::post('/posts/seen', [PostController::class, 'markSeen'])
         ->middleware('throttle:60,1')->name('posts.seen');
+    // "Read all" from the side panel.
+    Route::post('/groups/{id}/seen', [PostController::class, 'markGroupSeen'])
+        ->whereUuid('id')->middleware('throttle:30,1')->name('groups.seen');
+    Route::post('/users/{id}/seen', [PostController::class, 'markAuthorSeen'])
+        ->whereUuid('id')->middleware('throttle:30,1')->name('users.seen');
 
     Route::get('/groups/-/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])

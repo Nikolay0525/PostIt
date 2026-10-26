@@ -44,7 +44,7 @@ class PostController extends Controller
         // A private group's post doesn't exist for outsiders: 404, not 403 (PostPolicy::view()).
         abort_unless(Gate::allows('view', $post), 404);
 
-        // Remembered for members only; it powers "only new" in recommendations.
+        // Seen: off the side panel's counters and "Only new" (members only; a guest has neither).
         if ($viewerId !== null) {
             $this->postService->recordView($post->id, $viewerId);
         }
@@ -112,6 +112,26 @@ class PostController extends Controller
         $userId = $request->user()->id;
 
         $this->postService->markSeen($request->validated('ids'), $userId);
+
+        return response()->json(['side_panel' => $sidePanelService->forUser($userId)]);
+    }
+
+    // "Read all" (the ✓ on a side panel row). Answers with the panel like markSeen(). A group the
+    // user isn't in, or someone they don't follow, notes nothing (see the repository).
+    public function markGroupSeen(Request $request, string $id, SidePanelService $sidePanelService): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $this->postService->markGroupSeen($id, $userId);
+
+        return response()->json(['side_panel' => $sidePanelService->forUser($userId)]);
+    }
+
+    public function markAuthorSeen(Request $request, string $id, SidePanelService $sidePanelService): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $this->postService->markAuthorSeen($id, $userId);
 
         return response()->json(['side_panel' => $sidePanelService->forUser($userId)]);
     }

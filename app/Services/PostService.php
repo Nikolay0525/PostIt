@@ -112,13 +112,25 @@ class PostService
     }
 
     /**
-     * Posts the user saw whole in a list: they stop counting as new (side panel, "Only new").
+     * Posts the user saw whole in a list: they stop counting as new (side panel, "Only new"),
+     * like an opened or voted-on post (recordView).
      *
      * @param  list<string>  $postIds
      */
     public function markSeen(array $postIds, string $userId): void
     {
-        $this->postRepository->recordImpressions($postIds, $userId);
+        $this->postRepository->recordViews($postIds, $userId);
+    }
+
+    // "Read all" from the side panel: the group's or the person's new posts, at once.
+    public function markGroupSeen(string $groupId, string $userId): void
+    {
+        $this->postRepository->recordViewsInGroup($groupId, $userId);
+    }
+
+    public function markAuthorSeen(string $authorId, string $userId): void
+    {
+        $this->postRepository->recordViewsByAuthor($authorId, $userId);
     }
 
     /**

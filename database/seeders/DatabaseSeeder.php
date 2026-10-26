@@ -15,9 +15,12 @@ class DatabaseSeeder extends Seeder
             LanguageSeeder::class,
             UserSeeder::class,
             GroupSeeder::class,
+            StaticAccountsSeeder::class,
             PostSeeder::class,
             CommentSeeder::class,
             VoteSeeder::class,
+            // Last, so these fresh posts have no votes or comments yet: they read as just posted.
+            UnreadPostsSeeder::class,
         ]);
     }
 }

@@ -7,9 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * A new subscription is attached to the side panel until the user detaches it; there is no
-     * cap on how many are attached. `amount_of_attached_subscriptions` only sets how many of the
-     * attached groups and people (each) the panel shows before its "show all" link.
+     * Which of the user's groups and people are on the side panel. A new subscription is attached
+     * until the user unticks it in Settings; there is no cap, the panel shows every attached one.
      */
     public function up(): void
     {
@@ -19,10 +18,6 @@ return new class extends Migration
 
         Schema::table('user_group_subscriptions', function (Blueprint $table) {
             $table->boolean('attached_on_feed')->default(true)->after('group_id');
-        });
-
-        Schema::table('user_settings', function (Blueprint $table) {
-            $table->unsignedTinyInteger('amount_of_attached_subscriptions')->default(10)->after('allow_messages');
         });
     }
 
@@ -34,10 +29,6 @@ return new class extends Migration
 
         Schema::table('user_group_subscriptions', function (Blueprint $table) {
             $table->dropColumn('attached_on_feed');
-        });
-
-        Schema::table('user_settings', function (Blueprint $table) {
-            $table->dropColumn('amount_of_attached_subscriptions');
         });
     }
 };

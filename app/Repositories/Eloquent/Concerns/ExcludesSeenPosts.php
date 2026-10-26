@@ -2,7 +2,6 @@
 
 namespace App\Repositories\Eloquent\Concerns;
 
-use App\Enums\VoteParentType;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -11,23 +10,13 @@ use Illuminate\Database\Eloquent\Builder;
  */
 trait ExcludesSeenPosts
 {
-    // Opened (post_views), seen whole in a list (post_impressions) or voted on = seen. $posts is
-    // a query on `posts`.
+    // Seen = a row in `post_views`, which every way of seeing a post writes: its card whole on
+    // screen in a list, its page opened, a vote on it. $posts is a query on `posts`.
     private function whereNotSeenBy(Builder $posts, string $userId): Builder
     {
-        return $posts
-            ->whereNotIn('posts.id', fn ($views) => $views
-                ->select('post_id')
-                ->from('post_views')
-                ->where('user_id', $userId))
-            ->whereNotIn('posts.id', fn ($impressions) => $impressions
-                ->select('post_id')
-                ->from('post_impressions')
-                ->where('user_id', $userId))
-            ->whereNotIn('posts.id', fn ($votes) => $votes
-                ->select('parent_id')
-                ->from('votes')
-                ->where('user_id', $userId)
-                ->where('parent_type', VoteParentType::Post));
+        return $posts->whereNotIn('posts.id', fn ($views) => $views
+            ->select('post_id')
+            ->from('post_views')
+            ->where('user_id', $userId));
     }
 }
