@@ -103,7 +103,7 @@ const activeFilters = computed(() =>
             </div>
 
             <!-- On every tab; not for a guest on Following, who sees a log-in prompt there instead. -->
-            <Dropdown v-if="posts" :label="$t('home.filters.label')" trigger-class="feed-filter-btn">
+            <Dropdown v-if="posts" :label="$t('home.filters.label')" trigger-class="feed-filter-btn" anchored>
                 <template #trigger>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5z" />
@@ -135,7 +135,7 @@ const activeFilters = computed(() =>
                         <AuthPrompt action="filters" />
                     </p>
 
-                    <fieldset class="flex flex-col gap-2">
+                    <fieldset class="feed-filter-group">
                         <legend class="settings-heading">{{ $t('home.filters.period.label') }}</legend>
                         <label v-for="period in periods" :key="period" class="settings-toggle">
                             <input

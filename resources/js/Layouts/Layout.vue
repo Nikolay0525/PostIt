@@ -64,11 +64,13 @@ const showPanel = computed(() => page.props.side_panel !== undefined && panel.va
             </nav>
         </header>
 
-        <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <!-- The page always in the middle column, the panel in the left one (see .home-layout). -->
+        <!-- With the panel the page may use the whole width: the grid caps its own columns. -->
+        <main class="mx-auto px-4 py-8 sm:px-6 lg:px-8" :class="showPanel ? 'max-w-none' : 'max-w-7xl'">
+            <!-- The page always in the middle column, the panel in the left one, a page's
+                 .page-aside in the right one (see .home-layout). -->
             <div v-if="showPanel" class="home-layout">
                 <SidePanel :panel="panel" :open="panelOpen" @close="panelOpen = false" />
-                <div class="min-w-0 xl:col-start-2 xl:row-start-1">
+                <div class="home-layout-page">
                     <slot />
                 </div>
             </div>

@@ -35,7 +35,7 @@ return [
         'label' => 'Filters',
         'new' => [
             'label' => 'Only new',
-            'hint' => 'Hide posts you\'ve opened or voted on.',
+            'hint' => 'Hide posts you\'ve already seen: scrolled past, opened or voted on.',
         ],
         'langs' => [
             'label' => 'Only my languages',
