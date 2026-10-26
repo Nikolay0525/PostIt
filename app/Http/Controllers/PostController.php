@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MarkPostsSeenRequest;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Resources\CommentResource;
 use App\Http\Resources\PostResource;
@@ -14,6 +15,7 @@ use App\Services\PostService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -100,6 +102,15 @@ class PostController extends Controller
         abort_if($post === null || $post->is_deleted || $request->user()->cannot('view', $post), 404);
 
         return response()->json(['shares_count' => $this->postService->share($post->id, $request->user()->id)]);
+    }
+
+    // Called with a batch of ids by the browser (utils/seen.js) every few seconds and when leaving
+    // a page; plain JSON, no page visit. Posts the user may not see are skipped by the repository.
+    public function markSeen(MarkPostsSeenRequest $request): HttpResponse
+    {
+        $this->postService->markSeen($request->validated('ids'), $request->user()->id);
+
+        return response()->noContent();
     }
 
     // Read-only, so it's public like show()/groups.show — not gated behind auth. The private

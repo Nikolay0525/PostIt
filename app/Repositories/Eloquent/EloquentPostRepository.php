@@ -76,6 +76,20 @@ class EloquentPostRepository implements PostRepositoryInterface
         DB::table('post_views')->insertOrIgnore(['post_id' => $postId, 'user_id' => $userId, 'viewed_at' => now()]);
     }
 
+    // One INSERT … SELECT: only posts the user may see go in (an id of a private group's post, a
+    // deleted or a made-up one is dropped), and a repeat is a no-op, as with recordView().
+    public function recordImpressions(array $postIds, string $userId): void
+    {
+        $visible = $this->visibleTo(Post::query(), $userId)
+            ->whereIn('posts.id', $postIds)
+            ->where('posts.is_deleted', false)
+            ->select('posts.id')
+            ->selectRaw('? as user_id', [$userId])
+            ->selectRaw('? as seen_at', [now()]);
+
+        DB::table('post_impressions')->insertOrIgnoreUsing(['post_id', 'user_id', 'seen_at'], $visible);
+    }
+
     public function recordShare(string $postId, string $userId): void
     {
         DB::table('post_shares')->insertOrIgnore(['post_id' => $postId, 'user_id' => $userId, 'created_at' => now()]);

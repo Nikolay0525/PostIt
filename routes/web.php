@@ -86,6 +86,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:60,1')->name('posts.store');
     Route::post('/posts/{id}/share', [PostController::class, 'share'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('posts.share');
+    // Batches from utils/seen.js: one every 5 s at most while scrolling, plus one on leaving a page.
+    Route::post('/posts/seen', [PostController::class, 'markSeen'])
+        ->middleware('throttle:60,1')->name('posts.seen');
 
     Route::get('/groups/-/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])

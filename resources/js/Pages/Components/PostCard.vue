@@ -1,10 +1,12 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import ShareButton from '@/Pages/Components/ShareButton.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
 import { excerpt, timeAgo } from '@/utils/format';
+import { trackSeen, untrackSeen } from '@/utils/seen';
 
 const props = defineProps({
     post: Object,
@@ -15,10 +17,19 @@ const props = defineProps({
 const preview = computed(() => excerpt(props.post.article_text));
 
 const showLoginPrompt = ref(false);
+
+// In a list, a card seen whole stops its post counting as new (utils/seen.js). Not on the post's
+// own page (`full`), where opening it already did; not for a guest, who has nothing to count.
+const card = ref(null);
+const page = usePage();
+onMounted(() => {
+    if (!props.full && page.props.auth.user) trackSeen(card.value, props.post.id);
+});
+onBeforeUnmount(() => untrackSeen(card.value));
 </script>
 
 <template>
-    <article class="post-card">
+    <article ref="card" class="post-card">
         <header class="post-meta">
             <UserAvatar :url="post.author.avatar_url" :username="post.author.username" class="avatar" />
 

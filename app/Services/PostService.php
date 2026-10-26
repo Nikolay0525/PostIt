@@ -112,6 +112,16 @@ class PostService
     }
 
     /**
+     * Posts the user saw whole in a list: they stop counting as new (side panel, "Only new").
+     *
+     * @param  list<string>  $postIds
+     */
+    public function markSeen(array $postIds, string $userId): void
+    {
+        $this->postRepository->recordImpressions($postIds, $userId);
+    }
+
+    /**
      * @return int the post's share count afterwards (each user counts once)
      */
     public function share(string $postId, string $userId): int

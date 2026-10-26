@@ -18,8 +18,9 @@ function xsrfToken() {
 //
 // A FormData body (a file upload) is sent as multipart: the browser sets that Content-Type itself,
 // with the boundary, so it must not be set here. `signal` (an AbortController's) lets the caller
-// cancel a request whose answer it no longer wants.
-async function request(method, url, body, signal) {
+// cancel a request whose answer it no longer wants. `keepalive` lets a request finish while the
+// page is being left or closed (e.g. the last "seen" batch); the browser caps such a body at 64 KB.
+async function request(method, url, body, signal, keepalive = false) {
     const isForm = body instanceof FormData;
     const headers = {
         Accept: 'application/json',
@@ -36,6 +37,7 @@ async function request(method, url, body, signal) {
         headers,
         body: body === undefined || isForm ? body : JSON.stringify(body),
         signal,
+        keepalive,
     });
 
     const data = await response.json().catch(() => null);
@@ -52,8 +54,8 @@ export function getJson(url, { signal } = {}) {
     return request('GET', url, undefined, signal);
 }
 
-export function postJson(url, body) {
-    return request('POST', url, body);
+export function postJson(url, body, { keepalive = false } = {}) {
+    return request('POST', url, body, undefined, keepalive);
 }
 
 export function patchJson(url, body) {

@@ -11,13 +11,18 @@ use Illuminate\Database\Eloquent\Builder;
  */
 trait ExcludesSeenPosts
 {
-    // Opened (post_views) or voted on = seen. $posts is a query on `posts`.
+    // Opened (post_views), seen whole in a list (post_impressions) or voted on = seen. $posts is
+    // a query on `posts`.
     private function whereNotSeenBy(Builder $posts, string $userId): Builder
     {
         return $posts
             ->whereNotIn('posts.id', fn ($views) => $views
                 ->select('post_id')
                 ->from('post_views')
+                ->where('user_id', $userId))
+            ->whereNotIn('posts.id', fn ($impressions) => $impressions
+                ->select('post_id')
+                ->from('post_impressions')
                 ->where('user_id', $userId))
             ->whereNotIn('posts.id', fn ($votes) => $votes
                 ->select('parent_id')

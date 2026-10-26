@@ -96,6 +96,14 @@ interface PostRepositoryInterface
     public function recordView(string $postId, string $userId): void;
 
     /**
+     * Notes that the user saw these posts whole in a list. Ids of posts they may not see, deleted
+     * or unknown ones are skipped; a post already noted keeps its first time.
+     *
+     * @param  list<string>  $postIds
+     */
+    public function recordImpressions(array $postIds, string $userId): void;
+
+    /**
      * Notes that the user shared the post. Idempotent, so each user counts once.
      */
     public function recordShare(string $postId, string $userId): void;
