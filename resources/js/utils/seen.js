@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/vue3';
 import { postJson } from '@/utils/http';
+import { takePanel } from '@/utils/sidePanel';
 
 // "Seen" for a post in a list: its whole card was on screen, even for a moment. Such posts stop
 // counting as new (the side panel's counters, the "Only new" filter); opening or voting on a post
@@ -36,8 +37,11 @@ const flush = (keepalive = false) => {
     const batch = [...pending].slice(0, MAX_BATCH);
     batch.forEach((id) => pending.delete(id));
 
-    // A lost batch goes back in line for the next one; it's never worth bothering the reader.
-    postJson('/posts/seen', { ids: batch }, { keepalive }).catch((error) => {
+    // The answer is the side panel as it is now, so its counters drop while the user reads. A lost
+    // batch goes back in line for the next one; it's never worth bothering the reader.
+    postJson('/posts/seen', { ids: batch }, { keepalive }).then((data) => {
+        if (data?.side_panel) takePanel(data.side_panel);
+    }).catch((error) => {
         console.error('Marking posts seen failed:', error);
         batch.forEach((id) => pending.add(id));
     });

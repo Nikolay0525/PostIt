@@ -29,9 +29,9 @@ class SeenPostsTest extends TestCase
         $user = User::factory()->create();
         [$first, $second] = Post::factory()->count(2)->create();
 
-        $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$first->id, $second->id]])->assertNoContent();
+        $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$first->id, $second->id]])->assertOk();
         // Seen again on a later visit: still one row each.
-        $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$first->id]])->assertNoContent();
+        $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$first->id]])->assertOk();
 
         $this->assertDatabaseCount('post_impressions', 2);
         $this->assertDatabaseHas('post_impressions', ['user_id' => $user->id, 'post_id' => $second->id]);
@@ -47,7 +47,7 @@ class SeenPostsTest extends TestCase
         $deleted = Post::factory()->create(['is_deleted' => true]);
 
         $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$visible->id, $private->id, $deleted->id, (string) Str::uuid()]])
-            ->assertNoContent();
+            ->assertOk();
 
         $this->assertDatabaseCount('post_impressions', 1);
         $this->assertDatabaseHas('post_impressions', ['user_id' => $user->id, 'post_id' => $visible->id]);
@@ -60,7 +60,7 @@ class SeenPostsTest extends TestCase
         UserGroupSubscription::query()->insert(['user_id' => $user->id, 'group_id' => $group->id, 'created_at' => now()]);
         $post = Post::factory()->create(['group_id' => $group->id]);
 
-        $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$post->id]])->assertNoContent();
+        $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$post->id]])->assertOk();
 
         $this->assertDatabaseHas('post_impressions', ['user_id' => $user->id, 'post_id' => $post->id]);
     }
@@ -78,7 +78,7 @@ class SeenPostsTest extends TestCase
         $this->postJson('/posts/seen', ['ids' => [(string) Str::uuid()]])->assertUnauthorized();
     }
 
-    public function test_a_seen_post_stops_counting_as_new_on_the_side_panel(): void
+    public function test_the_answer_is_the_side_panel_with_the_seen_post_no_longer_new(): void
     {
         $user = User::factory()->create();
         $group = Group::factory()->create();
@@ -86,11 +86,16 @@ class SeenPostsTest extends TestCase
         UserGroupSubscription::query()->insert(['user_id' => $user->id, 'group_id' => $group->id, 'created_at' => now()]);
         $this->travelBack();
         // The factory backdates posts up to a month; these are from after joining.
-        [$seen, $unseen] = Post::factory()->count(2)->create(['group_id' => $group->id, 'created_at' => now()]);
+        [$seen] = Post::factory()->count(2)->create(['group_id' => $group->id, 'created_at' => now()]);
 
-        $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$seen->id]]);
+        $this->actingAs($user)->postJson('/posts/seen', ['ids' => [$seen->id]])
+            ->assertOk()
+            ->assertJsonPath('side_panel.groups.0.id', $group->id)
+            ->assertJsonPath('side_panel.groups.0.new_posts_count', 1)
+            ->assertJsonStructure(['side_panel' => ['groups', 'people', 'version']]);
 
-        $this->actingAs($user)->get('/')
+        // And on the next page that shows the panel: the group page too, not only the home page.
+        $this->actingAs($user)->get(route('groups.show', $group->slug))
             ->assertInertia(fn (AssertableInertia $page) => $page->where('side_panel.groups.0.new_posts_count', 1));
     }
 }

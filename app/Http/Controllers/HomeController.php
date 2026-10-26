@@ -6,9 +6,8 @@ use App\Enums\FeedPeriod;
 use App\Enums\FeedSource;
 use App\Enums\FeedType;
 use App\Http\Resources\PostResource;
-use App\Repositories\Contracts\GroupRepositoryInterface;
-use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\PostService;
+use App\Services\SidePanelService;
 use App\Support\FeedFilters;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,8 +17,7 @@ class HomeController extends Controller
 {
     public function __construct(
         protected PostService $postService,
-        protected GroupRepositoryInterface $groupRepository,
-        protected UserRepositoryInterface $userRepository
+        protected SidePanelService $sidePanelService
     ) {}
 
     public function index(Request $request): Response
@@ -58,21 +56,7 @@ class HomeController extends Controller
                 })),
             // Every group and person the user attached; null for a guest. A closure, so switching
             // tabs (a partial reload) skips it.
-            'side_panel' => fn () => $this->sidePanel($request),
+            'side_panel' => fn () => $userId === null ? null : $this->sidePanelService->forUser($userId),
         ]);
-    }
-
-    private function sidePanel(Request $request): ?array
-    {
-        $userId = $request->user()?->id;
-
-        if ($userId === null) {
-            return null;
-        }
-
-        return [
-            'groups' => $this->groupRepository->attachedOnFeed($userId),
-            'people' => $this->userRepository->followsAttachedOnFeed($userId),
-        ];
     }
 }

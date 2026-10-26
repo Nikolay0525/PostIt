@@ -5,6 +5,7 @@ import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import TransSlots from '@/Pages/Components/TransSlots.vue';
 import PostCard from '@/Pages/Components/PostCard.vue';
+import SidePanelButton from '@/Pages/Components/SidePanelButton.vue';
 import { formatCount } from '@/utils/format';
 import { deleteJson, postJson } from '@/utils/http';
 
@@ -14,6 +15,8 @@ const props = defineProps({
     sort: String,
     // Paginated by <InfiniteScroll>. null when the group is private and the viewer is not a member.
     posts: Object,
+    // The side panel's data, drawn by the layout (utils/sidePanel.js); null for a guest.
+    side_panel: Object,
 });
 
 const page = usePage();
@@ -134,6 +137,7 @@ const toggleJoin = async () => {
         <template v-else>
             <div class="feed-toolbar">
                 <div class="flex flex-wrap items-center gap-3">
+                    <SidePanelButton v-if="side_panel" class="mb-0 self-stretch" />
                     <Link v-if="canPost" :href="route('posts.create', group.slug)" class="btn-primary">{{ $t('groups.show.create_post') }}</Link>
                     <p v-else-if="!page.props.auth.user" class="text-sm text-muted">
                         <AuthPrompt action="post" />

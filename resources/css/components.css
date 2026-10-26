@@ -177,7 +177,7 @@
 
   /* Feed */
   .feed {
-    @apply mx-auto flex max-w-3xl flex-col gap-4;
+    @apply mx-auto flex max-w-3xl flex-col gap-2;
   }
   .feed-title {
     @apply text-xl font-semibold text-ink;

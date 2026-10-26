@@ -12,10 +12,10 @@ use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Services\CommentService;
 use App\Services\GroupService;
 use App\Services\PostService;
+use App\Services\SidePanelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -106,11 +106,14 @@ class PostController extends Controller
 
     // Called with a batch of ids by the browser (utils/seen.js) every few seconds and when leaving
     // a page; plain JSON, no page visit. Posts the user may not see are skipped by the repository.
-    public function markSeen(MarkPostsSeenRequest $request): HttpResponse
+    // Answers with the side panel as it is now, so its counters drop while the user reads.
+    public function markSeen(MarkPostsSeenRequest $request, SidePanelService $sidePanelService): JsonResponse
     {
-        $this->postService->markSeen($request->validated('ids'), $request->user()->id);
+        $userId = $request->user()->id;
 
-        return response()->noContent();
+        $this->postService->markSeen($request->validated('ids'), $userId);
+
+        return response()->json(['side_panel' => $sidePanelService->forUser($userId)]);
     }
 
     // Read-only, so it's public like show()/groups.show — not gated behind auth. The private

@@ -10,6 +10,7 @@ use App\Models\Group;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Services\GroupService;
 use App\Services\PostService;
+use App\Services\SidePanelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,7 +21,8 @@ class GroupController extends Controller
     public function __construct(
         protected GroupService $groupService,
         protected PostService $postService,
-        protected LanguageRepositoryInterface $languageRepository
+        protected LanguageRepositoryInterface $languageRepository,
+        protected SidePanelService $sidePanelService
     ) {}
 
     public function create(Request $request): Response
@@ -77,6 +79,8 @@ class GroupController extends Controller
             'posts' => $this->groupService->canViewPosts($group, $isMember)
                 ? Inertia::scroll(fn () => PostResource::collection($this->postService->getGroupPosts($group->id, $sort, $viewerId)))
                 : null,
+            // Same panel as on the home page (null for a guest); a closure, so a sort change skips it.
+            'side_panel' => fn () => $viewerId === null ? null : $this->sidePanelService->forUser($viewerId),
         ]);
     }
 }

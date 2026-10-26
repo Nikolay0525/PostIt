@@ -1,10 +1,25 @@
 <script setup>
+import { computed, watch } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import InboxMenu from '@/Pages/Components/InboxMenu.vue';
 import NotificationsMenu from '@/Pages/Components/NotificationsMenu.vue';
 import SearchBox from '@/Pages/Components/SearchBox.vue';
+import SidePanel from '@/Pages/Components/SidePanel.vue';
 import ThemeToggle from '@/Pages/Components/ThemeToggle.vue';
 import TourPrompt from '@/Pages/Components/TourPrompt.vue';
 import UserMenu from '@/Pages/Components/UserMenu.vue';
+import { panel, panelOpen, takePanel } from '@/utils/sidePanel';
+
+const page = usePage();
+
+// The side panel lives here, not in a page: the layout stays mounted from one page to the next,
+// so going from the home page to a group (both pass `side_panel`) keeps the panel and its counters
+// in place. A page without the prop shows no panel; null (a guest) shows none either.
+watch(() => page.props.side_panel, (next) => {
+    if (next !== undefined) takePanel(next);
+}, { immediate: true });
+
+const showPanel = computed(() => page.props.side_panel !== undefined && panel.value !== null);
 </script>
 
 <template>
@@ -50,7 +65,14 @@ import UserMenu from '@/Pages/Components/UserMenu.vue';
         </header>
 
         <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <slot />
+            <!-- The page always in the middle column, the panel in the left one (see .home-layout). -->
+            <div v-if="showPanel" class="home-layout">
+                <SidePanel :panel="panel" :open="panelOpen" @close="panelOpen = false" />
+                <div class="min-w-0 xl:col-start-2 xl:row-start-1">
+                    <slot />
+                </div>
+            </div>
+            <slot v-else />
         </main>
 
         <!-- Offers the current page's tours (see usePageTours); the navbar's on any page. -->
