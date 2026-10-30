@@ -50,7 +50,8 @@ interface GroupRepositoryInterface
 
     /**
      * The groups a user is a member of, by name, as shown on their profile: public groups, and
-     * private ones only when the viewer is a member too (a guest sees public groups only).
+     * private ones only when the viewer is a member too (a guest sees public groups only). Each
+     * carries `karma`: the user's sub-karma in it.
      *
      * @return Collection<int, Group>
      */

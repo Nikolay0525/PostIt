@@ -6,7 +6,6 @@ import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import Dropdown from '@/Pages/Components/Dropdown.vue';
 import TransSlots from '@/Pages/Components/TransSlots.vue';
 import PostCard from '@/Pages/Components/PostCard.vue';
-import SidePanelButton from '@/Pages/Components/SidePanelButton.vue';
 import { formatCount } from '@/utils/format';
 import { deleteJson, postJson } from '@/utils/http';
 import { panel, takePanel } from '@/utils/sidePanel';
@@ -17,8 +16,6 @@ const props = defineProps({
     sort: String,
     // Paginated by <InfiniteScroll>. null when the group is private and the viewer is not a member.
     posts: Object,
-    // The side panel's data, drawn by the layout (utils/sidePanel.js); null for a guest.
-    side_panel: Object,
 });
 
 const page = usePage();
@@ -166,7 +163,6 @@ const readAll = async () => {
         <!-- The same strip as on the home page: the group's actions where the home page has its
              tabs, Filters (here only the sort) on the right, and the line under it all. -->
         <div class="feed-tabs-row">
-            <SidePanelButton v-if="side_panel" />
 
             <nav v-if="posts" class="feed-tabs me-auto" :aria-label="$t('groups.show.actions_label')">
                 <Link v-if="canPost" :href="route('posts.create', group.slug)" class="feed-tab feed-tab-action">

@@ -4,9 +4,9 @@ import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import { postJson } from '@/utils/http';
 import { takePanel } from '@/utils/sidePanel';
 
-// The groups and people the user attached in Settings, drawn by the layout on pages that pass
-// `side_panel`. On a wide screen it is always there, left of the page; on a narrow one it stays
-// hidden until a panel button opens it as a drawer — there is no hover on a touch screen, so it
+// The groups and people the user attached in Settings, drawn by the layout on every page but
+// Auth/*. On a wide screen it is always there, left of the page; on a narrow one it stays
+// hidden until the navbar's panel button opens it as a drawer — there is no hover on a touch screen, so it
 // opens with a tap.
 const props = defineProps({
     // { groups: [{ id, slug, name, is_private, new_posts_count }], people: [{ id, username, avatar_url, new_posts_count }] }.

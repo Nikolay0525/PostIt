@@ -7,7 +7,6 @@ use App\Enums\FeedSource;
 use App\Enums\FeedType;
 use App\Http\Resources\PostResource;
 use App\Services\PostService;
-use App\Services\SidePanelService;
 use App\Support\FeedFilters;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,8 +15,7 @@ use Inertia\Response;
 class HomeController extends Controller
 {
     public function __construct(
-        protected PostService $postService,
-        protected SidePanelService $sidePanelService
+        protected PostService $postService
     ) {}
 
     public function index(Request $request): Response
@@ -54,9 +52,6 @@ class HomeController extends Controller
                     $source === FeedSource::People => $this->postService->getFollowedAuthorsPosts($userId, $filters),
                     default => $this->postService->getSubscribedPosts($userId, $filters),
                 })),
-            // Every group and person the user attached; null for a guest. A closure, so switching
-            // tabs (a partial reload) skips it.
-            'side_panel' => fn () => $userId === null ? null : $this->sidePanelService->forUser($userId),
         ]);
     }
 }

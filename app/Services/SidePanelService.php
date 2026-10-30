@@ -6,7 +6,7 @@ use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 
 /**
- * The side panel (home and group pages): the groups and people the user attached, each with its
+ * The side panel (every page but Auth/*): the groups and people the user attached, each with its
  * new-posts count. Built the same for a page and for the answer to a "seen" batch, so the panel
  * can take either.
  */

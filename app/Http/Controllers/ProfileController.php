@@ -49,7 +49,7 @@ class ProfileController extends Controller
             'achievements' => AchievementResource::collection($this->achievementService->getUnlocked($user->id)),
             // A private group only when the viewer is a member too, same rule as the posts below.
             'groups' => $this->groupService->getMembershipsVisibleTo($user->id, $viewerId)
-                ->map(fn ($group) => $group->only(['id', 'slug', 'name', 'is_private'])),
+                ->map(fn ($group) => $group->only(['id', 'slug', 'name', 'is_private', 'karma'])),
             'posts' => Inertia::scroll(fn () => PostResource::collection($this->postService->getAuthorPosts($user->id, $viewerId))),
             // What the owner's edit form needs; null for everyone else.
             'edit' => $isSelf ? [

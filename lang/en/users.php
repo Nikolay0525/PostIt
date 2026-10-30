@@ -4,6 +4,8 @@ return [
 
     'show' => [
         'followers' => ':num follower|:num followers',
+        'karma' => 'karma',
+        'group_karma' => 'Karma in this group',
         'joined' => 'joined :date',
         'follow' => 'Follow',
         'following' => 'Following',

@@ -199,6 +199,10 @@ const hasStatus = computed(() => info.status_emoji || info.status_text);
                         {{ $tChoice('users.show.followers', followersCount, { num: formatCount(followersCount) }) }}
                         · {{ $t('users.show.joined', { date: joinedOn }) }}
                     </p>
+                    <p class="karma-badge mt-2">
+                        <span class="karma-value">{{ profile.karma }}</span>
+                        {{ $t('users.show.karma') }}
+                    </p>
                 </div>
 
                 <button v-if="is_self" v-show="!editing" type="button" class="btn-secondary" @click="startEditing">
@@ -318,6 +322,7 @@ const hasStatus = computed(() => info.status_emoji || info.status_text);
                 <Link v-for="group in groups" :key="group.id" :href="route('groups.show', group.slug)" class="language-chip pe-3" dir="auto">
                     <span v-if="group.is_private" :title="$t('groups.show.private')" aria-hidden="true">🔒</span>
                     {{ group.name }}
+                    <span class="text-muted" :title="$t('users.show.group_karma')">{{ group.karma }}</span>
                 </Link>
             </div>
             <p v-else class="text-sm text-muted">{{ $t('users.show.no_groups') }}</p>

@@ -2,7 +2,7 @@
 import { panelOpen } from '@/utils/sidePanel';
 
 // Opens the side panel as a drawer; only below xl, where the panel isn't on screen already.
-// Pages that show the panel put it next to their own controls.
+// The layout puts it in the navbar, next to the logo.
 </script>
 
 <template>

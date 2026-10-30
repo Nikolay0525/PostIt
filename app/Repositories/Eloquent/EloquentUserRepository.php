@@ -41,7 +41,7 @@ class EloquentUserRepository implements UserRepositoryInterface
 
     public function findForProfile(string $username): ?User
     {
-        return User::withCount('followers')->where('username', $username)->first();
+        return User::withCount('followers')->with('counters:user_id,karma')->where('username', $username)->first();
     }
 
     public function search(string $term, int $perPage): LengthAwarePaginator

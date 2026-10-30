@@ -103,8 +103,14 @@ class EloquentGroupRepository implements GroupRepositoryInterface
                     $visible->orWhereHas('members', fn (Builder $members) => $members->whereKey($viewerId));
                 }
             })
-            ->orderBy('name')
-            ->get(['id', 'slug', 'name', 'icon_url', 'is_private']);
+            ->leftJoin('user_group_karma', fn ($karma) => $karma
+                ->on('user_group_karma.group_id', '=', 'groups.id')
+                ->where('user_group_karma.user_id', $userId))
+            ->select(['groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private'])
+            ->selectRaw('COALESCE(user_group_karma.karma, 0) as karma')
+            ->withCasts(['karma' => 'integer'])
+            ->orderBy('groups.name')
+            ->get();
     }
 
     public function subscribedBy(string $userId): Collection

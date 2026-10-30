@@ -451,6 +451,13 @@
   .group-stats {
     @apply text-sm text-muted;
   }
+  .karma-badge {
+    @apply inline-flex items-baseline gap-1.5 rounded-lg border border-brand-100 bg-brand-50 px-2.5 py-0.5
+           text-sm text-brand-700;
+  }
+  .karma-value {
+    @apply font-semibold tabular-nums;
+  }
   .group-desc {
     @apply w-full text-sm leading-relaxed text-muted;
   }
@@ -616,7 +623,7 @@
   .home-layout-page > .page-aside .page-aside-heading {
     @apply mb-4 justify-start xl:flex;
   }
-  /* Below xl a drawer, shut until the feed's panel button opens it (no hover on touch). */
+  /* Below xl a drawer, shut until the navbar's panel button opens it (no hover on touch). */
   .side-panel {
     @apply fixed inset-y-0 start-0 z-40 flex w-72 max-w-[85vw] -translate-x-full flex-col gap-5 overflow-y-auto
            border-e border-line bg-surface p-4 shadow-xl transition-transform duration-200

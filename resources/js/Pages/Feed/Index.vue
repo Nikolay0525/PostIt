@@ -4,7 +4,6 @@ import { router, usePage } from '@inertiajs/vue3';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import Dropdown from '@/Pages/Components/Dropdown.vue';
 import PostFeed from '@/Pages/Components/PostFeed.vue';
-import SidePanelButton from '@/Pages/Components/SidePanelButton.vue';
 import { usePageTours } from '@/utils/tours';
 
 const props = defineProps({
@@ -16,8 +15,6 @@ const props = defineProps({
     filters: Object,
     // Paginated by <InfiniteScroll>. null for a guest on the Following tab.
     posts: Object,
-    // The side panel's data, drawn by the layout (utils/sidePanel.js); null for a guest.
-    side_panel: Object,
 });
 
 const page = usePage();
@@ -87,7 +84,6 @@ const activeFilters = computed(() =>
 
     <section class="feed">
         <div class="feed-tabs-row" data-tour="feed.tabs">
-            <SidePanelButton v-if="side_panel" />
 
             <div class="feed-tabs me-auto" role="tablist" :aria-label="$t('home.tabs_label')">
                 <button
@@ -108,7 +104,7 @@ const activeFilters = computed(() =>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5z" />
                     </svg>
-                    <!-- Icon only on a phone, where the panel button shares the row. -->
+                    <!-- Icon only on a phone, where the tabs need the room. -->
                     <span class="hidden sm:inline">{{ $t('home.filters.label') }}</span>
                     <span v-if="activeFilters" class="feed-filter-count">{{ activeFilters }}</span>
                 </template>

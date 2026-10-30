@@ -25,7 +25,8 @@ interface UserRepositoryInterface
     public function findForSettings(string $id): ?User;
 
     /**
-     * For the public profile page: the returned user carries the `followers_count` aggregate.
+     * For the public profile page: the returned user carries the `followers_count` aggregate and
+     * `counters` (karma only).
      */
     public function findForProfile(string $username): ?User;
 
@@ -64,7 +65,7 @@ interface UserRepositoryInterface
 
     /**
      * Adds the delta (negative takes karma away) to the user's sub-karma in the group and to
-     * their account karma alike, so the account karma stays the sum of the sub-karma. The caller
+     * their account karma — two separate counters, neither computed from the other. The caller
      * wraps it in a transaction.
      */
     public function addKarma(string $userId, string $groupId, int $delta): void;

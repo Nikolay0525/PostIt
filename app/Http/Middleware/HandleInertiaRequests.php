@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Services\ImageService;
 use App\Services\NotificationService;
+use App\Services\SidePanelService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -54,6 +55,11 @@ class HandleInertiaRequests extends Middleware
             // they never see tours.
             'tours' => fn () => $request->user()
                 ? (object) ($request->user()->settings->tours ?? [])
+                : null,
+            // The side panel on every page (the layout hides it on Auth/* pages); null for a guest.
+            // A closure, so a partial reload (switching tabs, a sort change) skips it.
+            'side_panel' => fn () => $request->user()
+                ? app(SidePanelService::class)->forUser($request->user()->id)
                 : null,
             'status' => fn () => $request->session()->get('status'),
             // Read by app.js so a saved theme mode applies without a reload; guests get null

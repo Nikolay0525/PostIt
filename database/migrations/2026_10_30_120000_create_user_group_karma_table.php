@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * A user's sub-karma in a group: the votes on their posts and comments there. Not tied to
      * membership — anyone may comment in a public group — and kept when the user leaves it.
-     * The account karma (`user_counters.karma`) is the sum of these rows.
+     * The account karma (`user_counters.karma`) is a separate counter, not computed from these rows.
      */
     public function up(): void
     {

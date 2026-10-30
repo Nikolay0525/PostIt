@@ -5,6 +5,7 @@ import InboxMenu from '@/Pages/Components/InboxMenu.vue';
 import NotificationsMenu from '@/Pages/Components/NotificationsMenu.vue';
 import SearchBox from '@/Pages/Components/SearchBox.vue';
 import SidePanel from '@/Pages/Components/SidePanel.vue';
+import SidePanelButton from '@/Pages/Components/SidePanelButton.vue';
 import ThemeToggle from '@/Pages/Components/ThemeToggle.vue';
 import TourPrompt from '@/Pages/Components/TourPrompt.vue';
 import UserMenu from '@/Pages/Components/UserMenu.vue';
@@ -13,13 +14,13 @@ import { panel, panelOpen, takePanel } from '@/utils/sidePanel';
 const page = usePage();
 
 // The side panel lives here, not in a page: the layout stays mounted from one page to the next,
-// so going from the home page to a group (both pass `side_panel`) keeps the panel and its counters
-// in place. A page without the prop shows no panel; null (a guest) shows none either.
+// so the panel and its counters stay in place. `side_panel` is shared with every page (null for a
+// guest, who gets no panel); the Auth/* pages are forms, where it would only distract.
 watch(() => page.props.side_panel, (next) => {
     if (next !== undefined) takePanel(next);
 }, { immediate: true });
 
-const showPanel = computed(() => page.props.side_panel !== undefined && panel.value !== null);
+const showPanel = computed(() => panel.value !== null && !page.component.startsWith('Auth/'));
 </script>
 
 <template>
@@ -27,9 +28,12 @@ const showPanel = computed(() => page.props.side_panel !== undefined && panel.va
         <header class="border-b border-line bg-surface">
             <nav class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-8">
-                    <Link :href="route('home')" class="brand-mark" data-tour="navigation.home">
-                        Post<span class="brand-mark-accent">It.</span>
-                    </Link>
+                    <div class="flex items-center gap-3">
+                        <SidePanelButton v-if="showPanel" />
+                        <Link :href="route('home')" class="brand-mark" data-tour="navigation.home">
+                            Post<span class="brand-mark-accent">It.</span>
+                        </Link>
+                    </div>
 
                     <div class="hidden items-center gap-6 sm:flex">
                         <Link

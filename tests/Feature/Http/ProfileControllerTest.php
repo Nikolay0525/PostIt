@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\UserGroupSubscription;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\FollowService;
 use App\Services\ImageService;
 use Database\Seeders\LanguageSeeder;
@@ -56,6 +57,7 @@ class ProfileControllerTest extends TestCase
                     'bio' => 'Люблю старі ігри.',
                     'joined_at' => $user->created_at->toJSON(),
                     'followers_count' => 0,
+                    'karma' => 0,
                 ])
                 ->where('is_self', false)
                 ->where('is_following', false)
@@ -127,7 +129,7 @@ class ProfileControllerTest extends TestCase
 
         $this->get('/users/olena')
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('groups', [['id' => $public->id, 'slug' => $public->slug, 'name' => 'B public', 'is_private' => false]]));
+                ->where('groups', [['id' => $public->id, 'slug' => $public->slug, 'name' => 'B public', 'is_private' => false, 'karma' => 0]]));
 
         // Sorted by name.
         $this->actingAs($viewer)->get('/users/olena')
@@ -135,6 +137,35 @@ class ProfileControllerTest extends TestCase
                 ->where('groups.0.id', $sharedPrivate->id)
                 ->where('groups.1.id', $public->id)
                 ->has('groups', 2));
+    }
+
+    public function test_the_side_panel_comes_with_the_profile_too(): void
+    {
+        $viewer = User::factory()->create();
+        $group = Group::factory()->create();
+        $this->join($viewer, $group);
+        User::factory()->create(['username' => 'olena']);
+
+        $this->actingAs($viewer)->get('/users/olena')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('side_panel.groups.0.id', $group->id));
+    }
+
+    public function test_the_profile_shows_the_karma_overall_and_in_each_group(): void
+    {
+        $user = User::factory()->create(['username' => 'olena']);
+        $first = Group::factory()->create(['name' => 'A first']);
+        $second = Group::factory()->create(['name' => 'B second']);
+        foreach ([$first, $second] as $group) {
+            $this->join($user, $group);
+        }
+        $this->app->make(UserRepositoryInterface::class)->addKarma($user->id, $first->id, 3);
+        $this->app->make(UserRepositoryInterface::class)->addKarma($user->id, $second->id, -1);
+
+        $this->get('/users/olena')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('profile.karma', 2)
+                ->where('groups.0.karma', 3)
+                ->where('groups.1.karma', -1));
     }
 
     public function test_only_unlocked_achievements_are_shown(): void

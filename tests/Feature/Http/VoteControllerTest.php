@@ -197,7 +197,7 @@ class VoteControllerTest extends TestCase
         $this->assertKarma($comment->user_id, $comment->post->group_id, -1);
     }
 
-    public function test_the_account_karma_is_the_sum_of_the_karma_in_each_group(): void
+    public function test_votes_in_different_groups_all_count_toward_the_account_karma(): void
     {
         $author = User::factory()->create();
         $first = Post::factory()->create(['user_id' => $author->id]);
