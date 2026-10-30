@@ -3,6 +3,7 @@
 return [
 
     'show' => [
+        'title' => 'Profile',
         'followers' => ':num follower|:num followers',
         'karma' => 'karma',
         'group_karma' => 'Karma in this group',

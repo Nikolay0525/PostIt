@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import PageHeader from '@/Pages/Components/PageHeader.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 
 const props = defineProps({
@@ -124,9 +125,9 @@ const submit = () => {
     <Head :title="` | ${$t('settings.title')}`" />
 
     <section class="feed">
-        <form class="post-form" @submit.prevent="submit">
-            <h1 class="feed-title">{{ $t('settings.title') }}</h1>
+        <PageHeader :title="$t('settings.title')" />
 
+        <form class="post-form" @submit.prevent="submit">
             <p v-if="status === 'settings-saved' && !form.isDirty" class="settings-status" role="status">{{ $t('settings.saved') }}</p>
 
             <fieldset class="settings-section">

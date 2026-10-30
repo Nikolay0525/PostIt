@@ -219,6 +219,10 @@
   .feed-tab.is-active {
     @apply border-brand-600 text-ink;
   }
+  /* A page's title in the strip (PageHeader), on the tabs' baseline. */
+  .page-header-title {
+    @apply px-1 pb-3 text-base font-semibold text-muted;
+  }
   /* An action in the strip rather than a tab (a group's "New post"): in the brand colour. */
   .feed-tab-action {
     @apply text-brand-600 hover:text-brand-700;
@@ -334,11 +338,9 @@
   }
   /* Two-step form: both steps are rendered side by side in one track, and the track slides
      left/right inside a clipped window. */
-  .wizard-header {
-    @apply flex flex-col gap-1;
-  }
+  /* In the PageHeader strip, on the title's baseline. */
   .wizard-steps {
-    @apply flex items-center gap-1.5 text-sm text-muted;
+    @apply flex items-center gap-1.5 pb-3 text-sm text-muted;
   }
   .wizard-dot {
     @apply h-2 w-2 rounded-full bg-line transition-colors;
@@ -643,10 +645,6 @@
   /* Looks like the feed's tab row, so the first one's line runs level with the feed's. */
   .side-panel-heading {
     @apply mb-1 justify-start;
-  }
-  /* Same size as a feed tab, so the row lines up, but plain text: not a control. */
-  .side-panel-title {
-    @apply px-1 pb-3 text-base font-semibold text-muted;
   }
   .side-panel-new {
     @apply ms-auto shrink-0 rounded-full bg-brand-600 px-1.5 text-[10px] font-semibold leading-4 text-white;

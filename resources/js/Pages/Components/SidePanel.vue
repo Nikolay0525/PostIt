@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
         <section v-for="kind in ['groups', 'people']" :key="kind" class="side-panel-section">
             <!-- Only a label: which posts the feed shows is switched in the feed itself. -->
             <div class="feed-tabs-row side-panel-heading">
-                <h2 class="side-panel-title">{{ $t(`home.sources.${kind}`) }}</h2>
+                <h2 class="page-header-title">{{ $t(`home.sources.${kind}`) }}</h2>
             </div>
 
             <ul v-if="panel[kind].length" class="flex flex-col">

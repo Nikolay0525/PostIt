@@ -3,6 +3,7 @@ import { computed, reactive, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import PageHeader from '@/Pages/Components/PageHeader.vue';
 import PostFeed from '@/Pages/Components/PostFeed.vue';
 import { formatCount } from '@/utils/format';
 import { deleteJson, patchJson, postForm, postJson } from '@/utils/http';
@@ -160,6 +161,8 @@ const hasStatus = computed(() => info.status_emoji || info.status_text);
     <Head :title="` | ${profile.username}`" />
 
     <section class="feed">
+        <PageHeader :title="$t('users.show.title')" />
+
         <!-- Who this is: picture, name, status, numbers and the main action, all in one card. -->
         <div class="profile-card">
             <div class="profile-header">
@@ -190,7 +193,8 @@ const hasStatus = computed(() => info.status_emoji || info.status_text);
                 <input v-if="is_self" ref="avatarInput" type="file" :aria-label="$t('users.edit.change_photo')" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar" />
 
                 <div class="min-w-0 flex-1">
-                    <h1 class="group-name profile-text" dir="auto">{{ profile.username }}</h1>
+                    <!-- h2: the page's h1 is the strip's "Profile". -->
+                    <h2 class="group-name profile-text" dir="auto">{{ profile.username }}</h2>
                     <p v-if="hasStatus" class="profile-status profile-text" dir="auto">
                         <span v-if="info.status_emoji" aria-hidden="true">{{ info.status_emoji }}</span>
                         {{ info.status_text }}

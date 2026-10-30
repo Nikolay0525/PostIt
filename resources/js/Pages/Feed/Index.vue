@@ -84,7 +84,6 @@ const activeFilters = computed(() =>
 
     <section class="feed">
         <div class="feed-tabs-row" data-tour="feed.tabs">
-
             <div class="feed-tabs me-auto" role="tablist" :aria-label="$t('home.tabs_label')">
                 <button
                     v-for="tab in tabs"

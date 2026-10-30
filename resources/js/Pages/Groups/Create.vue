@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
+import PageHeader from '@/Pages/Components/PageHeader.vue';
 import TextInput from '@/Pages/Components/TextInput.vue';
 
 const props = defineProps({
@@ -113,16 +114,17 @@ const submit = () => {
     <Head :title="` | ${$t('groups.create.title')}`" />
 
     <section class="feed">
-        <form class="post-form" @submit.prevent="submit">
-            <div class="wizard-header">
-                <h1 class="feed-title">{{ $t('groups.create.title') }}</h1>
+        <PageHeader :title="$t('groups.create.title')">
+            <template #actions>
                 <p class="wizard-steps" aria-live="polite">
                     <span class="wizard-dot" :class="{ 'is-active': step === 1 }" aria-hidden="true"></span>
                     <span class="wizard-dot" :class="{ 'is-active': step === 2 }" aria-hidden="true"></span>
                     {{ $t('groups.create.step', { step, name: $t(step === 1 ? 'groups.create.basics' : 'groups.create.rules') }) }}
                 </p>
-            </div>
+            </template>
+        </PageHeader>
 
+        <form class="post-form" @submit.prevent="submit">
             <div class="wizard">
                 <div class="wizard-track" :class="{ 'is-second': step === 2 }">
                     <!-- Step 1: basics -->

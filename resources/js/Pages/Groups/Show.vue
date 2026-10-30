@@ -118,7 +118,7 @@ const readAll = async () => {
         <!-- In the right column only: a heading on the same line as the feed's strip and the
              panel's "Groups", like those. More cards (the moderators) will go under it. -->
         <div class="feed-tabs-row page-aside-heading">
-            <h2 class="side-panel-title">{{ $t('groups.show.about') }}</h2>
+            <h2 class="page-header-title">{{ $t('groups.show.about') }}</h2>
         </div>
 
         <header class="group-header">
@@ -163,7 +163,6 @@ const readAll = async () => {
         <!-- The same strip as on the home page: the group's actions where the home page has its
              tabs, Filters (here only the sort) on the right, and the line under it all. -->
         <div class="feed-tabs-row">
-
             <nav v-if="posts" class="feed-tabs me-auto" :aria-label="$t('groups.show.actions_label')">
                 <Link v-if="canPost" :href="route('posts.create', group.slug)" class="feed-tab feed-tab-action">
                     {{ $t('groups.show.create_post') }}
