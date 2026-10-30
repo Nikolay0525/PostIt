@@ -167,6 +167,53 @@ class VoteControllerTest extends TestCase
         $removed->assertJson(['viewer_vote' => null]);
     }
 
+    public function test_the_authors_karma_follows_the_vote(): void
+    {
+        $voter = User::factory()->create();
+        $post = Post::factory()->create();
+
+        $vote = fn (bool $positive) => $this->actingAs($voter)->postJson('/votes', [
+            'target_type' => 'post', 'target_id' => $post->id, 'positive' => $positive,
+        ]);
+
+        $vote(true);
+        $this->assertKarma($post->user_id, $post->group_id, 1);
+
+        $vote(false);
+        $this->assertKarma($post->user_id, $post->group_id, -1);
+
+        $vote(false);
+        $this->assertKarma($post->user_id, $post->group_id, 0);
+    }
+
+    public function test_a_comment_vote_counts_toward_the_karma_in_its_posts_group(): void
+    {
+        $comment = Comment::factory()->create();
+
+        $this->actingAs(User::factory()->create())->postJson('/votes', [
+            'target_type' => 'comment', 'target_id' => $comment->id, 'positive' => false,
+        ]);
+
+        $this->assertKarma($comment->user_id, $comment->post->group_id, -1);
+    }
+
+    public function test_the_account_karma_is_the_sum_of_the_karma_in_each_group(): void
+    {
+        $author = User::factory()->create();
+        $first = Post::factory()->create(['user_id' => $author->id]);
+        $second = Post::factory()->create(['user_id' => $author->id]);
+
+        foreach ([$first, $first, $second] as $post) {
+            $this->actingAs(User::factory()->create())->postJson('/votes', [
+                'target_type' => 'post', 'target_id' => $post->id, 'positive' => true,
+            ]);
+        }
+
+        $this->assertDatabaseHas('user_group_karma', ['user_id' => $author->id, 'group_id' => $first->group_id, 'karma' => 2]);
+        $this->assertDatabaseHas('user_group_karma', ['user_id' => $author->id, 'group_id' => $second->group_id, 'karma' => 1]);
+        $this->assertDatabaseHas('user_counters', ['user_id' => $author->id, 'karma' => 3]);
+    }
+
     public function test_controversy_is_returned_once_both_sides_reach_the_threshold(): void
     {
         $post = Post::factory()->create();
@@ -187,5 +234,11 @@ class VoteControllerTest extends TestCase
 
         // 4 up / 3 down after this vote: magnitude=7, balance=3/4 -> 7^0.75 ≈ 4.3 -> rounds to 4.
         $response->assertOk()->assertJson(['upvotes' => 4, 'downvotes' => 3, 'controversy' => 4]);
+    }
+
+    private function assertKarma(string $userId, string $groupId, int $karma): void
+    {
+        $this->assertDatabaseHas('user_group_karma', ['user_id' => $userId, 'group_id' => $groupId, 'karma' => $karma]);
+        $this->assertDatabaseHas('user_counters', ['user_id' => $userId, 'karma' => $karma]);
     }
 }

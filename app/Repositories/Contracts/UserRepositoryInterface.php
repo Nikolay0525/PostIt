@@ -62,6 +62,13 @@ interface UserRepositoryInterface
 
     public function isFollowing(string $followerId, string $authorId): bool;
 
+    /**
+     * Adds the delta (negative takes karma away) to the user's sub-karma in the group and to
+     * their account karma alike, so the account karma stays the sum of the sub-karma. The caller
+     * wraps it in a transaction.
+     */
+    public function addKarma(string $userId, string $groupId, int $delta): void;
+
     public function followersCount(string $authorId): int;
 
     /**

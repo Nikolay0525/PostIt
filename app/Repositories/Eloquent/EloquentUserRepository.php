@@ -104,6 +104,18 @@ class EloquentUserRepository implements UserRepositoryInterface
         ]);
     }
 
+    public function addKarma(string $userId, string $groupId, int $delta): void
+    {
+        DB::table('user_group_karma')->insertOrIgnore(['user_id' => $userId, 'group_id' => $groupId]);
+
+        DB::table('user_group_karma')
+            ->where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->increment('karma', $delta);
+
+        DB::table('user_counters')->where('user_id', $userId)->increment('karma', $delta);
+    }
+
     public function unfollow(string $followerId, string $authorId): void
     {
         $this->followQuery($followerId, $authorId)->delete();

@@ -55,9 +55,12 @@ PostIt is a web application where people share their ideas and problems and get 
 - *Status* — what the person is doing right now, in a couple of words.
 - *Bio* — what the person has been doing and interested in for a long time.
 
-**Karma.** [A global rating shown on the profile: how much the user has contributed to PostIt. The contribution is assessed by other users — votes on the user's posts and comments, and so on.] Moderation does not count toward karma. Karma is general, not tied to any topic: a person who writes about cooking has no reason to write about programming.
+**Karma.** [A global rating shown on the profile: how much the user has contributed to PostIt.] The basis is how other people treat you, so karma comes only from votes on the user's posts and comments: an upvote adds 1, a downvote takes 1 away, and a post and a comment weigh the same. Karma can go negative — e.g. for writing off topic. Moderation does not count toward karma. [Account karma is the sum of the user's sub-karma in all groups.] Karma is general, not tied to any topic: a person who writes about cooking has no reason to write about programming.
 
-**Sub-karma.** [Each group has its own sub-karma for each member; its purpose is to get the member into the group's moderator candidate pool (see Roles).] Whether it is visible to others is not decided yet. Even if it is, others *could* guess who the moderator is, but hardly *would*: the threshold may be low, and candidates may number in the hundreds or thousands.
+**Sub-karma.** [Each group has its own sub-karma for each user, earned the same way from votes on their posts and comments in that group; its purpose is to get the member into the group's moderator candidate pool (see Roles).] Whether it is visible to others is not decided yet. Even if it is, others *could* guess who the moderator is, but hardly *would*: the threshold may be low, and candidates may number in the hundreds or thousands.
+- [Anyone who can comment in a group earns sub-karma there, member or not. Leaving the group keeps it — otherwise it could be abused.]
+- [Karma is earned authority, so it is never lost with its source: an author keeps the karma their content earned when they delete it, and everyone keeps the karma earned in a group when the group is deleted.]
+- [The one exception is a moderation case that finds the content broke the rules: then the content counts as if it had never been posted, and whatever it earned is undone — taken back if it was positive, given back if it was negative. Only its author is affected: replies and comments under it keep theirs.]
 
 **Counters.** [Counters of the user's actions are collected.] They work two ways: as statistics visible only to the user themselves, and as the basis for public achievements (see Gamification) — e.g. "most active voter" for 1000 votes cast. Some counters (e.g. reports sent) stay statistics only, with no achievement.
 
@@ -116,7 +119,7 @@ Kinds of notifications, by role:
 
 **Rule history.** The group's rules are stored as versions; a change creates a new version instead of overwriting the old one. This is a top-level requirement for transparent moderation: the goal of PostIt is that nobody is ever punished for nothing. [When moderators review an appeal, they judge the decision against the rule version that was in force when it was made, not against the current one — rules may have changed since, and the moderator acted on the old ones.]
 
-**Deleting a group.** [The owner can delete the group, together with all of its posts.] Its pending reports and appeals go with it: a ban in a group that no longer exists no longer matters to anyone.
+**Deleting a group.** [The owner can delete the group, together with all of its posts.] Its pending reports and appeals go with it: a ban in a group that no longer exists no longer matters to anyone. [The karma earned in the group stays with its users (see Guests and Users → Sub-karma).]
 
 A lot depends on the owner, so it matters that the right person gets the role. If the owner turns out to be the wrong one, people will create an alternative group and move there — for example, by a link left by the new group's owner.
 
