@@ -70,6 +70,12 @@ interface UserRepositoryInterface
      */
     public function addKarma(string $userId, string $groupId, int $delta): void;
 
+    /**
+     * Counts one more report sent by the user (a statistic only, see Counters). The caller wraps
+     * it in a transaction.
+     */
+    public function incrementReportsSent(string $userId): void;
+
     public function followersCount(string $authorId): int;
 
     /**

@@ -104,6 +104,11 @@ class EloquentUserRepository implements UserRepositoryInterface
         ]);
     }
 
+    public function incrementReportsSent(string $userId): void
+    {
+        DB::table('user_counters')->where('user_id', $userId)->increment('reports_sent');
+    }
+
     public function addKarma(string $userId, string $groupId, int $delta): void
     {
         DB::table('user_group_karma')->insertOrIgnore(['user_id' => $userId, 'group_id' => $groupId]);

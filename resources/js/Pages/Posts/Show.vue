@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { provide, ref } from 'vue';
 import { InfiniteScroll } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
@@ -22,6 +22,9 @@ const props = defineProps({
 });
 
 const membership = useGroupMembership(props);
+
+// The comments' report form needs the group, and a comment node only knows its post.
+provide('groupId', props.group.id);
 
 const commentText = ref('');
 const posting = ref(false);

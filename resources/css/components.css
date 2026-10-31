@@ -227,6 +227,11 @@
   .feed-tab.is-active {
     @apply border-brand-600 text-ink;
   }
+
+  .report-sent {
+    @apply text-sm text-muted mt-3;
+  }
+
   /* A page's title in the strip (PageHeader), on the tabs' baseline. */
   .page-header-title {
     @apply px-1 pb-3 text-lg font-semibold text-ink;

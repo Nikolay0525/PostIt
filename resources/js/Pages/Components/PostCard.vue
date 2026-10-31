@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import ContentMenu from '@/Pages/Components/ContentMenu.vue';
+import ReportForm from '@/Pages/Components/ReportForm.vue';
 import ShareButton from '@/Pages/Components/ShareButton.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
@@ -18,6 +19,7 @@ const props = defineProps({
 const preview = computed(() => excerpt(props.post.article_text));
 
 const showLoginPrompt = ref(false);
+const reporting = ref(false);
 
 // In a list, a card seen whole stops its post counting as new (utils/seen.js). Not on the post's
 // own page (`full`), where opening it already did; not for a guest, who has nothing to count.
@@ -100,10 +102,11 @@ onBeforeUnmount(() => untrackSeen(card.value));
                 :count="post.shares_count"
             />
 
-            <!-- Edit lives in the menu, not as a button of its own; "Report" joins it there. -->
-            <ContentMenu v-if="post.can_edit">
+            <!-- What can be done with the post: its author edits it, anyone else (a guest has no menu) reports it. -->
+            <ContentMenu v-if="page.props.auth.user">
                 <template #default="{ close }">
-                    <Link :href="route('posts.edit', [post.group.slug, post.slug])" class="menu-item" @click="close">{{ $t('posts.edit.link') }}</Link>
+                    <Link v-if="post.can_edit" :href="route('posts.edit', [post.group.slug, post.slug])" class="menu-item" @click="close">{{ $t('posts.edit.link') }}</Link>
+                    <button v-else type="button" class="menu-item" @click="close(); reporting = true">{{ $t('reports.menu') }}</button>
                 </template>
             </ContentMenu>
 
@@ -113,5 +116,7 @@ onBeforeUnmount(() => untrackSeen(card.value));
         <p v-if="showLoginPrompt" class="post-login-prompt">
             <AuthPrompt action="vote_and_comment" />
         </p>
+
+        <ReportForm v-if="reporting" :group-id="post.group.id" target-type="post" :target-id="post.id" @close="reporting = false" />
     </article>
 </template>

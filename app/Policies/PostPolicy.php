@@ -55,6 +55,19 @@ class PostPolicy
     }
 
     /**
+     * A verified user may report a post they can see, except their own and a deleted one. A post
+     * they can't see is "not found", not "forbidden".
+     */
+    public function report(User $user, Post $post): Response|bool
+    {
+        if (! $this->view($user, $post)) {
+            return Response::denyAsNotFound();
+        }
+
+        return $user->hasVerifiedEmail() && ! $post->is_deleted && $user->id !== $post->user_id;
+    }
+
+    /**
      * A user may vote on any post they can see except their own, and only while it has not been
      * deleted. A post they can't see is "not found", not "forbidden".
      */

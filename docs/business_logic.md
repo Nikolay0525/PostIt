@@ -146,6 +146,9 @@ A lot depends on the owner, so it matters that the right person gets the role. I
 - [Being in the pool does not give a moderator away: only about half of the pool moderates, and while sub-karma is visible on the profile, activity is not, so nobody can tell from the outside even who crossed both thresholds.]
 
 **Moderation cases.** [A case opens when enough members report the same post or comment:]
+- [A report says what is wrong, in one of three ways: the content breaks one of the group's rules; it breaks the platform's rules; or it is something else, which needs a short reason. A person may not know a group's rules — a post turns up in a feed — so the group's rules are offered only after "breaks the group's rules" is chosen, and a group without rules does not offer it.]
+- [A report names the group's rule by the rule version in force at the moment of the report and the rule's place in it, not by its text: rules change, and an appeal is judged against the version in force (see Groups → Rule history).]
+- [One person reports a piece of content once, so the number of reports is the number of different people.]
 - [Only reports from members with some reputation in the group count — their sub-karma must be above a threshold — so bots and fresh accounts cannot report content away. The number of reports that opens a case is computed automatically from the group's activity, like the pool thresholds, and is never below 3.]
 - [Once a case opens, the content is hidden until a decision is made. Hiding is not a punishment: nothing is decided yet. It keeps the decision objective — in a small group a moderator could otherwise recognize the post from the feed — and keeps moderation fast.]
 - [A moderator sees the content and the reports, but not the author's username: the decision is about what was written, not about who wrote it. Reports are not anonymized for moderators, so a group of people who keep reporting together without cause can be noticed.]

@@ -1,9 +1,10 @@
 <script setup>
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import ContentMenu from '@/Pages/Components/ContentMenu.vue';
+import ReportForm from '@/Pages/Components/ReportForm.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
 import { fullDate, timeAgo } from '@/utils/format';
@@ -17,6 +18,9 @@ const props = defineProps({
 const page = usePage();
 
 const showLoginPrompt = ref(false);
+const reporting = ref(false);
+// The group of the post the comments are under: Posts/Show provides it.
+const groupId = inject('groupId');
 
 const showReplyForm = ref(false);
 const replyText = ref('');
@@ -157,16 +161,19 @@ const saveEdit = async () => {
                         @needs-login="showLoginPrompt = true"
                     />
                     <button type="button" class="post-action" @click="toggleReplyForm">{{ $t('comments.reply') }}</button>
-                    <!-- Edit lives in the menu, not as a button of its own; "Report" joins it there. -->
-                    <ContentMenu v-if="comment.can_edit && !editing">
+                    <!-- What can be done with the comment: its author edits it, anyone else (a guest has no menu) reports it. -->
+                    <ContentMenu v-if="page.props.auth.user && !editing">
                         <template #default="{ close }">
-                            <button type="button" class="menu-item" @click="close(); startEdit()">{{ $t('comments.edit') }}</button>
+                            <button v-if="comment.can_edit" type="button" class="menu-item" @click="close(); startEdit()">{{ $t('comments.edit') }}</button>
+                            <button v-else type="button" class="menu-item" @click="close(); reporting = true">{{ $t('reports.menu') }}</button>
                         </template>
                     </ContentMenu>
                 </p>
                 <p v-if="showLoginPrompt" class="post-login-prompt">
                     <AuthPrompt action="vote" />
                 </p>
+
+                <ReportForm v-if="reporting" :group-id="groupId" target-type="comment" :target-id="comment.id" @close="reporting = false" />
 
                 <form v-if="showReplyForm" class="comment-form mt-3" @submit.prevent="submitReply">
                     <textarea

@@ -8,6 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
@@ -80,6 +81,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/comments', [CommentController::class, 'store'])
         ->middleware('throttle:60,1')->name('comments.store');
+    Route::get('/groups/{id}/rules', [GroupController::class, 'rules'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('groups.rules');
+    Route::post('/reports', [ReportController::class, 'store'])
+        ->middleware('throttle:20,1')->name('reports.store');
     Route::put('/comments/{id}', [CommentController::class, 'update'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('comments.update');
 

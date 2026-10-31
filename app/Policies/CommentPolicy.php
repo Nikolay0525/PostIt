@@ -45,6 +45,18 @@ class CommentPolicy
     }
 
     /**
+     * A verified user may report a comment they can see, except their own and a deleted one.
+     */
+    public function report(User $user, Comment $comment): Response|bool
+    {
+        if (! $this->canSeePostsOf($user, $comment->post->group)) {
+            return Response::denyAsNotFound();
+        }
+
+        return $user->hasVerifiedEmail() && ! $comment->is_deleted && $user->id !== $comment->user_id;
+    }
+
+    /**
      * A user may vote on any comment they can see except their own, and only while it has not
      * been deleted.
      */

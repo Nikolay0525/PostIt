@@ -8,9 +8,11 @@ use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\PostResource;
 use App\Models\Group;
+use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Services\GroupService;
 use App\Services\PostService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,6 +23,7 @@ class GroupController extends Controller
     public function __construct(
         protected GroupService $groupService,
         protected PostService $postService,
+        protected GroupRepositoryInterface $groupRepository,
         protected LanguageRepositoryInterface $languageRepository
     ) {}
 
@@ -35,6 +38,17 @@ class GroupController extends Controller
                 ?? config('app.default_speaking_language_code', 'uk'),
             'limits' => $this->limits(),
         ]);
+    }
+
+    // The group's current rules, for the report form: it asks which of them was broken. Read-only
+    // and as open as the rules on the group's page.
+    public function rules(string $id): JsonResponse
+    {
+        $group = $this->groupRepository->find($id);
+
+        abort_if($group === null, 404);
+
+        return response()->json(['rules' => $group->currentRuleVersion?->rules ?? []]);
     }
 
     public function edit(string $groupSlug): Response
