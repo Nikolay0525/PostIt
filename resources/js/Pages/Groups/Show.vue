@@ -124,9 +124,6 @@ const readAll = async () => {
              panel's "Groups", like those. More cards (the moderators) will go under it. -->
         <div class="feed-tabs-row page-aside-heading">
             <h2 class="page-header-title">{{ $t('groups.show.about') }}</h2>
-            <Link v-if="can_edit" :href="route('groups.edit', group.slug)" class="feed-tab feed-tab-action ms-auto">
-                {{ $t('groups.show.edit') }}
-            </Link>
         </div>
 
         <header class="group-header">
@@ -143,7 +140,13 @@ const readAll = async () => {
                 </p>
             </div>
 
+            <!-- The Owner is always a member, so in this place they get "Edit" instead of "Subscribe";
+                 in the header, so it is there on a phone too. -->
+            <Link v-if="can_edit" :href="route('groups.edit', group.slug)" class="group-join btn-secondary justify-center">
+                {{ $t('groups.show.edit') }}
+            </Link>
             <button
+                v-else
                 type="button"
                 class="group-join"
                 :class="joined ? 'btn-secondary' : 'btn-primary'"
