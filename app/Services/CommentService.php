@@ -47,6 +47,18 @@ class CommentService
     }
 
     /**
+     * Saving what is already there is not an edit: nothing is written and "(edited)" does not appear.
+     */
+    public function updateComment(Comment $comment, string $text): void
+    {
+        if ($comment->text === $text) {
+            return;
+        }
+
+        $this->commentRepository->update($comment->id, $text);
+    }
+
+    /**
      * Following a comment brings a notification for each reply to it.
      */
     public function follow(string $commentId, string $userId): void

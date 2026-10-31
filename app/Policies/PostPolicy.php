@@ -43,6 +43,18 @@ class PostPolicy
     }
 
     /**
+     * Only the author edits a post, and only while it is not deleted, they are verified and not
+     * banned from its group.
+     */
+    public function update(User $user, Post $post): bool
+    {
+        return $user->id === $post->user_id
+            && ! $post->is_deleted
+            && $user->hasVerifiedEmail()
+            && ! $this->isBannedFromGroup($user, $post->group_id);
+    }
+
+    /**
      * A user may vote on any post they can see except their own, and only while it has not been
      * deleted. A post they can't see is "not found", not "forbidden".
      */

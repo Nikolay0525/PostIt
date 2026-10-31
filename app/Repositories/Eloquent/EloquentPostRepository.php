@@ -42,6 +42,15 @@ class EloquentPostRepository implements PostRepositoryInterface
         ]);
     }
 
+    public function update(string $postId, ?string $title, string $article): void
+    {
+        Post::whereKey($postId)->update([
+            'title' => $title,
+            'article' => $article,
+            'edited_at' => now(),
+        ]);
+    }
+
     public function findWithStatsBySlug(string $groupId, string $slug, ?string $viewerId = null): ?Post
     {
         return $this->withStats($viewerId)->where('group_id', $groupId)->where('slug', $slug)->first();

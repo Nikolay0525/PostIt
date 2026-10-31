@@ -89,6 +89,18 @@ class PostService
     }
 
     /**
+     * Saving what is already there is not an edit: nothing is written and "(edited)" does not appear.
+     */
+    public function updatePost(Post $post, ?string $title, string $article): void
+    {
+        if ($post->title === $title && $post->article === $article) {
+            return;
+        }
+
+        $this->postRepository->update($post->id, $title, $article);
+    }
+
+    /**
      * Following a post brings a notification for each new comment under it.
      */
     public function follow(string $postId, string $userId): void

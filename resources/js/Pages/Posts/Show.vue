@@ -3,15 +3,25 @@ import { ref } from 'vue';
 import { InfiniteScroll } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import GroupAside from '@/Pages/Components/GroupAside.vue';
+import PageHeader from '@/Pages/Components/PageHeader.vue';
 import PostCard from '@/Pages/Components/PostCard.vue';
 import CommentNode from '@/Pages/Components/CommentNode.vue';
+import { useGroupMembership } from '@/utils/groupMembership';
 import { postJson } from '@/utils/http';
 
 // `comments` is a paginated prop: <InfiniteScroll> loads the next page as the user scrolls down.
 const props = defineProps({
     post: Object,
+    // The post's group, for its card beside the post.
+    group: Object,
+    is_member: Boolean,
+    // Whether the viewer is the group's Owner, who may edit it.
+    can_edit: Boolean,
     comments: Object,
 });
+
+const membership = useGroupMembership(props);
 
 const commentText = ref('');
 const posting = ref(false);
@@ -50,10 +60,11 @@ const submitComment = async () => {
 <template>
     <Head :title="` | ${post.title ?? post.author.username}`" />
 
+    <!-- name-tag h2: the page's h1 is the strip's "Post". -->
+    <GroupAside :group="group" :can-edit="can_edit" :membership="membership" name-tag="h2" />
+
     <section class="feed">
-        <Link :href="route('groups.show', post.group.slug)" class="back-link" dir="auto">
-            <span class="back-arrow" aria-hidden="true">←</span> {{ $t('common.back_to', { name: post.group.name }) }}
-        </Link>
+        <PageHeader :title="$t('posts.show.title')" />
 
         <PostCard :post="post" full />
 

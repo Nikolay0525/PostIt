@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MarkPostsSeenRequest;
 use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\CommentResource;
+use App\Http\Resources\GroupResource;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Repositories\Contracts\GroupRepositoryInterface;
@@ -32,9 +34,8 @@ class PostController extends Controller
 
     public function show(Request $request, string $groupSlug, string $postSlug): Response
     {
-        $group = $this->groupRepository->findBySlug($groupSlug);
-
-        abort_if($group === null, 404);
+        // Throws ModelNotFoundException (rendered as 404) when the group does not exist.
+        $group = $this->groupService->getGroupBySlug($groupSlug);
 
         $viewerId = $request->user()?->id;
 
@@ -51,6 +52,10 @@ class PostController extends Controller
 
         return Inertia::render('Posts/Show', [
             'post' => new PostResource($post),
+            // The group's card beside the post, as on the group's own page.
+            'group' => new GroupResource($group),
+            'is_member' => $this->groupService->isMember($group->id, $viewerId),
+            'can_edit' => (bool) $request->user()?->can('update', $group),
             // Merged page by page by the <InfiniteScroll> component on the client.
             'comments' => Inertia::scroll(
                 fn () => CommentResource::collection($this->commentService->getPostThreads($post->id, $viewerId))
@@ -69,6 +74,46 @@ class PostController extends Controller
         return Inertia::render('Posts/Create', [
             'group' => ['id' => $group->id, 'slug' => $group->slug, 'name' => $group->name],
         ]);
+    }
+
+    public function edit(Request $request, string $groupSlug, string $postSlug): Response
+    {
+        $post = $this->findEditable($request, $groupSlug, $postSlug);
+
+        return Inertia::render('Posts/Edit', [
+            'post' => [
+                'group' => ['slug' => $post->group->slug, 'name' => $post->group->name],
+                'slug' => $post->slug,
+                'title' => $post->title,
+                'article' => $post->article,
+            ],
+        ]);
+    }
+
+    public function update(UpdatePostRequest $request, string $groupSlug, string $postSlug): RedirectResponse
+    {
+        $post = $this->findEditable($request, $groupSlug, $postSlug);
+
+        $this->postService->updatePost($post, $request->validated('title'), $request->validated('article'));
+
+        return redirect()->route('posts.show', [$groupSlug, $post->slug]);
+    }
+
+    // A post nobody may see is "not found" for them (as in show()); one they see but did not write
+    // is "forbidden".
+    private function findEditable(Request $request, string $groupSlug, string $postSlug): Post
+    {
+        $group = $this->groupRepository->findBySlug($groupSlug);
+
+        abort_if($group === null, 404);
+
+        // Throws ModelNotFoundException (rendered as 404) when the group has no such post.
+        $post = $this->postService->getPostBySlug($group->id, $postSlug, $request->user()->id);
+
+        abort_unless(Gate::allows('view', $post), 404);
+        $this->authorize('update', $post);
+
+        return $post;
     }
 
     // A regular Inertia form submission, unlike VoteController/CommentController: there is no

@@ -80,8 +80,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/comments', [CommentController::class, 'store'])
         ->middleware('throttle:60,1')->name('comments.store');
+    Route::put('/comments/{id}', [CommentController::class, 'update'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('comments.update');
 
     Route::get('/groups/{groupSlug}/-/create-post', [PostController::class, 'create'])->name('posts.create');
+    Route::get('/groups/{groupSlug}/-/edit-post/{postSlug}', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'update'])
+        ->middleware('throttle:30,1')->name('posts.update');
     Route::post('/posts', [PostController::class, 'store'])
         ->middleware('throttle:60,1')->name('posts.store');
     Route::post('/posts/{id}/share', [PostController::class, 'share'])

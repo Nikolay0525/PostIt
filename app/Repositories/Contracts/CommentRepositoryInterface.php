@@ -33,6 +33,11 @@ interface CommentRepositoryInterface
     public function create(string $postId, string $userId, string $text, ?string $parentId = null): Comment;
 
     /**
+     * Replaces the comment's text and notes when (`edited_at`).
+     */
+    public function update(string $commentId, string $text): void;
+
+    /**
      * Idempotent: following a comment already followed changes nothing.
      */
     public function follow(string $commentId, string $userId): void;

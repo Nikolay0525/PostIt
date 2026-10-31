@@ -1,13 +1,13 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { InfiniteScroll, router, usePage } from '@inertiajs/vue3';
-import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import Dropdown from '@/Pages/Components/Dropdown.vue';
+import GroupAside from '@/Pages/Components/GroupAside.vue';
 import TransSlots from '@/Pages/Components/TransSlots.vue';
 import PostCard from '@/Pages/Components/PostCard.vue';
-import { formatCount } from '@/utils/format';
-import { deleteJson, postJson } from '@/utils/http';
+import { useGroupMembership } from '@/utils/groupMembership';
+import { postJson } from '@/utils/http';
 import { panel, takePanel } from '@/utils/sidePanel';
 
 const props = defineProps({
@@ -21,9 +21,6 @@ const props = defineProps({
 });
 
 const page = usePage();
-
-// Language names are stored the way their speakers write them in a list, in lower case.
-const languageName = computed(() => props.group.language_name.charAt(0).toUpperCase() + props.group.language_name.slice(1));
 
 // Labels are lang keys groups.show.sort.<key>.
 const sorts = ['newest', 'top', 'controversy'];
@@ -41,13 +38,9 @@ const changeSort = (key) => {
     });
 };
 
-// Requesting to join a private group is still a local toggle — GroupPolicy::subscribe()
-// deliberately rejects private groups, since membership there only comes from an approved
-// GroupJoinRequest, which doesn't exist yet. Subscribing to a public group is real.
-const joined = ref(props.is_member);
-const showLoginPrompt = ref(false);
-const subscribing = ref(false);
-const subscribeError = ref(null);
+// Subscribing, shared with the group card (GroupAside); `joined` also decides who may post.
+const membership = useGroupMembership(props);
+const { joined, toggleJoin } = membership;
 
 // Posting requires membership in every group, public or private (PostPolicy::create()). For a
 // public group `joined` now reflects a real subscribe/unsubscribe call, so it's trustworthy
@@ -58,42 +51,6 @@ const canPost = computed(() => {
 
     return props.group.is_private ? props.is_member : joined.value;
 });
-
-const buttonLabel = computed(() => {
-    if (props.group.is_private) return trans(joined.value ? 'groups.show.request_sent' : 'groups.show.request');
-    return trans(joined.value ? 'groups.show.subscribed' : 'groups.show.subscribe');
-});
-
-const toggleJoin = async () => {
-    if (!page.props.auth.user) {
-        showLoginPrompt.value = true;
-        return;
-    }
-
-    if (props.group.is_private) {
-        joined.value = !joined.value;
-        return;
-    }
-
-    if (subscribing.value) return;
-
-    subscribing.value = true;
-    subscribeError.value = null;
-
-    try {
-        if (joined.value) {
-            await deleteJson(`/groups/${props.group.id}/subscribe`);
-        } else {
-            await postJson(`/groups/${props.group.id}/subscribe`);
-        }
-        joined.value = !joined.value;
-    } catch (error) {
-        console.error('Subscribe failed:', error);
-        subscribeError.value = error.message || trans('common.something_went_wrong');
-    } finally {
-        subscribing.value = false;
-    }
-};
 
 // "Read all" here, like the ✓ on the side panel. The count is the panel's, so it's known only
 // while the group is attached there; unattached, the button shows without a number.
@@ -117,62 +74,7 @@ const readAll = async () => {
 <template>
     <Head :title="` | ${group.name}`" />
 
-    <!-- On a wide screen this goes to the right of the feed (.page-aside, see .home-layout); on a
-         narrower one, and for a guest, it stays above the feed. -->
-    <aside class="page-aside">
-        <!-- In the right column only: a heading on the same line as the feed's strip and the
-             panel's "Groups", like those. More cards (the moderators) will go under it. -->
-        <div class="feed-tabs-row page-aside-heading">
-            <h2 class="page-header-title">{{ $t('groups.show.about') }}</h2>
-        </div>
-
-        <header class="group-header">
-            <span class="group-avatar" aria-hidden="true">{{ group.name.charAt(0).toUpperCase() }}</span>
-
-            <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-x-2">
-                    <h1 class="group-name" dir="auto">{{ group.name }}</h1>
-                    <!-- The whole name in its own language, not the code ("UK" reads as a country). -->
-                    <span class="group-lang normal-case" :title="$t('groups.show.language')" dir="auto">{{ languageName }}</span>
-                </div>
-                <p class="group-stats">
-                    {{ $tChoice('groups.show.members', group.members_count, { num: formatCount(group.members_count) }) }}<span v-if="group.is_private"> · {{ $t('groups.show.private') }}</span>
-                </p>
-            </div>
-
-            <!-- The Owner is always a member, so in this place they get "Edit" instead of "Subscribe";
-                 in the header, so it is there on a phone too. -->
-            <Link v-if="can_edit" :href="route('groups.edit', group.slug)" class="group-join btn-secondary justify-center">
-                {{ $t('groups.show.edit') }}
-            </Link>
-            <button
-                v-else
-                type="button"
-                class="group-join"
-                :class="joined ? 'btn-secondary' : 'btn-primary'"
-                :disabled="subscribing"
-                @click="toggleJoin"
-            >{{ buttonLabel }}</button>
-
-            <p class="group-desc" dir="auto">{{ group.description }}</p>
-            <div v-if="group.rules?.length" class="group-rules">
-                <p class="font-medium text-ink">{{ $t('groups.show.rules') }}</p>
-                <ol class="group-rules-list">
-                    <li v-for="(rule, index) in group.rules" :key="index" dir="auto">
-                        {{ rule.text }}
-                        <span v-if="rule.example" class="group-rule-example">{{ $t('groups.show.rule_example', { example: rule.example }) }}</span>
-                    </li>
-                </ol>
-            </div>
-
-            <p v-if="subscribeError" class="vote-error w-full" :title="subscribeError">⚠ {{ subscribeError }}</p>
-
-            <p v-if="showLoginPrompt" class="post-login-prompt w-full">
-                <AuthPrompt :action="group.is_private ? 'request_join' : 'subscribe'" />
-            </p>
-
-        </header>
-    </aside>
+    <GroupAside :group="group" :can-edit="can_edit" :membership="membership" />
 
     <section class="feed">
         <!-- The same strip as on the home page: the group's actions where the home page has its

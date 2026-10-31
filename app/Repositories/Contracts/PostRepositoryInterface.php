@@ -91,6 +91,12 @@ interface PostRepositoryInterface
     public function create(string $groupId, string $userId, ?string $title, string $article, string $slug): Post;
 
     /**
+     * Replaces the post's title and article and notes when (`edited_at`). The slug stays: it is in
+     * the post's URL, which must keep working.
+     */
+    public function update(string $postId, ?string $title, string $article): void;
+
+    /**
      * Notes that the user has seen the post (opened its page, voted on it). Idempotent: the first
      * time is kept. The caller has checked they may see it.
      */

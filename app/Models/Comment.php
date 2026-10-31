@@ -20,6 +20,7 @@ class Comment extends BaseEntity
         'text',
         'is_deleted',
         'deleted_at',
+        'edited_at',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class Comment extends BaseEntity
         return [
             'is_deleted' => 'boolean',
             'deleted_at' => 'datetime',
+            'edited_at' => 'datetime',
         ];
     }
 

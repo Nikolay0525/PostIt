@@ -12,5 +12,8 @@ return [
     'reply' => 'Reply',
     'reply_placeholder' => 'Write a reply',
     'reply_failed' => 'Reply failed',
+    'edit' => 'Edit',
+    'save' => 'Save',
+    'edit_failed' => 'Could not save the change',
 
 ];

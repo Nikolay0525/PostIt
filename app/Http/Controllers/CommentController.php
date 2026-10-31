@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCommentRequest;
+use App\Http\Requests\UpdateCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
+use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Services\CommentService;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +21,7 @@ class CommentController extends Controller
 {
     public function __construct(
         protected CommentService $commentService,
+        protected CommentRepositoryInterface $commentRepository,
         protected PostRepositoryInterface $postRepository
     ) {}
 
@@ -46,5 +49,21 @@ class CommentController extends Controller
         $comment->viewer_vote = null;
 
         return response()->json(new CommentResource($comment));
+    }
+
+    // Answers with just the new text and time: the client merges them into the comment it already
+    // shows, so the rest (votes, replies) is not re-queried.
+    public function update(UpdateCommentRequest $request, string $id): JsonResponse
+    {
+        $comment = $this->commentRepository->find($id);
+
+        abort_if($comment === null || $comment->is_deleted, 404);
+
+        $this->authorize('update', $comment);
+
+        $this->commentService->updateComment($comment, $request->validated('text'));
+        $comment->refresh();
+
+        return response()->json(['text' => $comment->text, 'edited_at' => $comment->edited_at]);
     }
 }

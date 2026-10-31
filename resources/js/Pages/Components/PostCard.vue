@@ -2,10 +2,11 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import ContentMenu from '@/Pages/Components/ContentMenu.vue';
 import ShareButton from '@/Pages/Components/ShareButton.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
-import { excerpt, timeAgo } from '@/utils/format';
+import { excerpt, fullDate, timeAgo } from '@/utils/format';
 import { trackSeen, untrackSeen } from '@/utils/seen';
 
 const props = defineProps({
@@ -39,6 +40,10 @@ onBeforeUnmount(() => untrackSeen(card.value));
                 <span class="group-lang ms-1" :title="$t('groups.show.language')">{{ post.group.language_code }}</span>
                 <span aria-hidden="true"> · </span>
                 <time :datetime="post.created_at">{{ timeAgo(post.created_at) }}</time>
+                <template v-if="post.edited_at">
+                    <span aria-hidden="true"> · </span>
+                    <time :datetime="post.edited_at" :title="fullDate(post.edited_at)">({{ $t('common.edited', { time: timeAgo(post.edited_at) }) }})</time>
+                </template>
                 <br />
                 <Link :href="route('users.show', post.author.username)" class="post-author" dir="auto">{{ post.author.username }}</Link>
             </p>
@@ -94,6 +99,13 @@ onBeforeUnmount(() => untrackSeen(card.value));
                 :url="route('posts.show', [post.group.slug, post.slug])"
                 :count="post.shares_count"
             />
+
+            <!-- Edit lives in the menu, not as a button of its own; "Report" joins it there. -->
+            <ContentMenu v-if="post.can_edit">
+                <template #default="{ close }">
+                    <Link :href="route('posts.edit', [post.group.slug, post.slug])" class="menu-item" @click="close">{{ $t('posts.edit.link') }}</Link>
+                </template>
+            </ContentMenu>
 
             <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-more">{{ $t('posts.see_full') }}</Link>
         </footer>

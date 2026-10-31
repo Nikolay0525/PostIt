@@ -22,6 +22,7 @@ class Post extends BaseEntity
         'slug',
         'is_deleted',
         'deleted_at',
+        'edited_at',
     ];
 
     protected function casts(): array
@@ -29,6 +30,7 @@ class Post extends BaseEntity
         return [
             'is_deleted' => 'boolean',
             'deleted_at' => 'datetime',
+            'edited_at' => 'datetime',
         ];
     }
 

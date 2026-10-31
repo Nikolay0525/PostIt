@@ -3,10 +3,11 @@ import { ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import ContentMenu from '@/Pages/Components/ContentMenu.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
-import { timeAgo } from '@/utils/format';
-import { postJson } from '@/utils/http';
+import { fullDate, timeAgo } from '@/utils/format';
+import { postJson, putJson } from '@/utils/http';
 
 // Comments are nested (parent_id), so a node renders itself for each of its replies.
 const props = defineProps({
@@ -66,6 +67,48 @@ const submitReply = async () => {
         replying.value = false;
     }
 };
+
+// Editing happens in place and outside Inertia, like replying: the new text and time are merged into
+// the comment already on the page, so the scrolled comment list stays where it is.
+const editing = ref(false);
+const editText = ref('');
+const saving = ref(false);
+const editError = ref(null);
+
+const startEdit = () => {
+    editText.value = props.comment.text;
+    editError.value = null;
+    editing.value = true;
+};
+
+const cancelEdit = () => {
+    editing.value = false;
+    editError.value = null;
+};
+
+const saveEdit = async () => {
+    const text = editText.value.trim();
+
+    if (!text || saving.value) {
+        return;
+    }
+
+    saving.value = true;
+    editError.value = null;
+
+    try {
+        const saved = await putJson(`/comments/${props.comment.id}`, { text });
+
+        props.comment.text = saved.text;
+        props.comment.edited_at = saved.edited_at;
+        editing.value = false;
+    } catch (error) {
+        console.error('Edit failed:', error);
+        editError.value = error.message || trans('common.something_went_wrong');
+    } finally {
+        saving.value = false;
+    }
+};
 </script>
 
 <template>
@@ -79,8 +122,29 @@ const submitReply = async () => {
                     <Link :href="route('users.show', comment.author.username)" class="post-author font-medium text-ink" dir="auto">{{ comment.author.username }}</Link>
                     <span aria-hidden="true"> · </span>
                     <time :datetime="comment.created_at">{{ timeAgo(comment.created_at) }}</time>
+                    <template v-if="comment.edited_at">
+                        <span aria-hidden="true"> · </span>
+                        <time :datetime="comment.edited_at" :title="fullDate(comment.edited_at)">({{ $t('common.edited', { time: timeAgo(comment.edited_at) }) }})</time>
+                    </template>
                 </p>
-                <p class="post-body text-ink" dir="auto">{{ comment.text }}</p>
+
+                <form v-if="editing" class="comment-form mt-3" @submit.prevent="saveEdit">
+                    <textarea
+                        v-model="editText"
+                        class="field-input"
+                        rows="3"
+                        maxlength="500"
+                        dir="auto"
+                        :aria-label="$t('comments.edit')"
+                        :disabled="saving"
+                    ></textarea>
+                    <span class="flex gap-2 self-end">
+                        <button type="button" class="btn-secondary" @click="cancelEdit">{{ $t('common.cancel') }}</button>
+                        <button type="submit" class="btn-primary" :disabled="saving || !editText.trim()">{{ $t('comments.save') }}</button>
+                    </span>
+                    <p v-if="editError" class="vote-error" :title="editError">⚠ {{ $t('comments.edit_failed') }}</p>
+                </form>
+                <p v-else class="post-body text-ink" dir="auto">{{ comment.text }}</p>
                 <p class="post-footer">
                     <VoteButtons
                         target-type="comment"
@@ -93,6 +157,12 @@ const submitReply = async () => {
                         @needs-login="showLoginPrompt = true"
                     />
                     <button type="button" class="post-action" @click="toggleReplyForm">{{ $t('comments.reply') }}</button>
+                    <!-- Edit lives in the menu, not as a button of its own; "Report" joins it there. -->
+                    <ContentMenu v-if="comment.can_edit && !editing">
+                        <template #default="{ close }">
+                            <button type="button" class="menu-item" @click="close(); startEdit()">{{ $t('comments.edit') }}</button>
+                        </template>
+                    </ContentMenu>
                 </p>
                 <p v-if="showLoginPrompt" class="post-login-prompt">
                     <AuthPrompt action="vote" />

@@ -35,6 +35,10 @@ class CommentResource extends JsonResource
                 'avatar_url' => $this->is_deleted ? null : ImageService::url($this->author->avatar_url),
             ],
             'created_at' => $this->created_at,
+            // When the author last changed the text; null if never.
+            'edited_at' => $this->is_deleted ? null : $this->edited_at,
+            // Offered to the author only; CommentPolicy::update() decides again on the server.
+            'can_edit' => ! $this->is_deleted && $request->user()?->id === $this->user_id,
             'upvotes' => $this->upvotes_count,
             'downvotes' => $this->downvotes_count,
             'controversy' => $this->controversyScore($this->upvotes_count, $this->downvotes_count),

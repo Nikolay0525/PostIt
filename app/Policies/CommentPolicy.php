@@ -33,6 +33,18 @@ class CommentPolicy
     }
 
     /**
+     * Only the author edits a comment, and only while it is not deleted, they are verified and not
+     * banned from its post's group.
+     */
+    public function update(User $user, Comment $comment): bool
+    {
+        return $user->id === $comment->user_id
+            && ! $comment->is_deleted
+            && $user->hasVerifiedEmail()
+            && ! $this->isBannedFromGroup($user, $comment->post->group_id);
+    }
+
+    /**
      * A user may vote on any comment they can see except their own, and only while it has not
      * been deleted.
      */

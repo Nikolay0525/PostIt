@@ -32,6 +32,10 @@ class PostResource extends JsonResource
             'article_html' => $this->markdownToHtml($this->article),
             'article_text' => $this->markdownToPlainText($this->article),
             'created_at' => $this->created_at,
+            // When the author last changed the text; null if never.
+            'edited_at' => $this->edited_at,
+            // Offered to the author only; PostPolicy::update() decides again on the server.
+            'can_edit' => $request->user()?->id === $this->user_id,
             'upvotes' => $this->upvotes_count,
             'downvotes' => $this->downvotes_count,
             'controversy' => $this->controversyScore($this->upvotes_count, $this->downvotes_count),

@@ -5,6 +5,7 @@ namespace Tests\Feature\Http;
 use App\Enums\GroupModeratorRole;
 use App\Http\Requests\StoreGroupRequest;
 use App\Models\Group;
+use App\Models\Post;
 use App\Models\User;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Services\GroupService;
@@ -139,6 +140,30 @@ class GroupControllerTest extends TestCase
 
         $this->actingAs($owner)->get('/groups/retro-gaming')
             ->assertInertia(fn (AssertableInertia $page) => $page->where('posts.data.0.group.language_code', 'uk'));
+    }
+
+    public function test_a_posts_page_carries_the_groups_card_and_who_may_edit_it(): void
+    {
+        $owner = User::factory()->create();
+        $group = $this->groupOwnedBy($owner);
+        $post = Post::factory()->create(['group_id' => $group->id]);
+        $member = User::factory()->create();
+        app(GroupRepositoryInterface::class)->subscribe($group->id, $member->id);
+
+        $this->actingAs($owner)->get("/groups/retro-gaming/posts/{$post->slug}")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('group.slug', 'retro-gaming')
+                ->where('group.language_name', 'українська')
+                ->where('group.rules.0.text', 'No piracy links.')
+                ->has('group.members_count')
+                ->where('is_member', true)
+                ->where('can_edit', true));
+        $this->actingAs($member)->get("/groups/retro-gaming/posts/{$post->slug}")
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('is_member', true)->where('can_edit', false));
+
+        auth()->logout();
+        $this->get("/groups/retro-gaming/posts/{$post->slug}")
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('is_member', false)->where('can_edit', false));
     }
 
     public function test_the_slug_is_trimmed_and_lowercased_before_validation(): void

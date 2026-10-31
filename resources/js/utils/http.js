@@ -58,6 +58,10 @@ export function postJson(url, body, { keepalive = false } = {}) {
     return request('POST', url, body, undefined, keepalive);
 }
 
+export function putJson(url, body) {
+    return request('PUT', url, body);
+}
+
 export function patchJson(url, body) {
     return request('PATCH', url, body);
 }
