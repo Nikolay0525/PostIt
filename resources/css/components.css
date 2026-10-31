@@ -221,7 +221,7 @@
   }
   /* A page's title in the strip (PageHeader), on the tabs' baseline. */
   .page-header-title {
-    @apply px-1 pb-3 text-base font-semibold text-muted;
+    @apply px-1 pb-3 text-base font-semibold text-ink;
   }
   /* An action in the strip rather than a tab (a group's "New post"): in the brand colour. */
   .feed-tab-action {
@@ -371,14 +371,24 @@
     @apply rounded-lg border border-brand-100 bg-brand-50 p-3 text-sm text-brand-700;
   }
   .settings-section {
-    @apply flex flex-col gap-4 border-t border-line pt-5;
+    @apply flex flex-col gap-5 border-b border-line pb-8;
   }
+  /* The last section has no line of its own: the form's actions row already has one above it. */
+  .settings-section:last-of-type {
+    @apply border-b-0 pb-0;
+  }
+  /* The heading of a section in Settings / group edit. The legend sits outside the fieldset's
+     flex layout, so it takes its own spacing. */
   .settings-heading {
+    @apply mb-5 text-lg font-semibold text-ink;
+  }
+  /* A small label above a group of controls or results (search, Filters, sort): muted capitals. */
+  .muted-heading {
     @apply mb-1 text-sm font-semibold uppercase tracking-wide text-muted;
   }
   /* In a Filters panel: written as in the translation, not in capitals, and a little room above
      so it doesn't sit tight on what comes before it. */
-  .feed-filter-panel .settings-heading {
+  .feed-filter-panel .muted-heading {
     @apply mb-2 normal-case tracking-normal;
   }
   .settings-toggle {
@@ -459,6 +469,11 @@
   }
   .karma-value {
     @apply font-semibold tabular-nums;
+  }
+  /* The group's language code after its name (the side panel, the group page), in the karma badge's colours. */
+  .group-lang {
+    @apply inline-flex shrink-0 items-center rounded-md border border-brand-100 bg-brand-50 px-1.5 text-xs
+           font-semibold uppercase text-brand-700;
   }
   .group-desc {
     @apply w-full text-sm leading-relaxed text-muted;

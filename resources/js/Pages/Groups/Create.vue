@@ -1,8 +1,9 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import PageHeader from '@/Pages/Components/PageHeader.vue';
+import RulesEditor from '@/Pages/Components/RulesEditor.vue';
 import TextInput from '@/Pages/Components/TextInput.vue';
 
 const props = defineProps({
@@ -74,21 +75,6 @@ const goToRules = () => {
     }
 
     step.value = 2;
-};
-
-const canAddRule = computed(() => form.rules.length < props.limits.rules);
-
-const addRule = () => {
-    if (!canAddRule.value) return;
-    form.rules.push({ text: '', example: '' });
-    nextTick(() => {
-        const inputs = stepTwoPanel.value?.querySelectorAll('.rule-text');
-        inputs?.[inputs.length - 1]?.focus();
-    });
-};
-
-const removeRule = (index) => {
-    form.rules.splice(index, 1);
 };
 
 const submit = () => {
@@ -203,51 +189,7 @@ const submit = () => {
                         :inert="step !== 2 || undefined"
                         :aria-hidden="step !== 2"
                     >
-                        <p class="field-hint mt-0">{{ $t('groups.create.rules_hint') }}</p>
-
-                        <ol class="rule-editor-list">
-                            <li v-for="(rule, index) in form.rules" :key="index" class="rule-editor">
-                                <div class="rule-editor-head">
-                                    <span class="rule-editor-number">{{ index + 1 }}.</span>
-                                    <button
-                                        type="button"
-                                        class="rule-editor-remove"
-                                        :aria-label="$t('groups.create.remove_rule_n', { n: index + 1 })"
-                                        :title="$t('groups.create.remove_rule')"
-                                        @click="removeRule(index)"
-                                    >✕</button>
-                                </div>
-
-                                <input
-                                    v-model="rule.text"
-                                    class="field-input rule-text"
-                                    :class="{ 'has-error': form.errors[`rules.${index}.text`] }"
-                                    :maxlength="limits.rule_text"
-                                    dir="auto"
-                                    :aria-label="$t('groups.create.rule_n', { n: index + 1 })"
-                                    :placeholder="$t('groups.create.rule_placeholder')"
-                                />
-                                <p v-if="form.errors[`rules.${index}.text`]" class="field-error">{{ form.errors[`rules.${index}.text`] }}</p>
-
-                                <input
-                                    v-model="rule.example"
-                                    class="field-input mt-2"
-                                    :class="{ 'has-error': form.errors[`rules.${index}.example`] }"
-                                    :maxlength="limits.rule_example"
-                                    dir="auto"
-                                    :aria-label="$t('groups.create.example_n', { n: index + 1 })"
-                                    :placeholder="$t('groups.create.example_placeholder')"
-                                />
-                                <p v-if="form.errors[`rules.${index}.example`]" class="field-error">{{ form.errors[`rules.${index}.example`] }}</p>
-                            </li>
-                        </ol>
-
-                        <p v-if="form.errors.rules" class="field-error">{{ form.errors.rules }}</p>
-
-                        <button type="button" class="btn-secondary self-start" :disabled="!canAddRule" @click="addRule">
-                            {{ $t('groups.create.add_rule') }}
-                        </button>
-                        <p v-if="!canAddRule" class="field-hint mt-0">{{ $t('groups.create.rules_limit', { max: limits.rules }) }}</p>
+                        <RulesEditor v-model="form.rules" :limits="limits" :errors="form.errors" />
 
                         <div class="wizard-actions">
                             <button type="button" class="btn-secondary" @click="step = 1">

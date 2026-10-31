@@ -62,16 +62,45 @@ class GroupService
         return DB::transaction(function () use ($ownerId, $name, $slug, $description, $rules, $languageCode, $isPrivate) {
             $group = $this->groupRepository->create($name, $slug, $description, $languageCode, $isPrivate);
 
-            $this->groupRepository->addRuleVersion($group->id, array_map(fn (array $rule) => [
-                'text' => $rule['text'],
-                'example' => $rule['example'] ?? null,
-            ], array_values($rules)));
+            $this->groupRepository->addRuleVersion($group->id, $this->normalizeRules($rules));
 
             $this->groupRepository->addModerator($group->id, $ownerId, GroupModeratorRole::Owner);
             $this->groupRepository->subscribe($group->id, $ownerId);
 
             return $group;
         });
+    }
+
+    /**
+     * Name, description and language are overwritten; the rules are not — a changed list becomes a
+     * new version, so an appeal can still be judged against the rules in force at the time. A list
+     * that did not change adds no version. Expects the group from getGroupBySlug() (current rules loaded).
+     *
+     * @param  list<array{text: string, example?: ?string}>  $rules
+     */
+    public function updateGroup(Group $group, string $name, string $description, string $languageCode, array $rules): void
+    {
+        $rules = $this->normalizeRules($rules);
+
+        DB::transaction(function () use ($group, $name, $description, $languageCode, $rules) {
+            $this->groupRepository->update($group->id, $name, $description, $languageCode);
+
+            if ($rules !== ($group->currentRuleVersion?->rules ?? [])) {
+                $this->groupRepository->addRuleVersion($group->id, $rules);
+            }
+        });
+    }
+
+    /**
+     * @param  list<array{text: string, example?: ?string}>  $rules
+     * @return list<array{text: string, example: ?string}>
+     */
+    private function normalizeRules(array $rules): array
+    {
+        return array_map(fn (array $rule) => [
+            'text' => $rule['text'],
+            'example' => $rule['example'] ?? null,
+        ], array_values($rules));
     }
 
     /**

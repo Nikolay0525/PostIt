@@ -30,7 +30,7 @@ class EloquentGroupRepository implements GroupRepositoryInterface
 
     public function findForGroupPage(string $slug): ?Group
     {
-        return Group::withCount('members')->with('currentRuleVersion')->where('slug', $slug)->first();
+        return Group::withCount('members')->with(['currentRuleVersion', 'language:code,native_name'])->where('slug', $slug)->first();
     }
 
     // Private groups included on purpose: a private group must stay findable so people can ask to
@@ -62,6 +62,15 @@ class EloquentGroupRepository implements GroupRepositoryInterface
             'description' => $description,
             'language_code' => $languageCode,
             'is_private' => $isPrivate,
+        ]);
+    }
+
+    public function update(string $groupId, string $name, string $description, string $languageCode): void
+    {
+        Group::whereKey($groupId)->update([
+            'name' => $name,
+            'description' => $description,
+            'language_code' => $languageCode,
         ]);
     }
 
@@ -129,7 +138,7 @@ class EloquentGroupRepository implements GroupRepositoryInterface
         // select() before withCount(): with the join, get($columns) would be ignored in favour of `*`.
         return $this->subscriptionsOf($userId)
             ->where('user_group_subscriptions.attached_on_feed', true)
-            ->select(['groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private'])
+            ->select(['groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private', 'groups.language_code'])
             // New = posted since the user joined, by someone else, and not seen yet (ExcludesSeenPosts).
             ->withCount(['posts as new_posts_count' => fn (Builder $posts) => $this->whereNotSeenBy($posts
                 ->where('posts.is_deleted', false)

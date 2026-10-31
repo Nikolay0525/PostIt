@@ -22,7 +22,8 @@ interface GroupRepositoryInterface
     public function findBySlug(string $slug): ?Group;
 
     /**
-     * By slug; the returned group carries the aggregate members_count and its currentRuleVersion.
+     * By slug; the returned group carries the aggregate members_count, its currentRuleVersion and
+     * its language (code and native name).
      */
     public function findForGroupPage(string $slug): ?Group;
 
@@ -36,6 +37,12 @@ interface GroupRepositoryInterface
     public function slugExists(string $slug): bool;
 
     public function create(string $name, string $slug, string $description, string $languageCode, bool $isPrivate): Group;
+
+    /**
+     * Changes the group's name, description and language. Its address and privacy are not
+     * touched here.
+     */
+    public function update(string $groupId, string $name, string $description, string $languageCode): void;
 
     /**
      * Stores a new, immutable snapshot of the group's rules; it becomes the current version.
@@ -68,7 +75,7 @@ interface GroupRepositoryInterface
 
     /**
      * Every group the user attached to their side panel: the most new posts first, then by name.
-     * Each carries `new_posts_count` — posts since the user joined, by others, not opened or
+     * Each carries its `language_code` and `new_posts_count` — posts since the user joined, by others, not opened or
      * voted on yet.
      *
      * @return Collection<int, Group>

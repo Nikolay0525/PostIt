@@ -9,7 +9,7 @@ import { takePanel } from '@/utils/sidePanel';
 // hidden until the navbar's panel button opens it as a drawer — there is no hover on a touch screen, so it
 // opens with a tap.
 const props = defineProps({
-    // { groups: [{ id, slug, name, is_private, new_posts_count }], people: [{ id, username, avatar_url, new_posts_count }] }.
+    // { groups: [{ id, slug, name, is_private, language_code, new_posts_count }], people: [{ id, username, avatar_url, new_posts_count }] }.
     // In both, the most new posts first, then by name. A post by someone you follow in a group
     // you're in counts in both, and reading it once takes it off both.
     panel: { type: Object, required: true },
@@ -90,6 +90,7 @@ onBeforeUnmount(() => {
                     >
                         <span class="avatar-sm rounded-md" aria-hidden="true">{{ item.name.charAt(0).toUpperCase() }}</span>
                         <span class="min-w-0 truncate" dir="auto">{{ item.name }}</span>
+                        <span class="group-lang" :title="$t('groups.show.language')">{{ item.language_code }}</span>
                         <span v-if="item.is_private" :title="$t('groups.show.private')">🔒</span>
                         <span
                             v-if="item.new_posts_count"

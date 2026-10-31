@@ -298,7 +298,7 @@ class EloquentPostRepository implements PostRepositoryInterface
     private function withStats(?string $viewerId = null): Builder
     {
         $query = Post::query()
-            ->with(['author:id,username,avatar_url', 'group:id,name,slug,is_private'])
+            ->with(['author:id,username,avatar_url', 'group:id,name,slug,is_private,language_code'])
             ->withCount([
                 'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true),
                 'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false),

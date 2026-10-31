@@ -4,6 +4,7 @@ namespace Tests\Feature\Http;
 
 use App\Models\Group;
 use App\Models\Post;
+use App\Models\SpeakingLanguage;
 use App\Models\User;
 use App\Models\UserGroupSubscription;
 use App\Services\FollowService;
@@ -152,6 +153,15 @@ class HomeControllerTest extends TestCase
                 ->has('side_panel.groups', 3)
                 ->has('side_panel.people', 1)
                 ->where('side_panel.people.0.username', $author->username));
+    }
+
+    public function test_a_side_panel_group_carries_its_language_code(): void
+    {
+        $user = User::factory()->create();
+        $this->join($user, Group::factory()->create(['language_code' => SpeakingLanguage::factory()->create(['code' => 'xyz'])->code]));
+
+        $this->actingAs($user)->get('/')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('side_panel.groups.0.language_code', 'xyz'));
     }
 
     public function test_side_panel_groups_with_more_new_posts_come_first_then_by_name(): void

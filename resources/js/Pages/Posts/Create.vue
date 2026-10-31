@@ -1,6 +1,7 @@
 <script setup>
 import { nextTick, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import PageHeader from '@/Pages/Components/PageHeader.vue';
 import TextInput from '@/Pages/Components/TextInput.vue';
 
 const props = defineProps({
@@ -43,13 +44,9 @@ const submit = () => {
     <Head :title="` | ${$t('posts.create.title')}`" />
 
     <section class="feed">
-        <Link :href="route('groups.show', group.slug)" class="back-link" dir="auto">
-            <span class="back-arrow" aria-hidden="true">←</span> {{ $t('common.back_to', { name: group.name }) }}
-        </Link>
+        <PageHeader :title="$t('posts.create.heading', { group: group.name })" />
 
         <form class="post-form" @submit.prevent="submit">
-            <h1 class="feed-title">{{ $t('posts.create.heading', { group: group.name }) }}</h1>
-
             <TextInput :name="$t('posts.create.title_label')" v-model="form.title" :message="form.errors.title" />
 
             <div>
@@ -85,9 +82,14 @@ const submit = () => {
                 <p v-if="form.errors.article" class="field-error">{{ form.errors.article }}</p>
             </div>
 
-            <button type="submit" class="btn-primary self-start" :disabled="form.processing">
-                {{ form.processing ? $t('posts.create.submitting') : $t('posts.create.submit') }}
-            </button>
+            <div class="wizard-actions">
+                <Link :href="route('groups.show', group.slug)" class="btn-secondary">
+                    <span class="back-arrow" aria-hidden="true">←</span> {{ $t('common.back') }}
+                </Link>
+                <button type="submit" class="btn-primary" :disabled="form.processing">
+                    {{ form.processing ? $t('posts.create.submitting') : $t('posts.create.submit') }}
+                </button>
+            </div>
         </form>
     </section>
 </template>

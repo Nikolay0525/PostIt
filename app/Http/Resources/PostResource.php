@@ -44,7 +44,12 @@ class PostResource extends JsonResource
                 'username' => $this->author->username,
                 'avatar_url' => ImageService::url($this->author->avatar_url),
             ],
-            'group' => ['id' => $this->group->id, 'slug' => $this->group->slug, 'name' => $this->group->name],
+            'group' => [
+                'id' => $this->group->id,
+                'slug' => $this->group->slug,
+                'name' => $this->group->name,
+                'language_code' => $this->group->language_code,
+            ],
         ];
     }
 }

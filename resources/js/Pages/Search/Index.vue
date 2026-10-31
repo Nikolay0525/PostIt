@@ -72,7 +72,7 @@ const more = (list) => (list?.meta && list.meta.total > list.data.length ? list.
 
             <!-- Groups and people: a short preview on All, the whole scrolling list on their tab. -->
             <div v-if="groups?.data.length" class="search-section">
-                <h2 v-if="type === 'all'" class="settings-heading" dir="auto">{{ $t('search.tabs.groups') }}</h2>
+                <h2 v-if="type === 'all'" class="muted-heading" dir="auto">{{ $t('search.tabs.groups') }}</h2>
                 <InfiniteScroll v-if="type === 'groups'" data="groups" class="search-list">
                     <GroupRow v-for="group in groups.data" :key="group.id" :group="group" />
                 </InfiniteScroll>
@@ -85,7 +85,7 @@ const more = (list) => (list?.meta && list.meta.total > list.data.length ? list.
             </div>
 
             <div v-if="people?.data.length" class="search-section">
-                <h2 v-if="type === 'all'" class="settings-heading" dir="auto">{{ $t('search.tabs.people') }}</h2>
+                <h2 v-if="type === 'all'" class="muted-heading" dir="auto">{{ $t('search.tabs.people') }}</h2>
                 <InfiniteScroll v-if="type === 'people'" data="people" class="search-list">
                     <PersonRow v-for="person in people.data" :key="person.id" :person="person" />
                 </InfiniteScroll>

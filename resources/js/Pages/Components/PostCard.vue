@@ -36,6 +36,7 @@ onBeforeUnmount(() => untrackSeen(card.value));
             <!-- dir="auto" lets each piece of user text align by its own language -->
             <p class="post-meta-text">
                 <Link :href="route('groups.show', post.group.slug)" class="post-group" dir="auto">{{ post.group.name }}</Link>
+                <span class="group-lang ms-1" :title="$t('groups.show.language')">{{ post.group.language_code }}</span>
                 <span aria-hidden="true"> · </span>
                 <time :datetime="post.created_at">{{ timeAgo(post.created_at) }}</time>
                 <br />

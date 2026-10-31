@@ -131,7 +131,7 @@ const activeFilters = computed(() =>
                     </p>
 
                     <fieldset class="feed-filter-group">
-                        <legend class="settings-heading">{{ $t('home.filters.period.label') }}</legend>
+                        <legend class="muted-heading">{{ $t('home.filters.period.label') }}</legend>
                         <label v-for="period in periods" :key="period" class="settings-toggle">
                             <input
                                 type="radio"

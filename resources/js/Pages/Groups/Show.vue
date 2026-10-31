@@ -13,12 +13,17 @@ import { panel, takePanel } from '@/utils/sidePanel';
 const props = defineProps({
     group: Object,
     is_member: Boolean,
+    // Whether the viewer is the group's Owner, who may edit it.
+    can_edit: Boolean,
     sort: String,
     // Paginated by <InfiniteScroll>. null when the group is private and the viewer is not a member.
     posts: Object,
 });
 
 const page = usePage();
+
+// Language names are stored the way their speakers write them in a list, in lower case.
+const languageName = computed(() => props.group.language_name.charAt(0).toUpperCase() + props.group.language_name.slice(1));
 
 // Labels are lang keys groups.show.sort.<key>.
 const sorts = ['newest', 'top', 'controversy'];
@@ -119,13 +124,20 @@ const readAll = async () => {
              panel's "Groups", like those. More cards (the moderators) will go under it. -->
         <div class="feed-tabs-row page-aside-heading">
             <h2 class="page-header-title">{{ $t('groups.show.about') }}</h2>
+            <Link v-if="can_edit" :href="route('groups.edit', group.slug)" class="feed-tab feed-tab-action ms-auto">
+                {{ $t('groups.show.edit') }}
+            </Link>
         </div>
 
         <header class="group-header">
             <span class="group-avatar" aria-hidden="true">{{ group.name.charAt(0).toUpperCase() }}</span>
 
             <div class="min-w-0 flex-1">
-                <h1 class="group-name" dir="auto">{{ group.name }}</h1>
+                <div class="flex flex-wrap items-center gap-x-2">
+                    <h1 class="group-name" dir="auto">{{ group.name }}</h1>
+                    <!-- The whole name in its own language, not the code ("UK" reads as a country). -->
+                    <span class="group-lang normal-case" :title="$t('groups.show.language')" dir="auto">{{ languageName }}</span>
+                </div>
                 <p class="group-stats">
                     {{ $tChoice('groups.show.members', group.members_count, { num: formatCount(group.members_count) }) }}<span v-if="group.is_private"> · {{ $t('groups.show.private') }}</span>
                 </p>
@@ -207,7 +219,7 @@ const readAll = async () => {
 
                 <div class="feed-filter-panel">
                     <fieldset class="feed-filter-group">
-                        <legend class="settings-heading">{{ $t('groups.show.sort_label') }}</legend>
+                        <legend class="muted-heading">{{ $t('groups.show.sort_label') }}</legend>
                         <label v-for="key in sorts" :key="key" class="settings-toggle">
                             <input
                                 type="radio"

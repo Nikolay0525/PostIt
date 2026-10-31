@@ -112,7 +112,12 @@ Kinds of notifications, by role:
 
 **Group address.** Every group has a unique address (slug): lowercase Latin letters, digits and hyphens. Like a username, it is a key identifier: to get into a particular group, nobody has to type unfamiliar characters — the identifier is understandable to everyone. The group's name can be in any language.
 
-**Owner's authority.** [The owner can change the group's language, name, description, rules and address — the address not more often than once every 7 days.] Before doing so they may hold a poll among members, but nobody obliges them to.
+**Changing the address.** [The owner can change a group's address themselves at most 3 times in the group's life, and not more often than once every 7 days; after that, a change has to be requested from a platform administrator.]
+- [An old address is never given to another group: it stays reserved for this one for good, so nobody can take over the links that are already out there. With at most 3 changes, a group holds at most 3 old addresses, so reserving them cannot clog the namespace.]
+- [An old address keeps working: it leads to the group's current address, and the page shows a notice that the address has changed. Going back to one of the group's own old addresses counts as a change like any other.]
+- [When the group is deleted, its old addresses are released together with it.]
+
+**Owner's authority.** [The owner can change the group's language, name, description, rules and address (see Changing the address).] Before doing so they may hold a poll among members, but nobody obliges them to.
 
 **Private groups.**
 - [A group can be switched between public and private. When a public group becomes private, everyone currently subscribed automatically becomes a member.]
