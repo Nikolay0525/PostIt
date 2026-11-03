@@ -39,6 +39,18 @@ class GroupPolicy
     }
 
     /**
+     * The group's Owner and its moderators see its moderation cases. A member does not, and
+     * neither does a moderator of another group.
+     */
+    public function moderate(User $user, Group $group): bool
+    {
+        return GroupModerator::query()
+            ->where('group_id', $group->id)
+            ->where('user_id', $user->id)
+            ->exists();
+    }
+
+    /**
      * A public group can be subscribed to directly; a private group only grants membership
      * through an approved GroupJoinRequest (not built yet), so subscribing to one is never
      * allowed here.

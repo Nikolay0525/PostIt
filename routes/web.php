@@ -6,6 +6,7 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\ModerationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReportController;
@@ -112,7 +113,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/groups/{groupSlug}', [GroupController::class, 'update'])
         ->middleware('throttle:30,1')->name('groups.update');
 
-    Route::post('/groups/{id}/subscribe', [MembershipController::class, 'subscribe'])
+    Route::get('/groups/{groupSlug}/-/moderation', [ModerationController::class, 'index'])
+        ->middleware('throttle:60,1')->name('groups.moderation');
+
+    Route::post('/groups/{id}/subscribe',[MembershipController::class, 'subscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.subscribe');
     Route::delete('/groups/{id}/subscribe', [MembershipController::class, 'unsubscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.unsubscribe');
