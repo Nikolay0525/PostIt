@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Enums\GroupModeratorRole;
 use App\Models\Group;
+use App\Models\GroupActivity;
 use App\Models\GroupRuleVersion;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -33,6 +34,11 @@ interface GroupRepositoryInterface
      * biggest first within each. Each carries `members_count`.
      */
     public function search(string $term, int $perPage): LengthAwarePaginator;
+
+    /**
+     * The group's last count of how alive it is, or null if it has not been counted yet.
+     */
+    public function findActivity(string $groupId): ?GroupActivity;
 
     public function slugExists(string $slug): bool;
 

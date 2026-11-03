@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * How alive a group was over the 30 days before `computed_at`: `voters_count` different people
- * voted in it, in `votes_count` votes. A snapshot refreshed on a schedule, not a live count.
+ * How alive a group was over the counting window (a week) before `computed_at`: `voters_count`
+ * different people voted in it, in `votes_count` votes. A snapshot refreshed on a schedule, not a
+ * live count.
  */
 class GroupActivity extends Model
 {

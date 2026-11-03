@@ -17,6 +17,27 @@ class EloquentReportRepository implements ReportRepositoryInterface
             ->exists();
     }
 
+    public function countReputable(ReportTargetType $targetType, string $targetId, string $groupId): int
+    {
+        return Report::query()
+            ->where('reports.target_type', $targetType->value)
+            ->where('reports.target_id', $targetId)
+            ->whereNull('reports.moderation_case_id')
+            ->join('user_group_karma', fn ($karma) => $karma
+                ->on('user_group_karma.user_id', '=', 'reports.reporter_id')
+                ->where('user_group_karma.group_id', $groupId))
+            ->where('user_group_karma.karma', '>', 0)
+            ->count();
+    }
+
+    public function attachToCase(ReportTargetType $targetType, string $targetId, string $caseId): void
+    {
+        Report::where('target_type', $targetType->value)
+            ->where('target_id', $targetId)
+            ->whereNull('moderation_case_id')
+            ->update(['moderation_case_id' => $caseId]);
+    }
+
     public function create(
         string $reporterId,
         ReportTargetType $targetType,

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ReportTargetType;
+use App\Events\ReportFiled;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ReportRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -44,8 +45,8 @@ class ReportService
         }
 
         try {
-            DB::transaction(function () use ($reporterId, $targetType, $targetId, $groupId, $ruleVersion, $ruleIndex, $breaksPlatformRules, $text) {
-                $this->reportRepository->create(
+            $report = DB::transaction(function () use ($reporterId, $targetType, $targetId, $groupId, $ruleVersion, $ruleIndex, $breaksPlatformRules, $text) {
+                $report = $this->reportRepository->create(
                     $reporterId,
                     $targetType,
                     $targetId,
@@ -56,11 +57,15 @@ class ReportService
                     $text,
                 );
                 $this->userRepository->incrementReportsSent($reporterId);
+
+                return $report;
             });
         } catch (UniqueConstraintViolationException) {
             // The same person reported it twice at once; the unique index let only one through.
             return false;
         }
+
+        ReportFiled::dispatch($report);
 
         return true;
     }

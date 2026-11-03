@@ -9,6 +9,7 @@ use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ImageRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
+use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\ReportRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -18,6 +19,7 @@ use App\Repositories\Eloquent\EloquentCommentRepository;
 use App\Repositories\Eloquent\EloquentGroupRepository;
 use App\Repositories\Eloquent\EloquentImageRepository;
 use App\Repositories\Eloquent\EloquentLanguageRepository;
+use App\Repositories\Eloquent\EloquentModerationCaseRepository;
 use App\Repositories\Eloquent\EloquentPostRepository;
 use App\Repositories\Eloquent\EloquentReportRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
@@ -75,6 +77,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             ReportRepositoryInterface::class,
             EloquentReportRepository::class
+        );
+
+        $this->app->bind(
+            ModerationCaseRepositoryInterface::class,
+            EloquentModerationCaseRepository::class
         );
     }
 

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     // How alive a group is, as of the last time it was counted (a scheduled job refreshes it): who
-    // voted in it, and how many votes there were, over the last 30 days. Counting this on every
+    // voted in it, and how many votes there were, over the counting window (a week). Counting this on every
     // report or every pool check would mean a heavy query over all the group's votes each time, so
     // the thresholds that depend on it read this row instead. A group with no row has not been
     // counted yet, which is the same as no activity.

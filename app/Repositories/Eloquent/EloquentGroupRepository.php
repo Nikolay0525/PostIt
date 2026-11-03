@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Enums\GroupModeratorRole;
 use App\Models\Group;
+use App\Models\GroupActivity;
 use App\Models\GroupModerator;
 use App\Models\GroupRuleVersion;
 use App\Models\UserGroupSubscription;
@@ -47,6 +48,11 @@ class EloquentGroupRepository implements GroupRepositoryInterface
             ->orderByDesc('members_count')
             ->orderBy('name')
             ->paginate($perPage);
+    }
+
+    public function findActivity(string $groupId): ?GroupActivity
+    {
+        return GroupActivity::find($groupId);
     }
 
     public function slugExists(string $slug): bool
