@@ -15,6 +15,11 @@ return [
         'about' => 'About the group',
         'edit' => 'Edit',
         'language' => 'Group language',
+        'role' => [
+            'owner' => 'Owner',
+            'moderator' => 'Moderator',
+        ],
+        'role_hint' => 'Your role in this group. Only you see it.',
         'actions_label' => 'Group actions',
         'filters' => 'Filters',
         'private_notice' => 'This group is private. Posts are visible to members only.',

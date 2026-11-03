@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\GroupModeratorRole;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * Two fixed accounts to log in with by hand, the same on every seed: a regular user and an admin.
+ * The regular user owns the first public group and moderates the next two, to see those roles.
  * Each is in every public group and follows a few people, from a day ago, so the posts
  * UnreadPostsSeeder adds count as new for them (the side panel's counters).
  *
@@ -60,7 +62,35 @@ class StaticAccountsSeeder extends Seeder
                 'user_author_id' => $authorId,
                 'created_at' => $since,
             ])->all());
+
+            if (! $account['admin']) {
+                $this->giveRoles($user);
+            }
         }
+    }
+
+    // The first public group (by name) is owned by this account — taking the place of the seeded
+    // owner, so the group still has just one — and the next two are moderated by it.
+    private function giveRoles(User $user): void
+    {
+        $groupIds = Group::where('is_private', false)->orderBy('name')->pluck('id');
+
+        if ($groupIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('group_moderators')
+            ->where('group_id', $groupIds->first())
+            ->where('role', GroupModeratorRole::Owner->value)
+            ->update(['user_id' => $user->id]);
+
+        DB::table('group_moderators')->insertOrIgnore($groupIds->slice(1, 2)->map(fn (string $groupId) => [
+            'user_id' => $user->id,
+            'group_id' => $groupId,
+            'role' => GroupModeratorRole::Moderator->value,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all());
     }
 
     /**

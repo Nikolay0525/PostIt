@@ -100,6 +100,11 @@ class EloquentGroupRepository implements GroupRepositoryInterface
         ]);
     }
 
+    public function moderatorRole(string $groupId, string $userId): ?GroupModeratorRole
+    {
+        return GroupModerator::where('group_id', $groupId)->where('user_id', $userId)->first()?->role;
+    }
+
     public function isMember(string $groupId, string $userId): bool
     {
         return Group::whereKey($groupId)

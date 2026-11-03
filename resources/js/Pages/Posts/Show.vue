@@ -18,6 +18,8 @@ const props = defineProps({
     is_member: Boolean,
     // Whether the viewer is the group's Owner, who may edit it.
     can_edit: Boolean,
+    // The viewer's own role in the group ("owner", "moderator"), or null.
+    role: String,
     comments: Object,
 });
 
@@ -64,7 +66,7 @@ const submitComment = async () => {
     <Head :title="` | ${post.title ?? post.author.username}`" />
 
     <!-- name-tag h2: the page's h1 is the strip's "Post". -->
-    <GroupAside :group="group" :can-edit="can_edit" :membership="membership" name-tag="h2" />
+    <GroupAside :group="group" :can-edit="can_edit" :role="role" :membership="membership" name-tag="h2" />
 
     <section class="feed">
         <PageHeader :title="$t('posts.show.title')" />

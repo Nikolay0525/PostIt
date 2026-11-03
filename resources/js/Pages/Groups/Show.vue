@@ -15,6 +15,8 @@ const props = defineProps({
     is_member: Boolean,
     // Whether the viewer is the group's Owner, who may edit it.
     can_edit: Boolean,
+    // The viewer's own role in the group ("owner", "moderator"), or null.
+    role: String,
     sort: String,
     // Paginated by <InfiniteScroll>. null when the group is private and the viewer is not a member.
     posts: Object,
@@ -74,7 +76,7 @@ const readAll = async () => {
 <template>
     <Head :title="` | ${group.name}`" />
 
-    <GroupAside :group="group" :can-edit="can_edit" :membership="membership" />
+    <GroupAside :group="group" :can-edit="can_edit" :role="role" :membership="membership" />
 
     <section class="feed">
         <!-- The same strip as on the home page: the group's actions where the home page has its

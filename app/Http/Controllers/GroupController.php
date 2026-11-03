@@ -115,6 +115,8 @@ class GroupController extends Controller
             'is_member' => $isMember,
             // Only the Owner is offered the edit link; the route itself is guarded by the policy too.
             'can_edit' => (bool) $request->user()?->can('update', $group),
+            // The viewer's own role, for them alone: "owner", "moderator" or null.
+            'role' => $viewerId === null ? null : $this->groupRepository->moderatorRole($group->id, $viewerId)?->key(),
             'sort' => $sort->value,
             // null hides the posts of a private group from non-members.
             'posts' => $this->groupService->canViewPosts($group, $isMember)

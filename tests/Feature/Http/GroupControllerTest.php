@@ -166,6 +166,43 @@ class GroupControllerTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page->where('is_member', false)->where('can_edit', false));
     }
 
+    public function test_a_person_sees_their_own_role_in_the_group_and_nobody_elses(): void
+    {
+        $owner = User::factory()->create();
+        $group = $this->groupOwnedBy($owner);
+        $post = Post::factory()->create(['group_id' => $group->id]);
+        $moderator = User::factory()->create();
+        $member = User::factory()->create();
+        $groups = app(GroupRepositoryInterface::class);
+        $groups->subscribe($group->id, $moderator->id);
+        $groups->addModerator($group->id, $moderator->id, GroupModeratorRole::Moderator);
+        $groups->subscribe($group->id, $member->id);
+
+        foreach (["/groups/retro-gaming", "/groups/retro-gaming/posts/{$post->slug}"] as $url) {
+            $this->actingAs($owner)->get($url)
+                ->assertInertia(fn (AssertableInertia $page) => $page->where('role', 'owner'));
+            $this->actingAs($moderator)->get($url)
+                ->assertInertia(fn (AssertableInertia $page) => $page->where('role', 'moderator'));
+            $this->actingAs($member)->get($url)
+                ->assertInertia(fn (AssertableInertia $page) => $page->where('role', null));
+        }
+
+        auth()->logout();
+        $this->get('/groups/retro-gaming')->assertInertia(fn (AssertableInertia $page) => $page->where('role', null));
+    }
+
+    public function test_a_moderator_is_not_offered_the_edit_link(): void
+    {
+        $group = $this->groupOwnedBy(User::factory()->create());
+        $moderator = User::factory()->create();
+        $groups = app(GroupRepositoryInterface::class);
+        $groups->subscribe($group->id, $moderator->id);
+        $groups->addModerator($group->id, $moderator->id, GroupModeratorRole::Moderator);
+
+        $this->actingAs($moderator)->get('/groups/retro-gaming')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('can_edit', false)->where('role', 'moderator'));
+    }
+
     public function test_the_slug_is_trimmed_and_lowercased_before_validation(): void
     {
         $user = User::factory()->create();

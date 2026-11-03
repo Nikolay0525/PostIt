@@ -56,6 +56,8 @@ class PostController extends Controller
             'group' => new GroupResource($group),
             'is_member' => $this->groupService->isMember($group->id, $viewerId),
             'can_edit' => (bool) $request->user()?->can('update', $group),
+            // The viewer's own role, for them alone: "owner", "moderator" or null.
+            'role' => $viewerId === null ? null : $this->groupRepository->moderatorRole($group->id, $viewerId)?->key(),
             // Merged page by page by the <InfiniteScroll> component on the client.
             'comments' => Inertia::scroll(
                 fn () => CommentResource::collection($this->commentService->getPostThreads($post->id, $viewerId))

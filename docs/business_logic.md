@@ -134,6 +134,10 @@ A lot depends on the owner, so it matters that the right person gets the role. I
 
 **Owner anonymity.** [Nobody knows who the owner is, just as nobody knows who the moderators are: the group shows no owner, and the owner's actions are not signed with their username. The owner can moderate, especially early on, and a known owner would give the moderators away too.]
 
+**Your own role.** [A person sees their own role in a group — Owner or Moderator — as a mark next to the group's name, on the group's page and on its posts' pages. Only they see it; nobody else's role is shown anywhere, which keeps the owner and the moderators anonymous.]
+
+**What a moderator may do.** [A moderator moderates, and that is all: they take cases in the moderation window and decide them. They do not change the group itself — not its rules, name, description, language, address or privacy. Those are the owner's (see Groups → Owner's authority).]
+
 **Handing over ownership.** [An owner who wants to leave must hand the role to one of the group's moderators. Since everyone is anonymous, it works as a "hot potato": the first moderator to say "yes, I want it" becomes the owner. If the owner deletes their account, the same happens automatically. If the group has no moderators, or none of them says yes, the owner's seat becomes free and any member of the moderator candidate pool — both thresholds crossed, see Becoming a moderator — can take it with a click and a confirmation. Nobody becomes the owner without taking the seat themselves, and the activity threshold keeps an abandoned old account from taking it: taking part in a group means getting votes from it, not just writing.]
 
 **Moderation is a right, not a job.** [Nobody does work for nothing, and a role handed out as a duty — with cases assigned and idleness punished — would not hold. So moderation is a right that many trusted members of a group get, and they moderate when they want to. There are many such people in a group, which is why the work gets done without anyone being made to do it — but not everyone, or everyone would rule.]

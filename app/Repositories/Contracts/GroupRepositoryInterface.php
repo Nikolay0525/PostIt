@@ -62,6 +62,12 @@ interface GroupRepositoryInterface
     public function isMember(string $groupId, string $userId): bool;
 
     /**
+     * The user's role in the group, or null if they have none. A role is shown to the person who
+     * has it and to nobody else: the owner and the moderators stay anonymous.
+     */
+    public function moderatorRole(string $groupId, string $userId): ?GroupModeratorRole;
+
+    /**
      * The groups a user is a member of, by name, as shown on their profile: public groups, and
      * private ones only when the viewer is a member too (a guest sees public groups only). Each
      * carries `karma`: the user's sub-karma in it.

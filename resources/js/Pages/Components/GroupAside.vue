@@ -10,6 +10,8 @@ const props = defineProps({
     group: { type: Object, required: true },
     // Whether the viewer is the group's Owner, who may edit it.
     canEdit: Boolean,
+    // The viewer's own role in the group ("owner", "moderator"), shown to them alone; otherwise null.
+    role: { type: String, default: null },
     // useGroupMembership()'s answer: the page owns it, because the page reads `joined` too.
     membership: { type: Object, required: true },
     // The page's own title is the h1 on a post's page.
@@ -40,6 +42,8 @@ const { joined, showLoginPrompt, subscribing, subscribeError, buttonLabel, toggl
                     <component :is="nameTag" class="group-name" dir="auto">{{ group.name }}</component>
                     <!-- The whole name in its own language, not the code ("UK" reads as a country). -->
                     <span class="group-lang normal-case" :title="$t('groups.show.language')" dir="auto">{{ languageName }}</span>
+                    <!-- Only you see your role here: nobody else's is shown anywhere. -->
+                    <span v-if="role" class="group-role" :title="$t('groups.show.role_hint')">{{ $t(`groups.show.role.${role}`) }}</span>
                 </div>
                 <p class="group-stats">
                     {{ $tChoice('groups.show.members', group.members_count, { num: formatCount(group.members_count) }) }}<span v-if="group.is_private"> · {{ $t('groups.show.private') }}</span>
