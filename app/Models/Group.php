@@ -50,6 +50,11 @@ class Group extends BaseEntity
         return $this->hasOne(GroupRuleVersion::class, 'group_id')->latestOfMany(['created_at', 'id']);
     }
 
+    public function activity(): HasOne
+    {
+        return $this->hasOne(GroupActivity::class, 'group_id');
+    }
+
     public function bans(): HasMany
     {
         return $this->hasMany(GroupBan::class, 'group_id');

@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\ModerationCaseStatus;
+use App\Enums\ReportTargetType;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class ModerationCase extends BaseEntity
+{
+    protected $table = 'moderation_cases';
+
+    protected $fillable = [
+        'group_id',
+        'target_type',
+        'target_id',
+        'status',
+        'open_key',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'target_type' => ReportTargetType::class,
+            'status' => ModerationCaseStatus::class,
+        ];
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class, 'group_id');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'moderation_case_id');
+    }
+}

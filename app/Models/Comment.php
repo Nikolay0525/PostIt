@@ -21,6 +21,7 @@ class Comment extends BaseEntity
         'is_deleted',
         'deleted_at',
         'edited_at',
+        'hidden_at',
     ];
 
     protected function casts(): array
@@ -29,7 +30,14 @@ class Comment extends BaseEntity
             'is_deleted' => 'boolean',
             'deleted_at' => 'datetime',
             'edited_at' => 'datetime',
+            'hidden_at' => 'datetime',
         ];
+    }
+
+    // Under a moderation case: shown as "hidden", not deleted.
+    public function isHidden(): bool
+    {
+        return $this->hidden_at !== null;
     }
 
     public function post(): BelongsTo
