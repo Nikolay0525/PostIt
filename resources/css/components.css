@@ -329,6 +329,16 @@
   .post-link {
     @apply hover:text-brand-600;
   }
+  /* A case in the moderation queue: the content, then what it was reported for. */
+  .case-reports {
+    @apply mt-4 flex flex-col gap-1.5 border-t border-line pt-3 text-sm;
+  }
+  .case-report {
+    @apply text-muted;
+  }
+  .case-report-kind {
+    @apply font-medium text-ink;
+  }
   .post-content {
     @apply mt-3 text-base leading-relaxed text-ink;
   }

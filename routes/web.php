@@ -30,6 +30,8 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/groups/{groupSlug}', [GroupController::class, 'show'])->name('groups.show');
 Route::get('/groups/{groupSlug}/random-post', [PostController::class, 'random'])->name('groups.random_post');
 Route::get('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'show'])->name('posts.show');
+// The log of what moderators did is open to everyone.
+Route::get('/groups/{groupSlug}/-/moderation-log', [ModerationController::class, 'log'])->name('groups.moderation_log');
 Route::get('/users/{username}', [ProfileController::class, 'show'])->name('users.show');
 Route::get('/search', [SearchController::class, 'index'])
     ->middleware('throttle:60,1')->name('search');

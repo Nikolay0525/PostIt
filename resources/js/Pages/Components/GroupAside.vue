@@ -39,7 +39,9 @@ const { joined, showLoginPrompt, subscribing, subscribeError, buttonLabel, toggl
 
             <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-x-2">
-                    <component :is="nameTag" class="group-name" dir="auto">{{ group.name }}</component>
+                    <component :is="nameTag" class="group-name" dir="auto">
+                        <Link :href="route('groups.show', group.slug)" class="hover:text-brand-600">{{ group.name }}</Link>
+                    </component>
                     <!-- The whole name in its own language, not the code ("UK" reads as a country). -->
                     <span class="group-lang normal-case" :title="$t('groups.show.language')" dir="auto">{{ languageName }}</span>
                     <!-- Only you see your role here: nobody else's is shown anywhere. -->
@@ -81,5 +83,16 @@ const { joined, showLoginPrompt, subscribing, subscribeError, buttonLabel, toggl
                 <AuthPrompt :action="group.is_private ? 'request_join' : 'subscribe'" />
             </p>
         </header>
+
+        <!-- Buttons, not a list: the log can be long, so it has its own page. It is open to everyone;
+             the queue next to it is for whoever has a role (the server checks GroupPolicy::moderate() again). -->
+        <div class="mt-4 flex gap-2">
+            <Link :href="route('groups.moderation_log', group.slug)" class="btn-secondary flex-1 justify-center">
+                {{ $t('groups.show.moderation_log') }}
+            </Link>
+            <Link v-if="role" :href="route('groups.moderation', group.slug)" class="btn-secondary flex-1 justify-center">
+                {{ $t('groups.show.moderation') }}
+            </Link>
+        </div>
     </aside>
 </template>

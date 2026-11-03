@@ -6,12 +6,14 @@ defineProps({
     title: { type: String, required: true },
     // When the tabs take the strip: the title stays for screen readers only.
     titleHidden: Boolean,
+    // Without the extra space under the line, for a page whose content brings its own.
+    tight: Boolean,
 });
 </script>
 
 <template>
     <!-- mb-2: with the .feed's gap-2, the page starts as far below the line as the home feed does. -->
-    <div class="feed-tabs-row mb-2">
+    <div class="feed-tabs-row" :class="{ 'mb-2': !tight }">
         <h1 class="page-header-title profile-text" :class="{ 'sr-only': titleHidden }" dir="auto">{{ title }}</h1>
         <slot />
         <div v-if="$slots.actions" class="ms-auto">

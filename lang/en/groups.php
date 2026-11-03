@@ -14,6 +14,8 @@ return [
         'read_all' => 'Mark all as read',
         'about' => 'About the group',
         'edit' => 'Edit',
+        'moderation' => 'Moderation',
+        'moderation_log' => 'Moderation log',
         'language' => 'Group language',
         'role' => [
             'owner' => 'Owner',
