@@ -320,7 +320,7 @@
     @apply flex flex-col gap-3;
   }
   .comment-replies {
-    @apply flex flex-col gap-3 border-s border-line ps-4 ms-3;
+    @apply flex flex-col gap-3 border-s border-line ps-4;
   }
   .comment-deleted {
     @apply text-sm italic text-muted;
