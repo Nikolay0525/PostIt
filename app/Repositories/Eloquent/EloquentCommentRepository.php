@@ -37,6 +37,11 @@ class EloquentCommentRepository implements CommentRepositoryInterface
         ]);
     }
 
+    public function hide(string $commentId): void
+    {
+        Comment::whereKey($commentId)->update(['hidden_at' => now()]);
+    }
+
     public function follow(string $commentId, string $userId): void
     {
         DB::table('user_comment_subscriptions')->insertOrIgnore(['comment_id' => $commentId, 'user_id' => $userId]);

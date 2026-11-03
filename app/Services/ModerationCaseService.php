@@ -5,8 +5,11 @@ namespace App\Services;
 use App\Events\ModerationCaseOpened;
 use App\Models\ModerationCase;
 use App\Models\Report;
+use App\Enums\ReportTargetType;
+use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
+use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\ReportRepositoryInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +26,9 @@ class ModerationCaseService
     public function __construct(
         protected ModerationCaseRepositoryInterface $caseRepository,
         protected ReportRepositoryInterface $reportRepository,
-        protected GroupRepositoryInterface $groupRepository
+        protected GroupRepositoryInterface $groupRepository,
+        protected PostRepositoryInterface $postRepository,
+        protected CommentRepositoryInterface $commentRepository
     ) {}
 
     /**
@@ -70,5 +75,18 @@ class ModerationCaseService
         ModerationCaseOpened::dispatch($case);
 
         return $case;
+    }
+
+    /**
+     * A case being open means its content is hidden until a decision is made. Hiding is not a
+     * punishment: nothing is decided yet.
+     */
+    public function hideContentOf(ModerationCase $case): void
+    {
+        match ($case->target_type) {
+            ReportTargetType::Post => $this->postRepository->hide($case->target_id),
+            ReportTargetType::Comment => $this->commentRepository->hide($case->target_id),
+            ReportTargetType::User => null,
+        };
     }
 }

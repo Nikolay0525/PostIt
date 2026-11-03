@@ -51,6 +51,11 @@ class EloquentPostRepository implements PostRepositoryInterface
         ]);
     }
 
+    public function hide(string $postId): void
+    {
+        Post::whereKey($postId)->update(['hidden_at' => now()]);
+    }
+
     public function findWithStatsBySlug(string $groupId, string $slug, ?string $viewerId = null): ?Post
     {
         return $this->withStats($viewerId)->where('group_id', $groupId)->where('slug', $slug)->first();

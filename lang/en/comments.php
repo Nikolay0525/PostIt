@@ -9,6 +9,7 @@ return [
     'none' => 'No comments yet.',
     'loading' => 'Loading more comments…',
     'deleted' => '[deleted]',
+    'hidden' => '[hidden while moderators review it]',
     'reply' => 'Reply',
     'reply_placeholder' => 'Write a reply',
     'reply_failed' => 'Reply failed',

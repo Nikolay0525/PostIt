@@ -97,6 +97,12 @@ interface PostRepositoryInterface
     public function update(string $postId, ?string $title, string $article): void;
 
     /**
+     * Marks the post hidden (`hidden_at`): a moderation case is open on it, and it is shown as
+     * "hidden". Not deleted.
+     */
+    public function hide(string $postId): void;
+
+    /**
      * Notes that the user has seen the post (opened its page, voted on it). Idempotent: the first
      * time is kept. The caller has checked they may see it.
      */

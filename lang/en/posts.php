@@ -8,6 +8,8 @@ return [
     'copy_link' => 'Copy link',
     'copied' => 'Link copied',
 
+    'hidden' => '[hidden while moderators review it]',
+
     'show' => [
         'title' => 'Post',
     ],

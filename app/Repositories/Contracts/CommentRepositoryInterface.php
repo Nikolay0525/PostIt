@@ -38,6 +38,12 @@ interface CommentRepositoryInterface
     public function update(string $commentId, string $text): void;
 
     /**
+     * Marks the comment hidden (`hidden_at`): a moderation case is open on it, and it is shown as
+     * "hidden". Not deleted.
+     */
+    public function hide(string $commentId): void;
+
+    /**
      * Idempotent: following a comment already followed changes nothing.
      */
     public function follow(string $commentId, string $userId): void;

@@ -33,13 +33,14 @@ class CommentPolicy
     }
 
     /**
-     * Only the author edits a comment, and only while it is not deleted, they are verified and not
-     * banned from its post's group.
+     * Only the author edits a comment, and only while it is not deleted or hidden (a moderation case
+     * judges the text as it was reported), they are verified and not banned from its post's group.
      */
     public function update(User $user, Comment $comment): bool
     {
         return $user->id === $comment->user_id
             && ! $comment->is_deleted
+            && ! $comment->isHidden()
             && $user->hasVerifiedEmail()
             && ! $this->isBannedFromGroup($user, $comment->post->group_id);
     }
@@ -53,7 +54,7 @@ class CommentPolicy
             return Response::denyAsNotFound();
         }
 
-        return $user->hasVerifiedEmail() && ! $comment->is_deleted && $user->id !== $comment->user_id;
+        return $user->hasVerifiedEmail() && ! $comment->is_deleted && ! $comment->isHidden() && $user->id !== $comment->user_id;
     }
 
     /**
@@ -66,6 +67,6 @@ class CommentPolicy
             return Response::denyAsNotFound();
         }
 
-        return ! $comment->is_deleted && $user->id !== $comment->user_id;
+        return ! $comment->is_deleted && ! $comment->isHidden() && $user->id !== $comment->user_id;
     }
 }

@@ -22,11 +22,15 @@ class PostListItemResource extends JsonResource
 
     public function toArray(Request $request): array
     {
+        // Under a moderation case the text does not leave the server.
+        $hidden = $this->isHidden();
+
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'title' => $this->title,
-            'preview' => $this->title ? null : Str::limit($this->markdownToPlainText($this->article), self::PREVIEW_LENGTH),
+            'is_hidden' => $hidden,
+            'title' => $hidden ? null : $this->title,
+            'preview' => $hidden || $this->title ? null : Str::limit($this->markdownToPlainText($this->article), self::PREVIEW_LENGTH),
             'group' => ['slug' => $this->group->slug, 'name' => $this->group->name],
         ];
     }

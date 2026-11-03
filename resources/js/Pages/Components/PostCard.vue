@@ -34,7 +34,7 @@ onBeforeUnmount(() => untrackSeen(card.value));
 <template>
     <article ref="card" class="post-card">
         <header class="post-meta">
-            <UserAvatar :url="post.author.avatar_url" :username="post.author.username" class="avatar" />
+            <UserAvatar v-if="!post.is_hidden" :url="post.author.avatar_url" :username="post.author.username" class="avatar" />
 
             <!-- dir="auto" lets each piece of user text align by its own language -->
             <p class="post-meta-text">
@@ -46,26 +46,36 @@ onBeforeUnmount(() => untrackSeen(card.value));
                     <span aria-hidden="true"> · </span>
                     <time :datetime="post.edited_at" :title="fullDate(post.edited_at)">({{ $t('common.edited', { time: timeAgo(post.edited_at) }) }})</time>
                 </template>
-                <br />
-                <Link :href="route('users.show', post.author.username)" class="post-author" dir="auto">{{ post.author.username }}</Link>
+                <template v-if="!post.is_hidden">
+                    <br />
+                    <Link :href="route('users.show', post.author.username)" class="post-author" dir="auto">{{ post.author.username }}</Link>
+                </template>
             </p>
         </header>
 
-        <h2 v-if="post.title" class="post-title" dir="auto">
-            <span v-if="full">{{ post.title }}</span>
-            <Link v-else :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ post.title }}</Link>
-        </h2>
-
-        <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown) —
-             safe to render as markup, unlike the raw article source. -->
-        <div v-if="full" class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
-        <!-- Without a title the preview itself is the link to the post. -->
-        <p v-else class="post-body" :class="{ 'mt-4': !post.title }" dir="auto">
-            <Link v-if="!post.title" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ preview }}</Link>
-            <template v-else>{{ preview }}</template>
+        <!-- Under a moderation case the server sends no text and no author: only that it is hidden. -->
+        <p v-if="post.is_hidden" class="comment-deleted mt-4">
+            <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ $t('posts.hidden') }}</Link>
+            <template v-else>{{ $t('posts.hidden') }}</template>
         </p>
 
-        <footer class="post-footer">
+        <template v-else>
+            <h2 v-if="post.title" class="post-title" dir="auto">
+                <span v-if="full">{{ post.title }}</span>
+                <Link v-else :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ post.title }}</Link>
+            </h2>
+
+            <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown) —
+                 safe to render as markup, unlike the raw article source. -->
+            <div v-if="full" class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
+            <!-- Without a title the preview itself is the link to the post. -->
+            <p v-else class="post-body" :class="{ 'mt-4': !post.title }" dir="auto">
+                <Link v-if="!post.title" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ preview }}</Link>
+                <template v-else>{{ preview }}</template>
+            </p>
+        </template>
+
+        <footer v-if="!post.is_hidden" class="post-footer">
             <VoteButtons
                 target-type="post"
                 :target-id="post.id"

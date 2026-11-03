@@ -43,13 +43,14 @@ class PostPolicy
     }
 
     /**
-     * Only the author edits a post, and only while it is not deleted, they are verified and not
-     * banned from its group.
+     * Only the author edits a post, and only while it is not deleted or hidden (a moderation case
+     * judges the text as it was reported), they are verified and not banned from its group.
      */
     public function update(User $user, Post $post): bool
     {
         return $user->id === $post->user_id
             && ! $post->is_deleted
+            && ! $post->isHidden()
             && $user->hasVerifiedEmail()
             && ! $this->isBannedFromGroup($user, $post->group_id);
     }
@@ -64,7 +65,7 @@ class PostPolicy
             return Response::denyAsNotFound();
         }
 
-        return $user->hasVerifiedEmail() && ! $post->is_deleted && $user->id !== $post->user_id;
+        return $user->hasVerifiedEmail() && ! $post->is_deleted && ! $post->isHidden() && $user->id !== $post->user_id;
     }
 
     /**
@@ -77,6 +78,6 @@ class PostPolicy
             return Response::denyAsNotFound();
         }
 
-        return ! $post->is_deleted && $user->id !== $post->user_id;
+        return ! $post->is_deleted && ! $post->isHidden() && $user->id !== $post->user_id;
     }
 }
