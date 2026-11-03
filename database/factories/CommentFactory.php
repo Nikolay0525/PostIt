@@ -69,6 +69,14 @@ class CommentFactory extends Factory
         ]);
     }
 
+    // Under a moderation case (seeders also open the case): shown as "hidden".
+    public function hidden(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'hidden_at' => now(),
+        ]);
+    }
+
     public function deleted(): static
     {
         return $this->state(fn (array $attributes) => [
