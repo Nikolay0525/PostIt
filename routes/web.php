@@ -61,6 +61,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:6,1')->name('verification.send');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])
