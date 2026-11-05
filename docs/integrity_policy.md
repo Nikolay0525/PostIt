@@ -1,6 +1,11 @@
 # Integrity, Distribution Model and Anti-Tampering — PostIt
 
-Status: Active · Stack: Laravel + Inertia + Vue · Last updated: 2026-11-04
+| | |
+| --- | --- |
+| Status | Active |
+| Last updated | 2026-10-21 |
+|Stack| Laravel + Inertia + Vue · |
+| Owner | Nikolay0525 |
 
 This document records how PostIt protects the integrity of data the user can
 influence, which distribution model it follows, and how that model is protected.
@@ -36,8 +41,7 @@ PostIt is distributed as **SaaS** (Software as a Service): the application runs 
 the server and the user interacts through the web client. The critical logic and
 data never leave the server, which is the strongest protection against reverse
 engineering and tampering — there is no distributed executable or license file to
-analyse, patch or copy. A **Freemium** tier is planned (a permanent free level
-plus paid cosmetic features), which would be enforced the same way: server-side.
+analyse, patch or copy.
 
 ## 3. Protecting the distribution model
 
