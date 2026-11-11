@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserSettings;
 use App\Models\UserUserSubscription;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\ExcludesSeenPosts;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +17,7 @@ use Illuminate\Support\Str;
 
 class EloquentUserRepository implements UserRepositoryInterface
 {
-    use SearchesText;
+    use ExcludesSeenPosts, SearchesText;
 
     public function find(string $id): ?User
     {
@@ -40,7 +41,7 @@ class EloquentUserRepository implements UserRepositoryInterface
 
     public function findForProfile(string $username): ?User
     {
-        return User::withCount('followers')->where('username', $username)->first();
+        return User::withCount('followers')->with('counters:user_id,karma')->where('username', $username)->first();
     }
 
     public function search(string $term, int $perPage): LengthAwarePaginator
@@ -103,6 +104,23 @@ class EloquentUserRepository implements UserRepositoryInterface
         ]);
     }
 
+    public function incrementReportsSent(string $userId): void
+    {
+        DB::table('user_counters')->where('user_id', $userId)->increment('reports_sent');
+    }
+
+    public function addKarma(string $userId, string $groupId, int $delta): void
+    {
+        DB::table('user_group_karma')->insertOrIgnore(['user_id' => $userId, 'group_id' => $groupId]);
+
+        DB::table('user_group_karma')
+            ->where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->increment('karma', $delta);
+
+        DB::table('user_counters')->where('user_id', $userId)->increment('karma', $delta);
+    }
+
     public function unfollow(string $followerId, string $authorId): void
     {
         $this->followQuery($followerId, $authorId)->delete();
@@ -116,6 +134,59 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function followersCount(string $authorId): int
     {
         return UserUserSubscription::query()->where('user_author_id', $authorId)->count();
+    }
+
+    public function followedBy(string $followerId): Collection
+    {
+        return $this->followsOf($followerId)
+            ->withCasts(['attached_on_feed' => 'boolean'])
+            ->orderBy('users.username')
+            ->get(['users.id', 'users.username', 'users.avatar_url', 'user_user_subscriptions.attached_on_feed']);
+    }
+
+    public function followsAttachedOnFeed(string $followerId): Collection
+    {
+        // select() before withCount(): with the join, get($columns) would be ignored in favour of `*`.
+        return $this->followsOf($followerId)
+            ->where('user_user_subscriptions.attached_on_feed', true)
+            ->select(['users.id', 'users.username', 'users.avatar_url'])
+            // New = posted since the follow began, not seen yet (ExcludesSeenPosts), and visible to
+            // the follower like in the People feed: a public group, or a private one they're in —
+            // otherwise the badge would give away posts they can't open.
+            ->withCount(['posts as new_posts_count' => fn (Builder $posts) => $this->whereNotSeenBy($posts
+                ->where('posts.is_deleted', false)
+                ->whereColumn('posts.created_at', '>=', 'user_user_subscriptions.created_at')
+                ->where(fn (Builder $visible) => $visible
+                    ->whereIn('posts.group_id', fn ($groups) => $groups
+                        ->select('id')
+                        ->from('groups')
+                        ->where('is_private', false))
+                    ->orWhereIn('posts.group_id', fn ($groups) => $groups
+                        ->select('group_id')
+                        ->from('user_group_subscriptions')
+                        ->where('user_id', $followerId))), $followerId)])
+            ->orderByDesc('new_posts_count')
+            ->orderBy('users.username')
+            ->get();
+    }
+
+    public function syncFollowsAttachedOnFeed(string $followerId, array $authorIds): void
+    {
+        UserUserSubscription::query()
+            ->where('user_follower_id', $followerId)
+            ->update(['attached_on_feed' => false]);
+
+        UserUserSubscription::query()
+            ->where('user_follower_id', $followerId)
+            ->whereIn('user_author_id', $authorIds)
+            ->update(['attached_on_feed' => true]);
+    }
+
+    private function followsOf(string $followerId): Builder
+    {
+        return User::query()
+            ->join('user_user_subscriptions', 'user_user_subscriptions.user_author_id', '=', 'users.id')
+            ->where('user_user_subscriptions.user_follower_id', $followerId);
     }
 
     // Mute tables have composite primary keys and no models, like `user_speaking_languages`.

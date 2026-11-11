@@ -35,7 +35,7 @@ Factor: **knowledge (password)**, single-factor by default.
 | Email verification | Mandatory before protected actions | `MustVerifyEmail`; signed verification links. |
 | "Remember me" | Optional | Long-lived remember-token cookie. |
 | Password reset | Optional | Tokened link, throttled, same response whether or not the email exists (no account enumeration). |
-| MFA (TOTP second factor) | **Planned / optional** | Knowledge + possession; recommended for Admin and, later, Guardian accounts. Secret stored as protected data, not in plaintext. |
+| MFA (TOTP second factor) | **Planned / optional** | Knowledge + possession; recommended for Admin and, later, Moderator accounts. Secret stored as protected data, not in plaintext. |
 
 Password storage uses bcrypt (Laravel default), which embeds its own per-user
 salt and cost. Login failures return one generic message (`auth.failed`) and do
@@ -49,7 +49,7 @@ Model: **hybrid — RBAC + resource ownership (DAC-like) + attribute checks**, w
 deny-by-default. A single model does not fit, so the parts are combined:
 
 - **RBAC** — platform role `UserRole` (`User` / `Admin`); Admin gets
-  platform-wide moderation. Group-level roles (Owner, Guardian — planned) scope
+  platform-wide moderation. Group-level roles (Owner, Moderator — planned) scope
   moderation to one group.
 - **Ownership (DAC-like)** — the author of a post/comment controls their own
   content (edit/delete), enforced in `PostPolicy`, `CommentPolicy`,

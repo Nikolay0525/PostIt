@@ -15,8 +15,8 @@ class CommentPolicy
     use ChecksGroupVisibility;
 
     /**
-     * A user may comment on (or reply within) a post they can see, once verified and not banned
-     * from its group. Seeing it is the only membership rule: in a public group anyone may comment,
+     * A user may comment on (or reply within) a post they can see, once verified and neither muted
+     * nor banned in its group. Seeing it is the only membership rule: in a public group anyone may comment,
      * in a private one only members (FR-COM-006). A post they can't see is "not found".
      */
     public function create(User $user, Post $post): Response|bool
@@ -29,12 +29,37 @@ class CommentPolicy
             return false;
         }
 
-        return ! $this->isBannedFromGroup($user, $post->group_id);
+        return ! $this->cannotContributeIn($user, $post->group_id);
+    }
+
+    /**
+     * Only the author edits a comment, and only while it is not deleted or hidden (a moderation case
+     * judges the text as it was reported), they are verified and not banned from its post's group.
+     */
+    public function update(User $user, Comment $comment): bool
+    {
+        return $user->id === $comment->user_id
+            && ! $comment->is_deleted
+            && ! $comment->isConcealed()
+            && $user->hasVerifiedEmail()
+            && ! $this->cannotContributeIn($user, $comment->post->group_id);
+    }
+
+    /**
+     * A verified user may report a comment they can see, except their own and a deleted one.
+     */
+    public function report(User $user, Comment $comment): Response|bool
+    {
+        if (! $this->canSeePostsOf($user, $comment->post->group)) {
+            return Response::denyAsNotFound();
+        }
+
+        return $user->hasVerifiedEmail() && ! $comment->is_deleted && ! $comment->isConcealed() && $user->id !== $comment->user_id;
     }
 
     /**
      * A user may vote on any comment they can see except their own, and only while it has not
-     * been deleted.
+     * been deleted, and while not muted or banned in its group.
      */
     public function vote(User $user, Comment $comment): Response|bool
     {
@@ -42,6 +67,7 @@ class CommentPolicy
             return Response::denyAsNotFound();
         }
 
-        return ! $comment->is_deleted && $user->id !== $comment->user_id;
+        return ! $comment->is_deleted && ! $comment->isConcealed() && $user->id !== $comment->user_id
+            && ! $this->cannotContributeIn($user, $comment->post->group_id);
     }
 }

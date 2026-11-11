@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Enums\GroupModeratorRole;
 use App\Models\Group;
+use App\Models\GroupActivity;
 use App\Models\GroupRuleVersion;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,7 +23,8 @@ interface GroupRepositoryInterface
     public function findBySlug(string $slug): ?Group;
 
     /**
-     * By slug; the returned group carries the aggregate members_count and its currentRuleVersion.
+     * By slug; the returned group carries the aggregate members_count, its currentRuleVersion and
+     * its language (code and native name).
      */
     public function findForGroupPage(string $slug): ?Group;
 
@@ -33,9 +35,20 @@ interface GroupRepositoryInterface
      */
     public function search(string $term, int $perPage): LengthAwarePaginator;
 
+    /**
+     * The group's last count of how alive it is, or null if it has not been counted yet.
+     */
+    public function findActivity(string $groupId): ?GroupActivity;
+
     public function slugExists(string $slug): bool;
 
     public function create(string $name, string $slug, string $description, string $languageCode, bool $isPrivate): Group;
+
+    /**
+     * Changes the group's name, description and language. Its address and privacy are not
+     * touched here.
+     */
+    public function update(string $groupId, string $name, string $description, string $languageCode): void;
 
     /**
      * Stores a new, immutable snapshot of the group's rules; it becomes the current version.
@@ -49,12 +62,45 @@ interface GroupRepositoryInterface
     public function isMember(string $groupId, string $userId): bool;
 
     /**
+     * The user's role in the group, or null if they have none. A role is shown to the person who
+     * has it and to nobody else: the owner and the moderators stay anonymous.
+     */
+    public function moderatorRole(string $groupId, string $userId): ?GroupModeratorRole;
+
+    /**
      * The groups a user is a member of, by name, as shown on their profile: public groups, and
-     * private ones only when the viewer is a member too (a guest sees public groups only).
+     * private ones only when the viewer is a member too (a guest sees public groups only). Each
+     * carries `karma`: the user's sub-karma in it.
      *
      * @return Collection<int, Group>
      */
     public function membershipsVisibleTo(string $userId, ?string $viewerId): Collection;
+
+    /**
+     * Every group the user is subscribed to, by name, private ones included — the user's own
+     * list (the subscriptions menu), not what others see on their profile. Each carries
+     * `attached_on_feed`: whether it is on the user's side panel.
+     *
+     * @return Collection<int, Group>
+     */
+    public function subscribedBy(string $userId): Collection;
+
+    /**
+     * Every group the user attached to their side panel: the most new posts first, then by name.
+     * Each carries its `language_code` and `new_posts_count` — posts since the user joined, by others, not opened or
+     * voted on yet.
+     *
+     * @return Collection<int, Group>
+     */
+    public function attachedOnFeed(string $userId): Collection;
+
+    /**
+     * Exactly these of the user's groups are on their side panel; the rest are taken off. An id
+     * of a group the user is not in is ignored. The caller wraps it in a transaction.
+     *
+     * @param  list<string>  $groupIds
+     */
+    public function syncAttachedOnFeed(string $userId, array $groupIds): void;
 
     /**
      * Creates the membership row. Idempotent — a no-op if already subscribed. Only meaningful

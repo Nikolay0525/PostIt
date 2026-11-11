@@ -6,6 +6,7 @@ use App\Events\CommentCreated;
 use App\Notifications\NewCommentAnswerNotification;
 use App\Notifications\NewCommentUnderPostNotification;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Contracts\SanctionRepositoryInterface;
 use App\Services\CommentService;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Support\Facades\Notification;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Notification;
  * One comment brings each person at most one notification. Whoever follows the answered comment
  * gets NewCommentAnswer, as the more specific one; if they turned that kind off, they are treated
  * as a plain post follower instead. Everyone else following the post gets NewCommentUnderPost.
+ * Nobody banned from the post's group is told anything about it: its content is closed to them.
  */
 // Queued: a post may have thousands of followers, and the commenter should not wait for them.
 // After commit, so the worker never looks for a comment that is not saved yet.
@@ -22,6 +24,7 @@ class SendCommentNotifications implements ShouldQueueAfterCommit
     public function __construct(
         private CommentService $comments,
         private PostRepositoryInterface $posts,
+        private SanctionRepositoryInterface $sanctions,
     ) {}
 
     public function handle(CommentCreated $event): void
@@ -30,11 +33,15 @@ class SendCommentNotifications implements ShouldQueueAfterCommit
 
         // Nobody needs to hear about their own comment.
         $handled = [$comment->user_id];
+        $groupId = $comment->post->group_id;
 
         if ($comment->parent_id !== null) {
             $parentAuthor = $comment->parent->author;
 
-            if ($parentAuthor->id !== $comment->user_id
+            if ($this->sanctions->bannedAmong([$parentAuthor->id], $groupId) !== []) {
+                // Not even as a plain follower of the post, below.
+                $handled[] = $parentAuthor->id;
+            } elseif ($parentAuthor->id !== $comment->user_id
                 && $this->comments->isFollowing($comment->parent_id, $parentAuthor->id)) {
                 $answer = new NewCommentAnswerNotification($comment);
 
@@ -45,8 +52,11 @@ class SendCommentNotifications implements ShouldQueueAfterCommit
             }
         }
 
+        $followers = $this->posts->followers($comment->post_id, $handled);
+        $banned = $this->sanctions->bannedAmong($followers->pluck('id')->all(), $groupId);
+
         Notification::send(
-            $this->posts->followers($comment->post_id, $handled),
+            $followers->reject(fn ($follower) => in_array($follower->id, $banned, true)),
             new NewCommentUnderPostNotification($comment),
         );
     }

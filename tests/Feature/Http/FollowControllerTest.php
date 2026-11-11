@@ -77,4 +77,13 @@ class FollowControllerTest extends TestCase
         $this->actingAs($user)->postJson('/users/'.Str::uuid().'/follow')->assertNotFound();
         $this->actingAs($user)->deleteJson('/users/'.Str::uuid().'/follow')->assertNotFound();
     }
+
+    public function test_a_new_follow_is_attached_to_the_side_panel(): void
+    {
+        [$follower, $author] = User::factory()->count(2)->create();
+
+        $this->actingAs($follower)->postJson("/users/{$author->id}/follow");
+
+        $this->assertDatabaseHas('user_user_subscriptions', ['user_follower_id' => $follower->id, 'user_author_id' => $author->id, 'attached_on_feed' => true]);
+    }
 }

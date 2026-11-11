@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ReportTargetType;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
+use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -27,12 +29,22 @@ class CommentSeeder extends Seeder
                     $factory = $factory->replyTo($created->random());
                 }
 
-                // Roughly 10% are deleted.
-                if (random_int(1, 10) === 1) {
+                // Roughly 10% are deleted, and some others are under a moderation case.
+                $deleted = random_int(1, 10) === 1;
+                $hidden = ! $deleted && random_int(1, 20) === 1;
+
+                if ($deleted) {
                     $factory = $factory->deleted();
+                } elseif ($hidden) {
+                    $factory = $factory->hidden();
                 }
 
-                $created->push($factory->create());
+                $comment = $factory->create();
+                $created->push($comment);
+
+                if ($hidden) {
+                    app(ModerationCaseRepositoryInterface::class)->open($post->group_id, ReportTargetType::Comment, $comment->id);
+                }
             }
         }
 

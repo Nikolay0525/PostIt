@@ -25,7 +25,8 @@ interface UserRepositoryInterface
     public function findForSettings(string $id): ?User;
 
     /**
-     * For the public profile page: the returned user carries the `followers_count` aggregate.
+     * For the public profile page: the returned user carries the `followers_count` aggregate and
+     * `counters` (karma only).
      */
     public function findForProfile(string $username): ?User;
 
@@ -62,7 +63,45 @@ interface UserRepositoryInterface
 
     public function isFollowing(string $followerId, string $authorId): bool;
 
+    /**
+     * Adds the delta (negative takes karma away) to the user's sub-karma in the group and to
+     * their account karma — two separate counters, neither computed from the other. The caller
+     * wraps it in a transaction.
+     */
+    public function addKarma(string $userId, string $groupId, int $delta): void;
+
+    /**
+     * Counts one more report sent by the user (a statistic only, see Counters). The caller wraps
+     * it in a transaction.
+     */
+    public function incrementReportsSent(string $userId): void;
+
     public function followersCount(string $authorId): int;
+
+    /**
+     * The people the user follows, by username — for the user's own subscriptions menu. Each
+     * carries `attached_on_feed`: whether they are on the user's side panel.
+     *
+     * @return Collection<int, User>
+     */
+    public function followedBy(string $followerId): Collection;
+
+    /**
+     * Every person the follower attached to their side panel: the most new posts first, then by
+     * username. Each carries `new_posts_count` — posts since the follow began, not opened or
+     * voted on yet, and only ones the follower may see (public groups, or private ones they're in).
+     *
+     * @return Collection<int, User>
+     */
+    public function followsAttachedOnFeed(string $followerId): Collection;
+
+    /**
+     * Exactly these of the people the follower follows are on their side panel; the rest are
+     * taken off. An id of someone not followed is ignored. The caller wraps it in a transaction.
+     *
+     * @param  list<string>  $authorIds
+     */
+    public function syncFollowsAttachedOnFeed(string $followerId, array $authorIds): void;
 
     /**
      * Idempotent: muting a group already muted changes nothing.

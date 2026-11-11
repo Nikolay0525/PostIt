@@ -144,4 +144,14 @@ class MembershipControllerTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_a_new_membership_is_attached_to_the_side_panel(): void
+    {
+        $user = User::factory()->create();
+        $group = Group::factory()->create(['is_private' => false]);
+
+        $this->actingAs($user)->postJson("/groups/{$group->id}/subscribe");
+
+        $this->assertDatabaseHas('user_group_subscriptions', ['group_id' => $group->id, 'user_id' => $user->id, 'attached_on_feed' => true]);
+    }
 }

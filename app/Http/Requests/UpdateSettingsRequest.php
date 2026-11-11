@@ -36,6 +36,11 @@ class UpdateSettingsRequest extends FormRequest
             ],
             'enable_cookies' => ['required', 'boolean'],
             'allow_messages' => ['required', 'boolean'],
+            // Ids of the user's own groups and people to keep on the side panel; others are ignored.
+            'attached_groups' => ['present', 'array'],
+            'attached_groups.*' => ['uuid'],
+            'attached_people' => ['present', 'array'],
+            'attached_people.*' => ['uuid'],
         ];
     }
 

@@ -8,6 +8,8 @@ use App\Models\Post;
 use App\Models\User;
 use App\Models\Vote;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\ExcludesSeenPosts;
+use App\Repositories\Eloquent\Concerns\ExcludesBannedGroups;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -17,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 
 class EloquentPostRepository implements PostRepositoryInterface
 {
-    use SearchesText;
+    use ExcludesBannedGroups, ExcludesSeenPosts, SearchesText;
 
     public function find(string $id): ?Post
     {
@@ -39,6 +41,30 @@ class EloquentPostRepository implements PostRepositoryInterface
             'slug' => $slug,
             'is_deleted' => false,
         ]);
+    }
+
+    public function update(string $postId, ?string $title, string $article): void
+    {
+        Post::whereKey($postId)->update([
+            'title' => $title,
+            'article' => $article,
+            'edited_at' => now(),
+        ]);
+    }
+
+    public function hide(string $postId): void
+    {
+        Post::whereKey($postId)->update(['hidden_at' => now()]);
+    }
+
+    public function restore(string $postId): void
+    {
+        Post::whereKey($postId)->update(['hidden_at' => null]);
+    }
+
+    public function remove(string $postId): void
+    {
+        Post::whereKey($postId)->update(['hidden_at' => null, 'removed_at' => now()]);
     }
 
     public function findWithStatsBySlug(string $groupId, string $slug, ?string $viewerId = null): ?Post
@@ -70,9 +96,56 @@ class EloquentPostRepository implements PostRepositoryInterface
 
     // `post_views`/`post_shares` are link tables with a composite key and no model: insertOrIgnore
     // makes a repeat a no-op without a lookup first, and can't race into a duplicate-key error.
+    // The caller has checked the user may see the post (its page, a vote on it).
     public function recordView(string $postId, string $userId): void
     {
         DB::table('post_views')->insertOrIgnore(['post_id' => $postId, 'user_id' => $userId, 'viewed_at' => now()]);
+    }
+
+    // An id of a private group's post, a deleted or a made-up one is dropped (insertViews), and
+    // a repeat is a no-op, as with recordView().
+    public function recordViews(array $postIds, string $userId): void
+    {
+        $this->insertViews(Post::query()->whereIn('posts.id', $postIds), $userId);
+    }
+
+    // "Read all": exactly the posts the side panel counts as new there — since the user joined
+    // (an earlier post never counted) — so a big old group doesn't turn into thousands of rows.
+    // Not a member: the subquery is empty, the comparison is never true, nothing is noted.
+    public function recordViewsInGroup(string $groupId, string $userId): void
+    {
+        $this->insertViews(Post::query()
+            ->where('posts.group_id', $groupId)
+            ->where('posts.created_at', '>=', fn ($joined) => $joined
+                ->select('created_at')
+                ->from('user_group_subscriptions')
+                ->where('group_id', $groupId)
+                ->where('user_id', $userId)), $userId);
+    }
+
+    // The same for a person: their posts since the follow began; nothing when not following.
+    public function recordViewsByAuthor(string $authorId, string $userId): void
+    {
+        $this->insertViews(Post::query()
+            ->where('posts.user_id', $authorId)
+            ->where('posts.created_at', '>=', fn ($followed) => $followed
+                ->select('created_at')
+                ->from('user_user_subscriptions')
+                ->where('user_author_id', $authorId)
+                ->where('user_follower_id', $userId)), $userId);
+    }
+
+    // One INSERT … SELECT whatever the number of posts: only ones the user may see and not deleted
+    // go in, and a post already noted keeps its first time.
+    private function insertViews(Builder $posts, string $userId): void
+    {
+        $visible = $this->visibleTo($posts, $userId)
+            ->where('posts.is_deleted', false)
+            ->select('posts.id')
+            ->selectRaw('? as user_id', [$userId])
+            ->selectRaw('? as viewed_at', [now()]);
+
+        DB::table('post_views')->insertOrIgnoreUsing(['post_id', 'user_id', 'viewed_at'], $visible);
     }
 
     public function recordShare(string $postId, string $userId): void
@@ -153,17 +226,7 @@ class EloquentPostRepository implements PostRepositoryInterface
         $this->withinDays($query, $filters->period->days());
 
         if ($filters->onlyNew) {
-            // Opened or voted on = already seen.
-            $query
-                ->whereNotIn('posts.id', fn ($views) => $views
-                    ->select('post_id')
-                    ->from('post_views')
-                    ->where('user_id', $userId))
-                ->whereNotIn('posts.id', fn ($votes) => $votes
-                    ->select('parent_id')
-                    ->from('votes')
-                    ->where('user_id', $userId)
-                    ->where('parent_type', VoteParentType::Post));
+            $this->whereNotSeenBy($query, $userId);
         }
 
         if ($filters->onlyMyLanguages) {
@@ -260,7 +323,7 @@ class EloquentPostRepository implements PostRepositoryInterface
     private function withStats(?string $viewerId = null): Builder
     {
         $query = Post::query()
-            ->with(['author:id,username,avatar_url', 'group:id,name,slug,is_private'])
+            ->with(['author:id,username,avatar_url', 'group:id,name,slug,is_private,language_code'])
             ->withCount([
                 'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true),
                 'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false),
@@ -270,6 +333,13 @@ class EloquentPostRepository implements PostRepositoryInterface
             ->where('is_deleted', false);
 
         if ($viewerId !== null) {
+            // The groups the viewer is banned from are closed to them, in every list built from this.
+            $banned = $this->bannedGroupIds($viewerId);
+
+            if ($banned !== []) {
+                $query->whereNotIn('posts.group_id', $banned);
+            }
+
             $query->addSelect(['viewer_vote' => Vote::query()
                 ->select('positive')
                 ->whereColumn('parent_id', 'posts.id')

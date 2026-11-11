@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ReportTargetType;
 use App\Models\Group;
 use App\Models\Post;
+use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -21,6 +23,10 @@ class PostSeeder extends Seeder
 
             Post::factory()->count(3)->for($group)->state($author)->create();
             Post::factory()->withoutTitle()->for($group)->state($author)->create();
+
+            // One post under a moderation case in every group, to see how a hidden post looks.
+            $hidden = Post::factory()->hidden()->for($group)->state($author)->create();
+            app(ModerationCaseRepositoryInterface::class)->open($group->id, ReportTargetType::Post, $hidden->id);
         }
 
         // Factories skip PostService, so do what FollowOwnPost does there: authors follow their posts.

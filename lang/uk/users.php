@@ -3,7 +3,10 @@
 return [
 
     'show' => [
+        'title' => 'Профіль',
         'followers' => ':num підписник|:num підписники|:num підписників',
+        'karma' => 'карма',
+        'group_karma' => 'Карма в цій групі',
         'joined' => 'з нами з :date',
         'follow' => 'Підписатися',
         'following' => 'Ви підписані',

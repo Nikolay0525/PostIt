@@ -29,7 +29,7 @@ async function load() {
 
 // A notification stores ids only; the sentence is built here, in the page language.
 function text(n) {
-    if (n.post_title === null) return trans('notifications.post_deleted');
+    if (n.post_title === null) return trans(n.post_unavailable ? 'notifications.post_unavailable' : 'notifications.post_deleted');
 
     const key = `notifications.kinds.${n.type}`;
     const sentence = trans(key, { user: n.author ?? trans('notifications.someone'), post: n.post_title });

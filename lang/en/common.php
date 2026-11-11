@@ -4,8 +4,9 @@ return [
 
     'something_went_wrong' => 'Something went wrong.',
     'back' => 'Back',
-    'back_to' => 'Back to :name',
     'cancel' => 'Cancel',
+    'edited' => 'edited :time',
+    'more_actions' => 'More actions',
     'show_password' => 'Show password',
     'hide_password' => 'Hide password',
 

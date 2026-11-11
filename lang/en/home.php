@@ -7,23 +7,35 @@ return [
     'tabs_label' => 'Feed',
     'tabs' => [
         'recommended' => 'Recommended',
-        'following' => 'Following',
+        'groups' => 'Groups',
+        'people' => 'People',
     ],
-    'sources_label' => 'Show posts from',
     'sources' => [
         'groups' => 'Groups',
         'people' => 'People',
+    ],
+    'side_panel' => [
+        'label' => 'Your groups and people',
+        'open' => 'Show your groups and people',
+        'close' => 'Close',
+        'empty' => [
+            'groups' => 'No groups on the panel. Tick some in Settings.',
+            'people' => 'No people on the panel. Tick some in Settings.',
+        ],
+        'new_posts' => ':num new post|:num new posts',
+        'read_all' => 'Mark everything in :name as read',
+        'manage' => 'All subscriptions →',
     ],
     'recommended_hint' => [
         'guest' => 'Popular posts from open groups, freshest first.',
         'member' => 'Popular in groups you haven\'t joined yet: your languages first, then the freshest.',
     ],
-    'recommended_empty' => 'Nothing new for you yet — check back later or look at your Following tab.',
+    'recommended_empty' => 'Nothing new for you yet — check back later or look at your Groups and People tabs.',
     'filters' => [
         'label' => 'Filters',
         'new' => [
             'label' => 'Only new',
-            'hint' => 'Hide posts you\'ve opened or voted on.',
+            'hint' => 'Hide posts you\'ve already seen: scrolled past, opened or voted on.',
         ],
         'langs' => [
             'label' => 'Only my languages',

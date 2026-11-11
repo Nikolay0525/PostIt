@@ -9,7 +9,10 @@ use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ImageRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
+use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
+use App\Repositories\Contracts\SanctionRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Contracts\ReportRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\VoteRepositoryInterface;
 use App\Repositories\Eloquent\EloquentAchievementRepository;
@@ -17,7 +20,10 @@ use App\Repositories\Eloquent\EloquentCommentRepository;
 use App\Repositories\Eloquent\EloquentGroupRepository;
 use App\Repositories\Eloquent\EloquentImageRepository;
 use App\Repositories\Eloquent\EloquentLanguageRepository;
+use App\Repositories\Eloquent\EloquentModerationCaseRepository;
+use App\Repositories\Eloquent\EloquentSanctionRepository;
 use App\Repositories\Eloquent\EloquentPostRepository;
+use App\Repositories\Eloquent\EloquentReportRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Repositories\Eloquent\EloquentVoteRepository;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -68,6 +74,21 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             AchievementRepositoryInterface::class,
             EloquentAchievementRepository::class
+        );
+
+        $this->app->bind(
+            ReportRepositoryInterface::class,
+            EloquentReportRepository::class
+        );
+
+        $this->app->bind(
+            ModerationCaseRepositoryInterface::class,
+            EloquentModerationCaseRepository::class
+        );
+
+        $this->app->bind(
+            SanctionRepositoryInterface::class,
+            EloquentSanctionRepository::class
         );
     }
 

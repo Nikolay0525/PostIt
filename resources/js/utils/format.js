@@ -23,6 +23,9 @@ export function timeAgo(iso) {
     return rtf.format(0, 'second');
 }
 
+// "October 31, 2026, 2:30 PM": the exact moment, for a hint over a relative "2 hours ago".
+export const fullDate = (iso) => new Date(iso).toLocaleString(locale(), { dateStyle: 'long', timeStyle: 'short' });
+
 // Short preview of an article for feeds: one line of text, cut at a word boundary when possible.
 export function excerpt(text, max = 180) {
     const flat = text.replace(/\s+/g, ' ').trim();

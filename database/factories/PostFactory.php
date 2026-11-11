@@ -82,6 +82,14 @@ class PostFactory extends Factory
         ];
     }
 
+    // Under a moderation case (seeders also open the case): shown as "hidden".
+    public function hidden(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'hidden_at' => now(),
+        ]);
+    }
+
     // `title` is nullable in the schema.
     public function withoutTitle(): static
     {

@@ -123,6 +123,20 @@
     @apply fixed inset-x-4 top-16 z-20 overflow-hidden rounded-2xl border border-line bg-surface
            sm:absolute sm:inset-x-auto sm:end-0 sm:top-full sm:mt-2 sm:w-80;
   }
+  /* A menu in the page (Dropdown `anchored`): always right under its button, lined up with its
+     end, never wider than the screen. A shadow, since it opens over the feed's cards. */
+  .menu-panel-anchored {
+    @apply absolute end-0 top-full z-20 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border
+           border-line bg-surface shadow-lg;
+  }
+  /* The "···" menu of a post or comment: a small button and a narrow list. */
+  .content-menu-btn {
+    @apply flex h-7 w-7 items-center justify-center rounded-lg text-muted transition hover:bg-canvas
+           hover:text-ink focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+  .content-menu .menu-panel-anchored {
+    @apply w-44;
+  }
   .menu-heading {
     @apply border-b border-line px-4 py-3 text-sm font-semibold text-ink;
   }
@@ -177,19 +191,19 @@
 
   /* Feed */
   .feed {
-    @apply mx-auto flex max-w-3xl flex-col gap-4;
+    @apply mx-auto flex max-w-3xl flex-col gap-2;
   }
   .feed-title {
-    @apply text-xl font-semibold text-ink;
+    @apply text-lg font-semibold text-ink;
   }
-  /* Home page: the main tabs (underlined) with the Filters button on the same line, and inside
-     Following a smaller segmented switch. The line is on the row, so it runs under the button
-     too; the active tab's border sits on top of it (-mb-px). */
+  /* Home page: the tabs (underlined) with the Filters button on the same line. The line is on the
+     row, so it runs under the button too; the active tab's border sits on top of it (-mb-px). */
   .feed-tabs-row {
-    @apply flex items-end justify-between gap-3 border-b border-line;
+    @apply flex min-h-11 items-end justify-between gap-3 border-b border-line;
   }
+  /* Tighter on a phone, where three tabs share the row with the panel and Filters buttons. */
   .feed-tabs {
-    @apply flex gap-6;
+    @apply flex gap-3 sm:gap-6;
   }
   .feed-filter-btn {
     @apply mb-2 inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5
@@ -199,26 +213,32 @@
     @apply flex h-5 min-w-5 items-center justify-center rounded-sm bg-brand-600 px-1 text-xs font-semibold text-white;
   }
   .feed-filter-panel {
-    @apply flex flex-col gap-4 p-4;
+    @apply flex flex-col gap-4 p-2;
+  }
+  /* One group of choices in it (a period, a sort), under its legend. A fieldset of its own, not
+     the panel: a legend sits on its fieldset's top edge, past any padding. */
+  .feed-filter-group {
+    @apply flex flex-col gap-2;
   }
   .feed-tab {
-    @apply -mb-px cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-1 pb-3 text-base
+    @apply -mb-px cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-1 pb-3 text-lg
            font-semibold text-muted transition hover:text-ink;
   }
   .feed-tab.is-active {
     @apply border-brand-600 text-ink;
   }
-  .feed-switch {
-    @apply inline-flex self-start overflow-hidden rounded-lg border border-line bg-surface;
+
+  .report-sent {
+    @apply text-sm text-muted mt-3;
   }
-  .feed-switch-option {
-    @apply cursor-pointer border-0 bg-transparent px-4 py-1.5 text-sm text-muted transition hover:text-ink;
+
+  /* A page's title in the strip (PageHeader), on the tabs' baseline. */
+  .page-header-title {
+    @apply px-1 pb-3 text-lg font-semibold text-ink;
   }
-  .feed-switch-option + .feed-switch-option {
-    @apply border-s border-line;
-  }
-  .feed-switch-option.is-active {
-    @apply bg-brand-50 font-medium text-brand-700;
+  /* An action in the strip rather than a tab (a group's "New post"): in the brand colour. */
+  .feed-tab-action {
+    @apply text-brand-600 hover:text-brand-700;
   }
   /* Search results: groups and people as rows in a card, posts as the usual feed below. */
   .search-section {
@@ -300,7 +320,7 @@
     @apply flex flex-col gap-3;
   }
   .comment-replies {
-    @apply flex flex-col gap-3 border-s border-line ps-4 ms-3;
+    @apply flex flex-col gap-3 border-s border-line ps-4;
   }
   .comment-deleted {
     @apply text-sm italic text-muted;
@@ -308,6 +328,16 @@
 
   .post-link {
     @apply hover:text-brand-600;
+  }
+  /* A case in the moderation queue: the content, then what it was reported for. */
+  .case-reports {
+    @apply mt-4 flex flex-col gap-1.5 border-t border-line pt-3 text-sm;
+  }
+  .case-report {
+    @apply text-muted;
+  }
+  .case-report-kind {
+    @apply font-medium text-ink;
   }
   .post-content {
     @apply mt-3 text-base leading-relaxed text-ink;
@@ -331,11 +361,9 @@
   }
   /* Two-step form: both steps are rendered side by side in one track, and the track slides
      left/right inside a clipped window. */
-  .wizard-header {
-    @apply flex flex-col gap-1;
-  }
+  /* In the PageHeader strip, on the title's baseline. */
   .wizard-steps {
-    @apply flex items-center gap-1.5 text-sm text-muted;
+    @apply flex items-center gap-1.5 pb-3 text-sm text-muted;
   }
   .wizard-dot {
     @apply h-2 w-2 rounded-full bg-line transition-colors;
@@ -360,16 +388,31 @@
     @apply h-0 overflow-hidden p-0;
   }
   .wizard-actions {
-    @apply flex items-center justify-between gap-3 border-t border-line pt-5;
+    @apply flex items-center justify-between gap-3 pt-2;
   }
   .settings-status {
     @apply rounded-lg border border-brand-100 bg-brand-50 p-3 text-sm text-brand-700;
   }
   .settings-section {
-    @apply flex flex-col gap-4 border-t border-line pt-5;
+    @apply flex flex-col gap-5 border-b border-line pb-8;
   }
+  /* The last section has no line of its own: the form's actions row already has one above it. */
+  .settings-section:last-of-type {
+    @apply border-b-0 pb-0;
+  }
+  /* The heading of a section in Settings / group edit. The legend sits outside the fieldset's
+     flex layout, so it takes its own spacing. */
   .settings-heading {
+    @apply mb-5 text-lg font-semibold text-ink;
+  }
+  /* A small label above a group of controls or results (search, Filters, sort): muted capitals. */
+  .muted-heading {
     @apply mb-1 text-sm font-semibold uppercase tracking-wide text-muted;
+  }
+  /* In a Filters panel: written as in the translation, not in capitals, and a little room above
+     so it doesn't sit tight on what comes before it. */
+  .feed-filter-panel .muted-heading {
+    @apply mb-2 normal-case tracking-normal;
   }
   .settings-toggle {
     @apply flex cursor-pointer items-start gap-3;
@@ -438,10 +481,26 @@
            text-xl font-semibold text-brand-600;
   }
   .group-name {
-    @apply text-xl font-semibold text-ink;
+    @apply text-xl font-semibold text-ink [overflow-wrap:anywhere];
   }
   .group-stats {
     @apply text-sm text-muted;
+  }
+  .karma-badge {
+    @apply inline-flex items-baseline gap-1.5 rounded-lg border border-brand-100 bg-brand-50 px-2.5 py-0.5
+           text-sm text-brand-700;
+  }
+  .karma-value {
+    @apply font-semibold tabular-nums;
+  }
+  /* The group's language code after its name (the side panel, the group page), in the karma badge's colours. */
+  .group-lang {
+    @apply inline-flex shrink-0 items-center rounded-md border border-brand-100 bg-brand-50 px-1.5 text-xs
+           font-semibold uppercase text-brand-700;
+  }
+  /* The viewer's own role in the group, next to its name: filled, so it is not mistaken for the language. */
+  .group-role {
+    @apply inline-flex shrink-0 items-center rounded-md bg-brand-600 px-1.5 text-xs font-semibold text-white;
   }
   .group-desc {
     @apply w-full text-sm leading-relaxed text-muted;
@@ -511,13 +570,6 @@
   .achievement {
     @apply flex w-20 flex-col items-center gap-1 text-center;
   }
-  .feed-toolbar {
-    @apply flex flex-wrap items-center justify-between gap-3;
-  }
-  .sort-select {
-    @apply rounded-lg border border-line bg-surface px-4 py-1.5 text-sm text-ink transition
-           hover:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
-  }
   .comments {
     @apply mt-2 flex flex-col gap-4;
   }
@@ -570,5 +622,90 @@
   }
   .checkbox-input {
     @apply h-4 w-4 rounded-sm border-line text-brand-600 focus:ring-brand-100;
+  }
+
+  /* Home page. The feed is always in the middle of the page: equal columns on both sides, the
+     side panel in the left one. Only from xl are those columns wide enough for it. */
+  .home-layout {
+    @apply xl:grid xl:items-start xl:justify-center xl:gap-6;
+
+    /* The side columns take half of what the feed (48rem) and the gaps leave, kept between 250
+       and 400px: at 1280 they're 250 and the feed gives way a little, on a Full HD screen they're
+       400 and the whole grid sits in the middle. The feed stays in the centre either way. */
+    @variant xl {
+      --side-column: clamp(250px, calc((100% - 48rem - 3rem) / 2), 400px);
+      grid-template-columns: var(--side-column) minmax(0, 48rem) var(--side-column);
+    }
+  }
+  /* Around the page. From xl it steps out of the way (display: contents), so the page's own
+     blocks are cells of the grid: everything goes to the middle column, a .page-aside to the
+     right one. Below xl it's a plain block and a .page-aside simply comes before the feed. */
+  .home-layout-page {
+    @apply min-w-0 xl:contents;
+  }
+  /* w-full + mx-0: in a grid cell, the feed's own mx-auto would shrink it to its content. */
+  .home-layout-page > * {
+    @apply xl:col-start-2 xl:row-start-1 xl:mx-0 xl:w-full;
+  }
+  /* Outside the grid (a guest has no panel) it's a block as wide as the feed, above it. */
+  .page-aside {
+    @apply mx-auto mb-4 w-full max-w-3xl;
+  }
+  .home-layout-page > .page-aside {
+    @apply xl:sticky xl:top-6 xl:col-start-3 xl:row-start-1 xl:mx-0 xl:mb-0 xl:max-h-[calc(100vh-3rem)]
+           xl:max-w-none xl:overflow-y-auto;
+  }
+  /* In a column as narrow as 250px the join button can't share a line with the name. */
+  .home-layout-page > .page-aside .group-join {
+    @apply xl:w-full;
+  }
+  /* The right column's heading, on the line of the feed's strip and the panel's "Groups". Only
+     there: above the feed (narrow screen, guest) the card needs no heading. */
+  .page-aside-heading {
+    @apply hidden;
+  }
+  .home-layout-page > .page-aside .page-aside-heading {
+    @apply mb-4 justify-start xl:flex;
+  }
+  /* Below xl a drawer, shut until the navbar's panel button opens it (no hover on touch). */
+  .side-panel {
+    @apply fixed inset-y-0 start-0 z-40 flex w-72 max-w-[85vw] -translate-x-full flex-col gap-5 overflow-y-auto
+           border-e border-line bg-surface p-4 shadow-xl transition-transform duration-200
+           rtl:translate-x-full
+           xl:sticky xl:top-6 xl:z-auto xl:col-start-1 xl:row-start-1 xl:max-h-[calc(100vh-3rem)] xl:w-full
+           xl:translate-x-0 xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:rtl:translate-x-0;
+  }
+  .side-panel.is-open {
+    @apply translate-x-0 rtl:translate-x-0;
+  }
+  .side-panel-backdrop {
+    @apply fixed inset-0 z-30 bg-black/40 xl:hidden;
+  }
+  .side-panel-section {
+    @apply flex flex-col gap-1;
+  }
+  /* Looks like the feed's tab row, so the first one's line runs level with the feed's. */
+  .side-panel-heading {
+    @apply mb-1 justify-start;
+  }
+  .side-panel-new {
+    @apply ms-auto shrink-0 rounded-full bg-brand-600 px-1.5 text-[10px] font-semibold leading-4 text-white;
+  }
+  .side-panel-item {
+    @apply flex items-center gap-1;
+  }
+  .side-panel-row {
+    @apply flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-ink transition hover:bg-canvas;
+  }
+  /* "Read all". With a mouse it shows on hovering the row (or on keyboard focus); on a touch
+     screen there is no hover, so it's always there while the row has new posts. */
+  .side-panel-read {
+    @apply flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent
+           text-sm text-muted transition hover:bg-canvas hover:text-brand-600
+           focus-visible:opacity-100 disabled:cursor-wait disabled:opacity-50
+           pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100;
+  }
+  .side-panel-manage {
+    @apply mt-auto px-2 text-xs font-medium text-brand-600 transition hover:text-brand-700;
   }
 }

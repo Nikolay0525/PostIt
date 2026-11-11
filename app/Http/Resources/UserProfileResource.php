@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * A user's public information only — never email, date of birth or settings. Expects the
- * followers_count aggregate (see UserRepositoryInterface::findForProfile()).
+ * followers_count aggregate and the counters (see UserRepositoryInterface::findForProfile()).
  *
  * @mixin User
  */
@@ -26,6 +26,7 @@ class UserProfileResource extends JsonResource
             'bio' => $this->bio,
             'joined_at' => $this->created_at,
             'followers_count' => $this->followers_count,
+            'karma' => $this->counters?->karma ?? 0,
         ];
     }
 }

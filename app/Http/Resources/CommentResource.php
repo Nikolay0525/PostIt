@@ -23,18 +23,29 @@ class CommentResource extends JsonResource
 
     public function toArray(Request $request): array
     {
+        // A hidden comment (under a moderation case) is like a deleted one for the page: it stays in
+        // the thread so its replies keep their place, but only as a placeholder.
+        $hidden = $this->isConcealed();
+        $concealed = $this->is_deleted || $hidden;
+
         return [
             'id' => $this->id,
             'post_id' => $this->post_id,
             'parent_id' => $this->parent_id,
             'is_deleted' => $this->is_deleted,
-            'text' => $this->is_deleted ? '' : $this->text,
+            'is_hidden' => $hidden,
+            'is_removed' => $this->isRemoved(),
+            'text' => $concealed ? '' : $this->text,
             'author' => [
-                'id' => $this->is_deleted ? null : $this->author->id,
-                'username' => $this->is_deleted ? 'Removed' : $this->author->username,
-                'avatar_url' => $this->is_deleted ? null : ImageService::url($this->author->avatar_url),
+                'id' => $concealed ? null : $this->author->id,
+                'username' => $this->is_deleted ? 'Removed' : ($hidden ? 'Hidden' : $this->author->username),
+                'avatar_url' => $concealed ? null : ImageService::url($this->author->avatar_url),
             ],
             'created_at' => $this->created_at,
+            // When the author last changed the text; null if never.
+            'edited_at' => $concealed ? null : $this->edited_at,
+            // Offered to the author only; CommentPolicy::update() decides again on the server.
+            'can_edit' => ! $concealed && $request->user()?->id === $this->user_id,
             'upvotes' => $this->upvotes_count,
             'downvotes' => $this->downvotes_count,
             'controversy' => $this->controversyScore($this->upvotes_count, $this->downvotes_count),

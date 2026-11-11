@@ -15,6 +15,10 @@ class Report extends BaseEntity
         'target_type',
         'target_id',
         'group_id',
+        'moderation_case_id',
+        'rule_version_id',
+        'rule_index',
+        'breaks_platform_rules',
         'text',
         'status',
         'reviewed_by',
@@ -27,6 +31,7 @@ class Report extends BaseEntity
         return [
             'target_type' => ReportTargetType::class,
             'status' => ReportStatus::class,
+            'breaks_platform_rules' => 'boolean',
             'escalated_at' => 'datetime',
         ];
     }
@@ -44,5 +49,15 @@ class Report extends BaseEntity
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class, 'group_id');
+    }
+
+    public function moderationCase(): BelongsTo
+    {
+        return $this->belongsTo(ModerationCase::class, 'moderation_case_id');
+    }
+
+    public function ruleVersion(): BelongsTo
+    {
+        return $this->belongsTo(GroupRuleVersion::class, 'rule_version_id');
     }
 }

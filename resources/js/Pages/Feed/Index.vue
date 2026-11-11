@@ -22,8 +22,14 @@ const page = usePage();
 // The home page is where a new user starts, so its tour covers the navbar and the feed in one go.
 usePageTours(['navigation', 'feed']);
 
-const tabs = ['recommended', 'following'];
-const sources = ['groups', 'people'];
+// One row, no second switch: the Following feed's two sources are tabs of their own, so either is
+// one tap away. On the server they stay feed=following + source=groups|people.
+const tabs = [
+    { key: 'recommended', feed: 'recommended', source: null },
+    { key: 'groups', feed: 'following', source: 'groups' },
+    { key: 'people', feed: 'following', source: 'people' },
+];
+const isActive = (tab) => tab.feed === props.feed && (tab.source === null || tab.source === props.source);
 const periods = ['all', 'month', 'week'];
 
 // Only what differs from the defaults goes into the URL, so plain Recommended stays "/". The
@@ -78,26 +84,27 @@ const activeFilters = computed(() =>
 
     <section class="feed">
         <div class="feed-tabs-row" data-tour="feed.tabs">
-            <div class="feed-tabs" role="tablist" :aria-label="$t('home.tabs_label')">
+            <div class="feed-tabs me-auto" role="tablist" :aria-label="$t('home.tabs_label')">
                 <button
                     v-for="tab in tabs"
-                    :key="tab"
+                    :key="tab.key"
                     type="button"
                     role="tab"
                     class="feed-tab"
-                    :class="{ 'is-active': feed === tab }"
-                    :aria-selected="feed === tab"
-                    @click="show(tab)"
-                >{{ $t(`home.tabs.${tab}`) }}</button>
+                    :class="{ 'is-active': isActive(tab) }"
+                    :aria-selected="isActive(tab)"
+                    @click="show(tab.feed, tab.source ?? source)"
+                >{{ $t(`home.tabs.${tab.key}`) }}</button>
             </div>
 
             <!-- On every tab; not for a guest on Following, who sees a log-in prompt there instead. -->
-            <Dropdown v-if="posts" :label="$t('home.filters.label')" trigger-class="feed-filter-btn">
+            <Dropdown v-if="posts" :label="$t('home.filters.label')" trigger-class="feed-filter-btn" anchored>
                 <template #trigger>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5z" />
                     </svg>
-                    {{ $t('home.filters.label') }}
+                    <!-- Icon only on a phone, where the tabs need the room. -->
+                    <span class="hidden sm:inline">{{ $t('home.filters.label') }}</span>
                     <span v-if="activeFilters" class="feed-filter-count">{{ activeFilters }}</span>
                 </template>
 
@@ -123,8 +130,8 @@ const activeFilters = computed(() =>
                         <AuthPrompt action="filters" />
                     </p>
 
-                    <fieldset class="flex flex-col gap-2">
-                        <legend class="settings-heading">{{ $t('home.filters.period.label') }}</legend>
+                    <fieldset class="feed-filter-group">
+                        <legend class="muted-heading">{{ $t('home.filters.period.label') }}</legend>
                         <label v-for="period in periods" :key="period" class="settings-toggle">
                             <input
                                 type="radio"
@@ -139,18 +146,6 @@ const activeFilters = computed(() =>
                     </fieldset>
                 </div>
             </Dropdown>
-        </div>
-
-        <div v-if="feed === 'following'" class="feed-switch" role="group" :aria-label="$t('home.sources_label')">
-            <button
-                v-for="key in sources"
-                :key="key"
-                type="button"
-                class="feed-switch-option"
-                :class="{ 'is-active': source === key }"
-                :aria-pressed="source === key"
-                @click="show('following', key)"
-            >{{ $t(`home.sources.${key}`) }}</button>
         </div>
 
         <p v-if="!posts" class="post-login-prompt">

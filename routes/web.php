@@ -6,8 +6,10 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\ModerationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
@@ -28,6 +30,8 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/groups/{groupSlug}', [GroupController::class, 'show'])->name('groups.show');
 Route::get('/groups/{groupSlug}/random-post', [PostController::class, 'random'])->name('groups.random_post');
 Route::get('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'show'])->name('posts.show');
+// The log of what moderators did is open to everyone.
+Route::get('/groups/{groupSlug}/-/moderation-log', [ModerationController::class, 'log'])->name('groups.moderation_log');
 Route::get('/users/{username}', [ProfileController::class, 'show'])->name('users.show');
 Route::get('/search', [SearchController::class, 'index'])
     ->middleware('throttle:60,1')->name('search');
@@ -57,6 +61,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:6,1')->name('verification.send');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])
@@ -80,18 +87,43 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/comments', [CommentController::class, 'store'])
         ->middleware('throttle:60,1')->name('comments.store');
+    Route::get('/groups/{id}/rules', [GroupController::class, 'rules'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('groups.rules');
+    Route::post('/reports', [ReportController::class, 'store'])
+        ->middleware('throttle:20,1')->name('reports.store');
+    Route::put('/comments/{id}', [CommentController::class, 'update'])
+        ->whereUuid('id')->middleware('throttle:60,1')->name('comments.update');
 
     Route::get('/groups/{groupSlug}/-/create-post', [PostController::class, 'create'])->name('posts.create');
+    Route::get('/groups/{groupSlug}/-/edit-post/{postSlug}', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'update'])
+        ->middleware('throttle:30,1')->name('posts.update');
     Route::post('/posts', [PostController::class, 'store'])
         ->middleware('throttle:60,1')->name('posts.store');
     Route::post('/posts/{id}/share', [PostController::class, 'share'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('posts.share');
+    // Batches from utils/seen.js: one every 5 s at most while scrolling, plus one on leaving a page.
+    Route::post('/posts/seen', [PostController::class, 'markSeen'])
+        ->middleware('throttle:60,1')->name('posts.seen');
+    // "Read all" from the side panel.
+    Route::post('/groups/{id}/seen', [PostController::class, 'markGroupSeen'])
+        ->whereUuid('id')->middleware('throttle:30,1')->name('groups.seen');
+    Route::post('/users/{id}/seen', [PostController::class, 'markAuthorSeen'])
+        ->whereUuid('id')->middleware('throttle:30,1')->name('users.seen');
 
     Route::get('/groups/-/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])
         ->middleware('throttle:10,1')->name('groups.store');
+    Route::get('/groups/{groupSlug}/-/edit', [GroupController::class, 'edit'])->name('groups.edit');
+    Route::put('/groups/{groupSlug}', [GroupController::class, 'update'])
+        ->middleware('throttle:30,1')->name('groups.update');
 
-    Route::post('/groups/{id}/subscribe', [MembershipController::class, 'subscribe'])
+    Route::get('/groups/{groupSlug}/-/moderation', [ModerationController::class, 'index'])
+        ->middleware('throttle:60,1')->name('groups.moderation');
+    Route::get('/groups/{groupSlug}/-/moderation/{caseId}', [ModerationController::class, 'show'])
+        ->whereUuid('caseId')->middleware('throttle:60,1')->name('groups.moderation.case');
+
+    Route::post('/groups/{id}/subscribe',[MembershipController::class, 'subscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.subscribe');
     Route::delete('/groups/{id}/subscribe', [MembershipController::class, 'unsubscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.unsubscribe');

@@ -1,12 +1,14 @@
 <script setup>
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import ContentMenu from '@/Pages/Components/ContentMenu.vue';
+import ReportForm from '@/Pages/Components/ReportForm.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
-import { timeAgo } from '@/utils/format';
-import { postJson } from '@/utils/http';
+import { fullDate, timeAgo } from '@/utils/format';
+import { postJson, putJson } from '@/utils/http';
 
 // Comments are nested (parent_id), so a node renders itself for each of its replies.
 const props = defineProps({
@@ -16,6 +18,9 @@ const props = defineProps({
 const page = usePage();
 
 const showLoginPrompt = ref(false);
+const reporting = ref(false);
+// The group of the post the comments are under: Posts/Show provides it.
+const groupId = inject('groupId');
 
 const showReplyForm = ref(false);
 const replyText = ref('');
@@ -66,12 +71,56 @@ const submitReply = async () => {
         replying.value = false;
     }
 };
+
+// Editing happens in place and outside Inertia, like replying: the new text and time are merged into
+// the comment already on the page, so the scrolled comment list stays where it is.
+const editing = ref(false);
+const editText = ref('');
+const saving = ref(false);
+const editError = ref(null);
+
+const startEdit = () => {
+    editText.value = props.comment.text;
+    editError.value = null;
+    editing.value = true;
+};
+
+const cancelEdit = () => {
+    editing.value = false;
+    editError.value = null;
+};
+
+const saveEdit = async () => {
+    const text = editText.value.trim();
+
+    if (!text || saving.value) {
+        return;
+    }
+
+    saving.value = true;
+    editError.value = null;
+
+    try {
+        const saved = await putJson(`/comments/${props.comment.id}`, { text });
+
+        props.comment.text = saved.text;
+        props.comment.edited_at = saved.edited_at;
+        editing.value = false;
+    } catch (error) {
+        console.error('Edit failed:', error);
+        editError.value = error.message || trans('common.something_went_wrong');
+    } finally {
+        saving.value = false;
+    }
+};
 </script>
 
 <template>
     <article class="comment-node">
         <div class="comment-card">
             <p v-if="comment.is_deleted" class="comment-deleted">{{ $t('comments.deleted') }}</p>
+            <!-- Under a moderation case: no text and no author from the server, but the replies stay. -->
+            <p v-else-if="comment.is_hidden" class="comment-deleted">{{ comment.is_removed ? $t('comments.removed') : $t('comments.hidden') }}</p>
 
             <template v-else>
                 <p class="post-meta-text flex items-center gap-2">
@@ -79,8 +128,29 @@ const submitReply = async () => {
                     <Link :href="route('users.show', comment.author.username)" class="post-author font-medium text-ink" dir="auto">{{ comment.author.username }}</Link>
                     <span aria-hidden="true"> · </span>
                     <time :datetime="comment.created_at">{{ timeAgo(comment.created_at) }}</time>
+                    <template v-if="comment.edited_at">
+                        <span aria-hidden="true"> · </span>
+                        <time :datetime="comment.edited_at" :title="fullDate(comment.edited_at)">({{ $t('common.edited', { time: timeAgo(comment.edited_at) }) }})</time>
+                    </template>
                 </p>
-                <p class="post-body text-ink" dir="auto">{{ comment.text }}</p>
+
+                <form v-if="editing" class="comment-form mt-3" @submit.prevent="saveEdit">
+                    <textarea
+                        v-model="editText"
+                        class="field-input"
+                        rows="3"
+                        maxlength="500"
+                        dir="auto"
+                        :aria-label="$t('comments.edit')"
+                        :disabled="saving"
+                    ></textarea>
+                    <span class="flex gap-2 self-end">
+                        <button type="button" class="btn-secondary" @click="cancelEdit">{{ $t('common.cancel') }}</button>
+                        <button type="submit" class="btn-primary" :disabled="saving || !editText.trim()">{{ $t('comments.save') }}</button>
+                    </span>
+                    <p v-if="editError" class="vote-error" :title="editError">⚠ {{ $t('comments.edit_failed') }}</p>
+                </form>
+                <p v-else class="post-body text-ink" dir="auto">{{ comment.text }}</p>
                 <p class="post-footer">
                     <VoteButtons
                         target-type="comment"
@@ -93,10 +163,19 @@ const submitReply = async () => {
                         @needs-login="showLoginPrompt = true"
                     />
                     <button type="button" class="post-action" @click="toggleReplyForm">{{ $t('comments.reply') }}</button>
+                    <!-- What can be done with the comment: its author edits it, anyone else (a guest has no menu) reports it. -->
+                    <ContentMenu v-if="page.props.auth.user && !editing">
+                        <template #default="{ close }">
+                            <button v-if="comment.can_edit" type="button" class="menu-item" @click="close(); startEdit()">{{ $t('comments.edit') }}</button>
+                            <button v-else type="button" class="menu-item" @click="close(); reporting = true">{{ $t('reports.menu') }}</button>
+                        </template>
+                    </ContentMenu>
                 </p>
                 <p v-if="showLoginPrompt" class="post-login-prompt">
                     <AuthPrompt action="vote" />
                 </p>
+
+                <ReportForm v-if="reporting" :group-id="groupId" target-type="comment" :target-id="comment.id" @close="reporting = false" />
 
                 <form v-if="showReplyForm" class="comment-form mt-3" @submit.prevent="submitReply">
                     <textarea

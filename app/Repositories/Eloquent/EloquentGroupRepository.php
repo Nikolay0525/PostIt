@@ -4,10 +4,13 @@ namespace App\Repositories\Eloquent;
 
 use App\Enums\GroupModeratorRole;
 use App\Models\Group;
+use App\Models\GroupActivity;
 use App\Models\GroupModerator;
 use App\Models\GroupRuleVersion;
 use App\Models\UserGroupSubscription;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\ExcludesBannedGroups;
+use App\Repositories\Eloquent\Concerns\ExcludesSeenPosts;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +18,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class EloquentGroupRepository implements GroupRepositoryInterface
 {
-    use SearchesText;
+    use ExcludesBannedGroups, ExcludesSeenPosts, SearchesText;
 
     public function find(string $id): ?Group
     {
@@ -29,7 +32,7 @@ class EloquentGroupRepository implements GroupRepositoryInterface
 
     public function findForGroupPage(string $slug): ?Group
     {
-        return Group::withCount('members')->with('currentRuleVersion')->where('slug', $slug)->first();
+        return Group::withCount('members')->with(['currentRuleVersion', 'language:code,native_name'])->where('slug', $slug)->first();
     }
 
     // Private groups included on purpose: a private group must stay findable so people can ask to
@@ -48,6 +51,11 @@ class EloquentGroupRepository implements GroupRepositoryInterface
             ->paginate($perPage);
     }
 
+    public function findActivity(string $groupId): ?GroupActivity
+    {
+        return GroupActivity::find($groupId);
+    }
+
     public function slugExists(string $slug): bool
     {
         return Group::where('slug', $slug)->exists();
@@ -61,6 +69,15 @@ class EloquentGroupRepository implements GroupRepositoryInterface
             'description' => $description,
             'language_code' => $languageCode,
             'is_private' => $isPrivate,
+        ]);
+    }
+
+    public function update(string $groupId, string $name, string $description, string $languageCode): void
+    {
+        Group::whereKey($groupId)->update([
+            'name' => $name,
+            'description' => $description,
+            'language_code' => $languageCode,
         ]);
     }
 
@@ -84,6 +101,11 @@ class EloquentGroupRepository implements GroupRepositoryInterface
         ]);
     }
 
+    public function moderatorRole(string $groupId, string $userId): ?GroupModeratorRole
+    {
+        return GroupModerator::where('group_id', $groupId)->where('user_id', $userId)->first()?->role;
+    }
+
     public function isMember(string $groupId, string $userId): bool
     {
         return Group::whereKey($groupId)
@@ -102,8 +124,64 @@ class EloquentGroupRepository implements GroupRepositoryInterface
                     $visible->orWhereHas('members', fn (Builder $members) => $members->whereKey($viewerId));
                 }
             })
-            ->orderBy('name')
-            ->get(['id', 'slug', 'name', 'icon_url', 'is_private']);
+            ->leftJoin('user_group_karma', fn ($karma) => $karma
+                ->on('user_group_karma.group_id', '=', 'groups.id')
+                ->where('user_group_karma.user_id', $userId))
+            ->select(['groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private'])
+            ->selectRaw('COALESCE(user_group_karma.karma, 0) as karma')
+            ->withCasts(['karma' => 'integer'])
+            ->orderBy('groups.name')
+            ->get();
+    }
+
+    public function subscribedBy(string $userId): Collection
+    {
+        return $this->subscriptionsOf($userId)
+            ->withCasts(['attached_on_feed' => 'boolean'])
+            ->orderBy('groups.name')
+            ->get([
+                'groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private',
+                'user_group_subscriptions.attached_on_feed',
+            ]);
+    }
+
+    public function attachedOnFeed(string $userId): Collection
+    {
+        // A group the user is banned from has nothing new for them: its posts are closed.
+        $banned = $this->bannedGroupIds($userId);
+
+        // select() before withCount(): with the join, get($columns) would be ignored in favour of `*`.
+        return $this->subscriptionsOf($userId)
+            ->where('user_group_subscriptions.attached_on_feed', true)
+            ->select(['groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private', 'groups.language_code'])
+            // New = posted since the user joined, by someone else, and not seen yet (ExcludesSeenPosts).
+            ->withCount(['posts as new_posts_count' => fn (Builder $posts) => $this->whereNotSeenBy($posts
+                ->whereNotIn('posts.group_id', $banned)
+                ->where('posts.is_deleted', false)
+                ->where('posts.user_id', '!=', $userId)
+                ->whereColumn('posts.created_at', '>=', 'user_group_subscriptions.created_at'), $userId)])
+            ->orderByDesc('new_posts_count')
+            ->orderBy('groups.name')
+            ->get();
+    }
+
+    public function syncAttachedOnFeed(string $userId, array $groupIds): void
+    {
+        UserGroupSubscription::query()
+            ->where('user_id', $userId)
+            ->update(['attached_on_feed' => false]);
+
+        UserGroupSubscription::query()
+            ->where('user_id', $userId)
+            ->whereIn('group_id', $groupIds)
+            ->update(['attached_on_feed' => true]);
+    }
+
+    private function subscriptionsOf(string $userId): Builder
+    {
+        return Group::query()
+            ->join('user_group_subscriptions', 'user_group_subscriptions.group_id', '=', 'groups.id')
+            ->where('user_group_subscriptions.user_id', $userId);
     }
 
     // `UserGroupSubscription` has a composite primary key, which Eloquent does not support

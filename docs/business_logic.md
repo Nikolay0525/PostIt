@@ -11,7 +11,7 @@ PostIt is a web application where people share their ideas and problems and get 
 **Audience.** Everyone. A group can be about absolutely any topic — from cooking to games, from games to programming — as long as it does not violate basic human taboos.
 
 **Why PostIt.** It answers problems of existing platforms such as Reddit:
-- *Moderation.* Moderation is transparent and anonymous at the same time. [A moderator acts under an anonymous mask: moderation actions are not signed with their username, and their own account looks like a regular user's], so they cannot be targeted and harassed, while their actions are open and [logged]. Moderation decisions [can be appealed], and a moderator [can be removed by a cross-group "court"].
+- *Moderation.* Moderation is transparent and anonymous at the same time. [A moderator acts anonymously: moderation actions are not signed with their username, and their own account looks like a regular user's], so they cannot be targeted and harassed, while their actions are open and [logged]. Moderation decisions [can be appealed], and a moderator [can be removed by a cross-group "court"].
 - *Search.* On Reddit it is easier to find something through Google than through the site itself. PostIt's own search must not have this problem.
 - *No auto-translation.* Posts are never machine-translated: a translation cannot convey the thought of a post.
 
@@ -55,9 +55,14 @@ PostIt is a web application where people share their ideas and problems and get 
 - *Status* — what the person is doing right now, in a couple of words.
 - *Bio* — what the person has been doing and interested in for a long time.
 
-**Karma.** [A global rating shown on the profile: how much the user has contributed to PostIt. The contribution is assessed by other users — votes on the user's posts and comments, and so on.] Moderation does not count toward karma. Karma is general, not tied to any topic: a person who writes about cooking has no reason to write about programming.
+**Karma.** [A global rating shown on the profile: how much the user has contributed to PostIt.] The basis is how other people treat you, so karma comes only from votes on the user's posts and comments: an upvote adds 1, a downvote takes 1 away, and a post and a comment weigh the same. Karma can go negative — e.g. for writing off topic. Moderation does not count toward karma. [Account karma is a counter of its own, kept apart from sub-karma: a vote changes both, but neither is computed from the other.] Karma is general, not tied to any topic: a person who writes about cooking has no reason to write about programming.
 
-**Sub-karma.** [Each group has its own sub-karma for each member; its purpose is to get the member into the group's moderator candidate pool (see Roles).] Whether it is visible to others is not decided yet. Even if it is, others *could* guess who the moderator is, but hardly *would*: the threshold may be low, and candidates may number in the hundreds or thousands.
+**Sub-karma.** [Each group has its own sub-karma for each user, earned the same way from votes on their posts and comments in that group. It is the user's long-term authority in the group: it shows where a person earned their karma, it is one of the two keys to the moderator candidate pool, and it is the key to a free owner's seat (see Roles).] [Sub-karma is shown on the user's profile, next to each of their groups, but never next to their posts and comments: people should not judge a person — and vote — by their karma.] Others *could* guess from it who the moderator is, but hardly *would*: sub-karma is only one of the two keys, and the other one, activity, is not shown anywhere (see Roles → Becoming a moderator).
+- [Anyone who can comment in a group earns sub-karma there, member or not. Leaving the group keeps it — otherwise it could be abused.]
+- [Karma is earned authority, so it is never lost with its source: an author keeps the karma their content earned when they delete it, and everyone keeps the karma earned in a group when the group is deleted.]
+- [The one exception is a moderation case that finds the content broke the rules: then the content counts as if it had never been posted, and whatever it earned is undone — taken back if it was positive, given back if it was negative. Only its author is affected: replies and comments under it keep theirs.]
+
+**Activity.** [Besides sub-karma, each user has an activity score in each group: the same votes on their posts and comments there, but only those of the last 30 days. It is a rolling window, not a counter reset every month, so it never jumps to zero for everyone at once. Sub-karma tells whether the group trusts a person; activity tells whether they are around now. It is the other key to the moderator candidate pool (see Roles), so that the role goes to people active now and not only to old accounts.]
 
 **Counters.** [Counters of the user's actions are collected.] They work two ways: as statistics visible only to the user themselves, and as the basis for public achievements (see Gamification) — e.g. "most active voter" for 1000 votes cast. Some counters (e.g. reports sent) stay statistics only, with no achievement.
 
@@ -82,7 +87,7 @@ PostIt is a web application where people share their ideas and problems and get 
 
 Kinds of notifications, by role:
 - *Every user.* [A followed user changed their username — showing who changed it and to what.] [A new follower.] [A new post by a followed user; a new post in a followed group.] [A join request to a private group was accepted or declined — when joining by link is not allowed.] [A new comment or reply under a post you follow.] [A reply to your comment.] [One comment brings a person at most one notification: a reply to your comment comes as a reply, not also as a new comment under the post. If replies are turned off, it comes as a new comment instead — if you follow the post.] [Feedback on a report you sent: the result, e.g. the offender was punished or found not guilty. The reported user is not told about the report.]
-- *Every user, Important.* [A warning, and its removal; administrators give owners a warning first. Whether moderators will also give warnings within a group is not decided yet.] [A ban and an unban, in a group or on the whole platform — an unban is an important event too.]
+- *Every user, Important.* [A warning, and its removal; administrators give owners a warning first. Moderators will also give warnings within a group.] [A ban and an unban, in a group or on the whole platform — an unban is an important event too.]
 - *Moderator.* [An invitation to the role, when the user is picked among the many who crossed the threshold (Important).] [A welcome on first taking the role after accepting.] [New moderation cases, such as reports sent by users, and closed cases.]
 - *Administrator.* [A welcome on taking the role.] [New cases and closed cases, the same as for moderators but on the administrator's level.]
 
@@ -107,7 +112,12 @@ Kinds of notifications, by role:
 
 **Group address.** Every group has a unique address (slug): lowercase Latin letters, digits and hyphens. Like a username, it is a key identifier: to get into a particular group, nobody has to type unfamiliar characters — the identifier is understandable to everyone. The group's name can be in any language.
 
-**Owner's authority.** [The owner can change the group's language, name, description, rules and address — the address not more often than once every 7 days.] Before doing so they may hold a poll among members, but nobody obliges them to.
+**Changing the address.** [The owner can change a group's address themselves at most 3 times in the group's life, and not more often than once every 7 days; after that, a change has to be requested from a platform administrator.]
+- [An old address is never given to another group: it stays reserved for this one for good, so nobody can take over the links that are already out there. With at most 3 changes, a group holds at most 3 old addresses, so reserving them cannot clog the namespace.]
+- [An old address keeps working: it leads to the group's current address, and the page shows a notice that the address has changed. Going back to one of the group's own old addresses counts as a change like any other.]
+- [When the group is deleted, its old addresses are released together with it.]
+
+**Owner's authority.** [The owner can change the group's language, name, description, rules and address (see Changing the address).] Before doing so they may hold a poll among members, but nobody obliges them to.
 
 **Private groups.**
 - [A group can be switched between public and private. When a public group becomes private, everyone currently subscribed automatically becomes a member.]
@@ -116,35 +126,109 @@ Kinds of notifications, by role:
 
 **Rule history.** The group's rules are stored as versions; a change creates a new version instead of overwriting the old one. This is a top-level requirement for transparent moderation: the goal of PostIt is that nobody is ever punished for nothing. [When moderators review an appeal, they judge the decision against the rule version that was in force when it was made, not against the current one — rules may have changed since, and the moderator acted on the old ones.]
 
-**Deleting a group.** [The owner can delete the group, together with all of its posts.] Its pending reports and appeals go with it: a ban in a group that no longer exists no longer matters to anyone.
+**Deleting a group.** [The owner can delete the group, together with all of its posts.] Its pending reports and appeals go with it: a ban in a group that no longer exists no longer matters to anyone. [The karma earned in the group stays with its users (see Guests and Users → Sub-karma).]
 
 A lot depends on the owner, so it matters that the right person gets the role. If the owner turns out to be the wrong one, people will create an alternative group and move there — for example, by a link left by the new group's owner.
 
 ## 5. Roles: Owner and Moderator
 
-**Handing over ownership.** [An owner who wants to leave must hand the role to one of the group's moderators. Since everyone is anonymous, it works as a "hot potato": the first moderator to say "yes, I want it" becomes the owner. If the owner deletes their account, the same happens automatically. If the group has no moderators, or none of them says yes, the owner's seat becomes free and anyone who has crossed the sub-karma threshold can take it with a click and a confirmation.]
+**Owner anonymity.** [Nobody knows who the owner is, just as nobody knows who the moderators are: the group shows no owner, and the owner's actions are not signed with their username. The owner can moderate, especially early on, and a known owner would give the moderators away too.]
 
-**Becoming a moderator.** [When a member's sub-karma crosses a threshold, they enter the group's candidate pool. The role is offered to a *random* candidate from the pool — never simply to the top-scoring one, so the role does not turn into a popularity race. The candidate may decline without any penalty.]
+**Your own role.** [A person sees their own role in a group — Owner or Moderator — as a mark next to the group's name, on the group's page and on its posts' pages. Only they see it; nobody else's role is shown anywhere, which keeps the owner and the moderators anonymous.]
 
-**Moderator rating.** [A moderator has a rating inside the group, separate from sub-karma. It grows with the moderator's activity and drops when they do not do the work — but only relative to the group's actual workload: no pending reports means no decay. It has to be maintained to keep the role. If an appeal shows the moderator acted without grounds, the rating gained will be cancelled entirely and even go negative.] It is kept separate from sub-karma so that, if sub-karma is ever made visible, a falling moderator rating cannot be seen by others. Other users' opinion of the moderator's work does not affect whether the moderator keeps the role. If moderator keep receiving negative rating the system will force this user to lose moderator role.
+**What a moderator may do.** [A moderator moderates, and that is all: they take cases in the moderation window and decide them. They do not change the group itself — not its rules, name, description, language, address or privacy. Those are the owner's (see Groups → Owner's authority).]
 
-**Accountability.** A moderator's action is never put to a crowd vote — otherwise the people just sanctioned could out-vote their own sanction. An action can be overturned only through an appeal.
+**Handing over ownership.** [An owner who wants to leave must hand the role to one of the group's moderators. Since everyone is anonymous, it works as a "hot potato": the first moderator to say "yes, I want it" becomes the owner. If the owner deletes their account, the same happens automatically. If the group has no moderators, or none of them says yes, the owner's seat becomes free and any member of the moderator candidate pool — both thresholds crossed, see Becoming a moderator — can take it with a click and a confirmation. Nobody becomes the owner without taking the seat themselves, and the activity threshold keeps an abandoned old account from taking it: taking part in a group means getting votes from it, not just writing.]
+
+**Moderation is a right, not a job.** [Nobody does work for nothing, and a role handed out as a duty — with cases assigned and idleness punished — would not hold. So moderation is a right that many trusted members of a group get, and they moderate when they want to. There are many such people in a group, which is why the work gets done without anyone being made to do it — but not everyone, or everyone would rule.]
+
+**Becoming a moderator.** [A member enters the group's candidate pool when both their sub-karma and their activity cross a threshold: a good history in the group alone is not enough without being active now, and a month of activity alone is not enough without a good history. Nobody sets the thresholds: they are computed automatically, so the owner cannot tune them to let particular people in or keep them out. The sub-karma threshold is a share of the group's member count (e.g. 10%). The activity threshold is 2% of all the votes cast in the group in the same 30 days — since each vote goes to one author, at most about 50 people can cross it. It follows how alive the group really is and does not grow with members who never vote. Neither threshold is ever below 1.]
+- [About half of the pool, chosen at random, gets the moderation rights; the other half stay trusted members without them. Those who are quarantined or barred (see Moderator reliability) and those who said they do not want the rights (see Leaving the role) are left out of the draw. There is nothing to decline: a right one does not want is simply not used.]
+- [The rights are handed out in waves, once a week. A wave counts the group's moderators, and if there are fewer than half of the pool, it gives the rights to enough random pool members to make up the difference.]
+- [A wave only recruits; it never takes the rights away. A moderator who drops out of the pool keeps them — moderating brings no votes, so someone busy with cases rather than posts would otherwise lose the role for doing the work; and thresholds grow with the group, so a person can drop out without changing anything. Nobody is thrown out for working little: the rights are lost only in the ways under Leaving the role, and those take effect at once, not at the next wave. Likewise, if the pool shrinks and moderators become more than half of it, the wave simply adds nobody.]
+- [A new group has nobody yet who knows what they are doing, so there is no early wave for it: until the group gathers an active pool, the owner moderates.]
+- [Being in the pool does not give a moderator away: only about half of the pool moderates, and while sub-karma is visible on the profile, activity is not, so nobody can tell from the outside even who crossed both thresholds.]
+
+**Moderation cases.** [A case opens when enough members report the same post or comment:]
+- [A report says what is wrong, in one of three ways: the content breaks one of the group's rules; it breaks the platform's rules; or it is something else, which needs a short reason. A person may not know a group's rules — a post turns up in a feed — so the group's rules are offered only after "breaks the group's rules" is chosen, and a group without rules does not offer it.]
+- [A report names the group's rule by the rule version in force at the moment of the report and the rule's place in it, not by its text: rules change, and an appeal is judged against the version in force (see Groups → Rule history).]
+- [One person reports a piece of content once, so the number of reports is the number of different people.]
+- [Only reports from members with some reputation in the group count — their sub-karma must be above a threshold — so bots and fresh accounts cannot report content away. The number of reports that opens a case is computed automatically from the group's activity, like the pool thresholds, and is never below 3.]
+- [Once a case opens, the content is hidden until a decision is made. Hiding is not a punishment: nothing is decided yet. It keeps the decision objective — in a small group a moderator could otherwise recognize the post from the feed — and keeps moderation fast.]
+- [A moderator sees the content and the reports, but not the author's username: the decision is about what was written, not about who wrote it. Reports are not anonymized for moderators, so a group of people who keep reporting together without cause can be noticed.]
+- [Cases are not assigned. They wait in the group's queue, and any moderator who comes takes one.]
+- [A case nobody takes within 24 hours goes to the owner; if the owner does not take it within another 24 hours, it goes to a platform administrator.]
+
+**Verdicts.** [A moderator who takes a case decides it with a verdict, on a page of its own for the case, so that a long post is not opened in the queue:]
+- [*No violation* — the case is closed, the content is shown again, and nothing is held against its author.]
+- [*Remove* — the content is removed for breaking one of the group's rules, and nothing more: no consequence for its author.]
+- [*Warning* — the content is removed in the same way, and the author also gets a warning for it (see Warnings). So the two punishing verdicts differ only in the consequence: removal without one, and removal with one.]
+- [*Pass up* — for content that breaks the platform's rules, not the group's. The case leaves the group's queue and goes to the platform administrators, and the content stays hidden meanwhile. The moderator names the platform rule, marks the place and gives the reason, as in a punishing verdict, so that the administrator starts with a hint; but they punish nobody. The decision, and any sanction, is the administrator's (see Site Administration → Platform warnings).]
+- [A verdict that punishes — removing, a warning — names the rule that was broken, taken from the rule version in force when the case opened, and *marks where* the content breaks it: one or more fragments of its text. The mark is required: a moderator has to point at what exactly broke the rule, which keeps the punishment objective. Pictures and GIFs can be marked once posts can hold them; until then only text is.]
+- [Platform rules are enforced by administrators: a moderator does not remove content for breaking them, only passes the case up. A group without rules of its own offers the platform's rules in the verdict's list of rules instead, so in such a group a case can only be closed as "no violation" or passed up.]
+- [It also carries the moderator's *reason*, written by hand in their own words: how they read the content against the rule. A moderator does not only say that a rule was broken, they say why they think so. The reason is a short free text with a limit.]
+- [A verdict notice is built from these automatically: "The post was removed under rule 3. Verdict: …", followed by the moderator's reason. The author gets it as a notification and sees it on their own removed post or comment, which is shown to them with the marked places highlighted, so they see at once where the rule was broken. To everyone else the content stays removed.]
+- [The moderator who decided is stored with the verdict, because an appeal that succeeds lowers their reliability, but that is never shown: not to the author, not in the log.]
+
+**Moderator reliability.** [A moderator has a reliability score inside the group, separate from sub-karma. It measures only how *correct* the moderator's decisions are — not how active they are: it drops when an appeal against their action succeeds, since that means the decision was wrong.] It is kept separate from sub-karma so that, since sub-karma is visible, falling reliability cannot be seen by others. Other users' opinion of the moderator's work does not affect whether the moderator keeps the role.
+- [Reliability is hidden from everyone, the moderator included. Seeing it change, a moderator could work out what moves it and play to it — in a good way or a bad one.]
+- [A new moderator starts at 100. While it stays above zero, they are a moderator; once it falls to zero, the system takes the role away.]
+- [A moderator who loses the role this way cannot get back into the group's candidate pool for at least 30 days. One who loses it a second time is barred from the role in that group for good. Both apply only within the group.]
+
+**Leaving the role.** [There are three ways out:]
+- [*Stepping down.* A moderator can press "I'm not interested" at any time, without any penalty.]
+- [*Inactivity.* A moderator who has not handled a single case for 30 days while there were cases in the queue loses the rights automatically, without any penalty. It removes dead accounts and people who do not moderate when there is work, at once.]
+- [*Wrong decisions.* Reliability falls to zero, with the quarantine or the bar (see Moderator reliability).]
+- [Stepping down and inactivity both set a "don't want to moderate" flag: the person is left out of the draw for the rights, even on re-entering the pool, until they clear the flag in the group's settings. The flag shows up there only for someone who has had the rights at least once.]
+- [Their reliability is frozen: if they moderate in the group again, they start from where they left off, not from 100. Otherwise stepping down just before losing the role would wash the record clean.]
+
+**Accountability.** A moderator's action is never put to a crowd vote in its own group — otherwise the people just sanctioned could out-vote their own sanction. An action can be overturned only through an appeal, judged by a small jury drawn at random from *other* groups.
+
+**Warnings.** [A warning is a strike against a member in a group. It comes from a *Warning* verdict, and what kind of strike it is does not depend on the moderator: it depends on the rule that was broken.]
+- [*Kinds.* When the owner writes a rule, they make it one of two kinds: a rule that gives a *mute strike*, or a rule that gives a *ban strike*. The kind is fixed in advance and shown next to the rule, so everyone knows what breaking it leads to, and a moderator never decides it case by case. Mute strikes and ban strikes are counted apart.]
+- [A warning is a moderation action like any other: it is tied to the content and the rule that was broken, it appears in the moderation log, and it can be appealed (see Appeals).]
+- [*How long a strike lasts* is chosen by nobody: it depends on how many strikes of its kind the member already has active when it is given. The first lasts the first step of a ladder set by the platform (say, a day); the second, given while the first is still active, lasts the second step (say, a week); and so on, up to the ladder's last step. The earlier strikes stay until their own time runs out. So repeating soon after a warning costs more, which is the point.]
+- [*The limit.* When the member's active strikes of one kind reach the limit, they are punished at once, automatically: a mute for mute strikes, a ban for ban strikes, in this group only. A mute lets the member read but not contribute. No case is opened and no moderator decides: a moderator does not know the member's history, the system does. The platform sets the highest limit; the owner can only lower it, making it stricter, never raise it.]
+- [*How long a punishment lasts* follows a second ladder, separate from the strikes' one: it depends on how many punishments of that kind the member has already had in this group within a memory period set by the platform — first a day, then a week, then a month, and so on; the last step can be permanent. Punishments older than the period are not counted, so someone who has reformed starts again from the first step. The two ladders are separate because the strike that crosses the limit is always, say, the third one: tied to it, the punishment would always be the longest.]
+- [*After a punishment.* When a punishment has run its course, all the member's strikes of that kind are deleted and the count starts over. While it runs, the strikes stay, and a new strike of that kind (given for older content, since a muted or banned member cannot post anything new) does not start another punishment; it goes away with the rest at the end.]
+- [*A wrong strike.* If an appeal overturns a strike, that strike is deleted; if the strikes were already deleted at the end of a punishment, there is nothing to delete. If a punishment is still running and, without that strike, the limit is no longer reached, the punishment is lifted at once — the member is unmuted or unbanned. If it has already run its course, it is removed from the member's history, so it no longer makes their next one longer.]
+- [Both ladders, the highest limit and the memory period belong to the platform and are the same for everyone, so they cannot be tuned to protect or hit particular people. The platform validates them too, so an absurd period, such as 10 years, can never be stored.]
+- [Warnings are separate from sub-karma: they do not lower it and do not affect the candidate pool. Their only consequence is the punishment.]
 
 **Moderation log.** [Moderator actions are logged, and the log is open to everyone, so a moderator's work is transparent.]
-- [The log is generated automatically — a moderator does not write it, so it cannot be embellished, and writing it by hand every time would take too long.]
+- [An entry is assembled automatically from the verdict — the content, the marked places, the rule and its version, and the kind of verdict — so a moderator writes no log entry and cannot embellish one. The one thing in it written by hand is the verdict's reason, shown as the moderator's own words and open to everyone: people see how moderators reason and draw their own conclusions, and a moderator who knows the reason will be read writes it with care.]
 - [The removed content is shown in the log, but not in a prominent place — on a separate moderation tab. The author's username is hidden.]
 - [An entry appears in the log one day after the removal, so it is not obvious whose post was removed, even if someone saw it and remembered.]
-- [An entry shows the same as an appeal: the content, the rule that was broken, and the rule version in force at the time — so anyone can judge whether the moderator acted fairly.]
+- [An entry shows the same as an appeal: the content with the marked places, the rule that was broken, the rule version in force at the time, and the moderator's reason — so anyone can judge whether the moderator acted fairly.]
+- [For everyone but the person the entry is about, the log is only for reading: transparency, not a complaint box. Nobody else can flag an entry as doubtful: whether a decision is questioned is for the person it was made about, and only for them. Everyone else can still judge a group by how it is moderated and stay or leave, and the entries are the same material the jury reads in an appeal. The person the entry is about sees an appeal button on it.]
+- [An entry names no moderator — neither a username nor a stable pseudonym. The log shows what was done, not who did it: nobody needs one moderator's history, and a name would only help to find out who they are.]
 
 **Appeals.** [Everything a moderator does that can be appealed is reviewed by a jury:]
 - [Only the user affected by an action may appeal it, and only that specific action — not a general complaint against the moderator.]
-- [The jury is drawn at random from moderators of *other* groups — 3 people, or 5 for severe cases. Voting is blind. A non-unanimous verdict escalates to a larger panel.]
+- [The appeal can be made from two places: from the action's entry in the moderation log, and from the user's own removed post or comment, where they see their content with the marked places and the moderator's reason (see Verdicts).]
+- [The jury is drawn at random from *other* groups. First it is 2 moderators and 1 pool member without the rights; the appeal succeeds only if all 3 agree. If anyone disagrees, 1 more moderator and 1 more such pool member join, and the appeal then needs 4 votes of 5. By default the moderator's action stands: overturning it takes near-unanimous agreement.]
+- [Pool members without the rights sit on the jury alongside moderators. They are not "the crowd": there are only one or two of them, drawn at random from other groups, and they crossed the same thresholds as the moderators — the random draw just did not give them the rights.]
+- [Voting is blind: a juror sees the others' votes only after everyone has voted. A vote cannot be cast without picking the rule that was or was not broken and a short reason.]
+- [Nobody is named in an appeal: the moderator whose action is appealed is shown as "the appealed moderator", the jurors as "Juror 1", "Juror 2", and so on.]
 - [The appeal is judged against the rule version in force when the action was taken (see Groups → Rule history).]
 - [While an appeal is pending, the removed content stays hidden.]
+- [Jury duty pays nothing — no karma, no currency: rewarding each vote turns a jury into a click farm. The reward is knowing that a fair vote keeps the place safe for oneself and for others. The juror is shown it with every case — "Your fair vote protects the system from unfair punishments" — and is told how the case ended once it closes, so the vote is seen to matter.]
+
+**Juror trust.** [Each juror has a hidden trust score; nobody sees it, the juror included. It is computed automatically, so it does not load the administrators:]
+- [*Control cases.* Now and then a juror gets an already closed appeal from another group, anonymized and looking like any other case. Only the clearest ones are reused: a unanimous verdict of 5, or a first-stage verdict nobody took further. A juror who keeps getting them wrong is voting at random. If many jurors in a row disagree with a control case, it is taken out of use and goes to an administrator, in case the original verdict was wrong.]
+- [*Agreement over time.* Since voting is blind, a careful juror agrees with the final verdict much more often than a random one. It is counted over many cases — disagreeing in one case is never punished, or jurors would be afraid to vote against the others.]
+- [A juror with low trust is no longer called to juries. That is the only consequence: reliability measures the moderator's own decisions in their group, not their jury work.]
+- [Administrators look only at the jurors who stand out, so their workload follows the number of careless jurors, not the number of cases.]
 
 **Owner accountability.** The owner is not judged by the jury; in practice the owner soon stops moderating and leaves it to moderators. [When an anonymous owner's action is appealed, a platform administrator is notified. The history of the owner's violations is kept, including whether they were objectively groundless. The administrator judges by the nature of the violations rather than their count, and decides at their own discretion whether the owner is guilty. Ownership can be transferred by force only after the owner has received at least one warning.]
 
 **Polls.** [A member can hold a poll in a post (e.g. about changing the rules or topic) — it is still just a post (see Posts and Discussions). A poll does not bind the owner, but the owner responds to it publicly.]
+
+**Set aside: moderation as a job.** *Not planned — an earlier model, where moderation was a duty, kept here for reference in case parts of it are needed again.*
+- The role was offered to a *random* candidate from the pool, who could decline; the group's workload decided how many moderators it had: when, over a day, more than N cases per hour (set by the owner, 2 by default) came in for each moderator, the role was offered to another candidate.
+- Each case went to a random moderator. Leaving it idle longer than the owner allowed (12 hours by default) lowered reliability.
+- A moderator could pass a case to another random moderator; the owner set how many free passes a day (0 to 3), and every pass beyond that lowered reliability. If every moderator passed, the case went around again.
+- Careless jury work lowered a moderator's reliability too.
 
 ## 6. Posts and Discussions
 
@@ -206,7 +290,12 @@ The same rules apply to posts and comments.
 
 **Appeals.** [A user can appeal an administrator's decision, so that another administrator reviews the case.]
 
-**Platform rules.** [Currently not shown anywhere. They can be shown after registration and then kept behind a button.]
+**Platform rules.** [A numbered list, kept in versions like a group's rules and edited by administrators directly in the database. A report, a moderator's pass-up and an administrator's decision name a platform rule the same way as a group's: by the version in force at that moment and the rule's place in it, so an appeal is judged against that version. The rules can be shown after registration and then kept behind a button.]
+
+**Platform warnings.** [Content that breaks a platform rule can earn its author a warning on their *account*, not in a group. The warning comes from an administrator's decision on a passed-up case, never from a moderator's: a moderator only passes the case up. It works exactly as a group's warning does (see Warnings): each platform rule is of the kind that gives a mute strike or a ban strike; strikes last longer the more the user already has; the limit punishes automatically, here on the whole platform; and the punishment follows its own ladder. The user is told of each strike and of each punishment.]
+- [Platform strikes and a group's strikes are counted apart: a group's strike only counts toward a punishment in that group.]
+- [An appeal against an administrator's decision (see Appeals below) is handled like a group's: an overturned strike disappears and a punishment that depended on it is lifted.]
+- *Open question:* a passed-up case keeps the content hidden until an administrator gets to it, and nothing is held against the moderator who passed it up. A moderator could pass cases up only to keep content hidden. The required platform rule, mark and reason make such a pass-up visible to the administrator, but the administrator's waiting time is not set yet.
 
 ## 10. Gamification
 

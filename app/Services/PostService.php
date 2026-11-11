@@ -89,6 +89,18 @@ class PostService
     }
 
     /**
+     * Saving what is already there is not an edit: nothing is written and "(edited)" does not appear.
+     */
+    public function updatePost(Post $post, ?string $title, string $article): void
+    {
+        if ($post->title === $title && $post->article === $article) {
+            return;
+        }
+
+        $this->postRepository->update($post->id, $title, $article);
+    }
+
+    /**
      * Following a post brings a notification for each new comment under it.
      */
     public function follow(string $postId, string $userId): void
@@ -109,6 +121,28 @@ class PostService
     public function recordView(string $postId, string $userId): void
     {
         $this->postRepository->recordView($postId, $userId);
+    }
+
+    /**
+     * Posts the user saw whole in a list: they stop counting as new (side panel, "Only new"),
+     * like an opened or voted-on post (recordView).
+     *
+     * @param  list<string>  $postIds
+     */
+    public function markSeen(array $postIds, string $userId): void
+    {
+        $this->postRepository->recordViews($postIds, $userId);
+    }
+
+    // "Read all" from the side panel: the group's or the person's new posts, at once.
+    public function markGroupSeen(string $groupId, string $userId): void
+    {
+        $this->postRepository->recordViewsInGroup($groupId, $userId);
+    }
+
+    public function markAuthorSeen(string $authorId, string $userId): void
+    {
+        $this->postRepository->recordViewsByAuthor($authorId, $userId);
     }
 
     /**

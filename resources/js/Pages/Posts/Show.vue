@@ -1,17 +1,35 @@
 <script setup>
-import { ref } from 'vue';
+import { provide, ref } from 'vue';
 import { InfiniteScroll } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import GroupAside from '@/Pages/Components/GroupAside.vue';
+import PageHeader from '@/Pages/Components/PageHeader.vue';
 import PostCard from '@/Pages/Components/PostCard.vue';
 import CommentNode from '@/Pages/Components/CommentNode.vue';
+import { fullDate } from '@/utils/format';
+import { useGroupMembership } from '@/utils/groupMembership';
 import { postJson } from '@/utils/http';
 
 // `comments` is a paginated prop: <InfiniteScroll> loads the next page as the user scrolls down.
 const props = defineProps({
     post: Object,
+    // The post's group, for its card beside the post.
+    group: Object,
+    is_member: Boolean,
+    // Whether the viewer is the group's Owner, who may edit it.
+    can_edit: Boolean,
+    // The viewer's own role in the group ("owner", "moderator"), or null.
+    role: String,
+    // The viewer's own mute or ban in the post's group, { kind, until }, or null.
+    restriction: Object,
     comments: Object,
 });
+
+const membership = useGroupMembership(props);
+
+// The comments' report form needs the group, and a comment node only knows its post.
+provide('groupId', props.group.id);
 
 const commentText = ref('');
 const posting = ref(false);
@@ -50,10 +68,11 @@ const submitComment = async () => {
 <template>
     <Head :title="` | ${post.title ?? post.author.username}`" />
 
+    <!-- name-tag h2: the page's h1 is the strip's "Post". -->
+    <GroupAside :group="group" :can-edit="can_edit" :role="role" :membership="membership" name-tag="h2" />
+
     <section class="feed">
-        <Link :href="route('groups.show', post.group.slug)" class="back-link" dir="auto">
-            <span class="back-arrow" aria-hidden="true">←</span> {{ $t('common.back_to', { name: post.group.name }) }}
-        </Link>
+        <PageHeader :title="$t('posts.show.title')" />
 
         <PostCard :post="post" full />
 
@@ -61,7 +80,10 @@ const submitComment = async () => {
             <h2 class="feed-title">{{ $t('comments.heading') }}</h2>
 
             <!-- Guests can read comments but not write them. -->
-            <form v-if="$page.props.auth.user" class="comment-form" @submit.prevent="submitComment">
+            <p v-if="$page.props.auth.user && restriction" class="text-sm text-muted">
+                {{ $t(`groups.show.restricted.${restriction.kind}${restriction.until ? '' : '_forever'}`, { date: restriction.until ? fullDate(restriction.until) : '' }) }}
+            </p>
+            <form v-else-if="$page.props.auth.user" class="comment-form" @submit.prevent="submitComment">
                 <textarea
                     v-model="commentText"
                     class="field-input"

@@ -91,9 +91,54 @@ interface PostRepositoryInterface
     public function create(string $groupId, string $userId, ?string $title, string $article, string $slug): Post;
 
     /**
-     * Notes that the user opened the post. Idempotent: the first view is kept.
+     * Replaces the post's title and article and notes when (`edited_at`). The slug stays: it is in
+     * the post's URL, which must keep working.
+     */
+    public function update(string $postId, ?string $title, string $article): void;
+
+    /**
+     * Marks the post hidden (`hidden_at`): a moderation case is open on it, and it is shown as
+     * "hidden". Not deleted.
+     */
+    public function hide(string $postId): void;
+
+    /**
+     * Shows the post again: its case was closed with "no violation".
+     */
+    public function restore(string $postId): void;
+
+    /**
+     * Takes the post down by a moderation verdict (`removed_at`) and ends its hiding. The text is
+     * kept, so that its author can see what was marked in it, and the log can show it. Not the
+     * author's own deletion.
+     */
+    public function remove(string $postId): void;
+
+    /**
+     * Notes that the user has seen the post (opened its page, voted on it). Idempotent: the first
+     * time is kept. The caller has checked they may see it.
      */
     public function recordView(string $postId, string $userId): void;
+
+    /**
+     * Notes that the user has seen these posts (whole in a list). Ids of posts they may not see,
+     * deleted or unknown ones are skipped; a post already noted keeps its first time.
+     *
+     * @param  list<string>  $postIds
+     */
+    public function recordViews(array $postIds, string $userId): void;
+
+    /**
+     * "Read all" in a group: notes every post the user may see there since they joined. Nothing
+     * when they aren't a member.
+     */
+    public function recordViewsInGroup(string $groupId, string $userId): void;
+
+    /**
+     * "Read all" for a person: notes every post of theirs the user may see since the follow
+     * began. Nothing when not following them.
+     */
+    public function recordViewsByAuthor(string $authorId, string $userId): void;
 
     /**
      * Notes that the user shared the post. Idempotent, so each user counts once.

@@ -22,6 +22,9 @@ class Post extends BaseEntity
         'slug',
         'is_deleted',
         'deleted_at',
+        'edited_at',
+        'hidden_at',
+        'removed_at',
     ];
 
     protected function casts(): array
@@ -29,7 +32,28 @@ class Post extends BaseEntity
         return [
             'is_deleted' => 'boolean',
             'deleted_at' => 'datetime',
+            'edited_at' => 'datetime',
+            'hidden_at' => 'datetime',
+            'removed_at' => 'datetime',
         ];
+    }
+
+    // Under a moderation case: shown as "hidden", not deleted.
+    public function isHidden(): bool
+    {
+        return $this->hidden_at !== null;
+    }
+
+    // Taken down by a moderation verdict. The text is kept, but only its author may read it.
+    public function isRemoved(): bool
+    {
+        return $this->removed_at !== null;
+    }
+
+    // Hidden or removed: its text and author are not shown to the page.
+    public function isConcealed(): bool
+    {
+        return $this->isHidden() || $this->isRemoved();
     }
 
     public function group(): BelongsTo
@@ -53,7 +77,7 @@ class Post extends BaseEntity
         return $this->belongsToMany(User::class, 'post_shares', 'post_id', 'user_id');
     }
 
-    // Users who opened this post's page (`post_views`), each recorded once.
+    // Users who have seen this post (`post_views`: in a list, its page, a vote), each recorded once.
     public function viewedBy(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'post_views', 'post_id', 'user_id');

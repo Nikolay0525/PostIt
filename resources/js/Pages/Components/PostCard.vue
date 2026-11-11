@@ -1,10 +1,14 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import ContentMenu from '@/Pages/Components/ContentMenu.vue';
+import ReportForm from '@/Pages/Components/ReportForm.vue';
 import ShareButton from '@/Pages/Components/ShareButton.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
-import { excerpt, timeAgo } from '@/utils/format';
+import { excerpt, fullDate, timeAgo } from '@/utils/format';
+import { trackSeen, untrackSeen } from '@/utils/seen';
 
 const props = defineProps({
     post: Object,
@@ -15,38 +19,63 @@ const props = defineProps({
 const preview = computed(() => excerpt(props.post.article_text));
 
 const showLoginPrompt = ref(false);
+const reporting = ref(false);
+
+// In a list, a card seen whole stops its post counting as new (utils/seen.js). Not on the post's
+// own page (`full`), where opening it already did; not for a guest, who has nothing to count.
+const card = ref(null);
+const page = usePage();
+onMounted(() => {
+    if (!props.full && page.props.auth.user) trackSeen(card.value, props.post.id);
+});
+onBeforeUnmount(() => untrackSeen(card.value));
 </script>
 
 <template>
-    <article class="post-card">
+    <article ref="card" class="post-card">
         <header class="post-meta">
-            <UserAvatar :url="post.author.avatar_url" :username="post.author.username" class="avatar" />
+            <UserAvatar v-if="!post.is_hidden" :url="post.author.avatar_url" :username="post.author.username" class="avatar" />
 
             <!-- dir="auto" lets each piece of user text align by its own language -->
             <p class="post-meta-text">
                 <Link :href="route('groups.show', post.group.slug)" class="post-group" dir="auto">{{ post.group.name }}</Link>
+                <span class="group-lang ms-1" :title="$t('groups.show.language')">{{ post.group.language_code }}</span>
                 <span aria-hidden="true"> · </span>
                 <time :datetime="post.created_at">{{ timeAgo(post.created_at) }}</time>
-                <br />
-                <Link :href="route('users.show', post.author.username)" class="post-author" dir="auto">{{ post.author.username }}</Link>
+                <template v-if="post.edited_at">
+                    <span aria-hidden="true"> · </span>
+                    <time :datetime="post.edited_at" :title="fullDate(post.edited_at)">({{ $t('common.edited', { time: timeAgo(post.edited_at) }) }})</time>
+                </template>
+                <template v-if="!post.is_hidden">
+                    <br />
+                    <Link :href="route('users.show', post.author.username)" class="post-author" dir="auto">{{ post.author.username }}</Link>
+                </template>
             </p>
         </header>
 
-        <h2 v-if="post.title" class="post-title" dir="auto">
-            <span v-if="full">{{ post.title }}</span>
-            <Link v-else :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ post.title }}</Link>
-        </h2>
-
-        <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown) —
-             safe to render as markup, unlike the raw article source. -->
-        <div v-if="full" class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
-        <!-- Without a title the preview itself is the link to the post. -->
-        <p v-else class="post-body" :class="{ 'mt-4': !post.title }" dir="auto">
-            <Link v-if="!post.title" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ preview }}</Link>
-            <template v-else>{{ preview }}</template>
+        <!-- Under a moderation case the server sends no text and no author: only that it is hidden. -->
+        <p v-if="post.is_hidden" class="comment-deleted mt-4">
+            <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ post.is_removed ? $t('posts.removed') : $t('posts.hidden') }}</Link>
+            <template v-else>{{ post.is_removed ? $t('posts.removed') : $t('posts.hidden') }}</template>
         </p>
 
-        <footer class="post-footer">
+        <template v-else>
+            <h2 v-if="post.title" class="post-title" dir="auto">
+                <span v-if="full">{{ post.title }}</span>
+                <Link v-else :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ post.title }}</Link>
+            </h2>
+
+            <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown) —
+                 safe to render as markup, unlike the raw article source. -->
+            <div v-if="full" class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
+            <!-- Without a title the preview itself is the link to the post. -->
+            <p v-else class="post-body" :class="{ 'mt-4': !post.title }" dir="auto">
+                <Link v-if="!post.title" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ preview }}</Link>
+                <template v-else>{{ preview }}</template>
+            </p>
+        </template>
+
+        <footer v-if="!post.is_hidden" class="post-footer">
             <VoteButtons
                 target-type="post"
                 :target-id="post.id"
@@ -83,11 +112,21 @@ const showLoginPrompt = ref(false);
                 :count="post.shares_count"
             />
 
+            <!-- What can be done with the post: its author edits it, anyone else (a guest has no menu) reports it. -->
+            <ContentMenu v-if="page.props.auth.user">
+                <template #default="{ close }">
+                    <Link v-if="post.can_edit" :href="route('posts.edit', [post.group.slug, post.slug])" class="menu-item" @click="close">{{ $t('posts.edit.link') }}</Link>
+                    <button v-else type="button" class="menu-item" @click="close(); reporting = true">{{ $t('reports.menu') }}</button>
+                </template>
+            </ContentMenu>
+
             <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-more">{{ $t('posts.see_full') }}</Link>
         </footer>
 
         <p v-if="showLoginPrompt" class="post-login-prompt">
             <AuthPrompt action="vote_and_comment" />
         </p>
+
+        <ReportForm v-if="reporting" :group-id="post.group.id" target-type="post" :target-id="post.id" @close="reporting = false" />
     </article>
 </template>

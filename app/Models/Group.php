@@ -21,6 +21,8 @@ class Group extends BaseEntity
         'language_code',
         'icon_url',
         'is_private',
+        'mute_strike_limit',
+        'ban_strike_limit',
     ];
 
     protected function casts(): array
@@ -50,6 +52,11 @@ class Group extends BaseEntity
         return $this->hasOne(GroupRuleVersion::class, 'group_id')->latestOfMany(['created_at', 'id']);
     }
 
+    public function activity(): HasOne
+    {
+        return $this->hasOne(GroupActivity::class, 'group_id');
+    }
+
     public function bans(): HasMany
     {
         return $this->hasMany(GroupBan::class, 'group_id');
@@ -63,7 +70,7 @@ class Group extends BaseEntity
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_group_subscriptions', 'group_id', 'user_id')
-            ->withPivot('created_at');
+            ->withPivot('created_at', 'attached_on_feed');
     }
 
     public function moderators(): BelongsToMany

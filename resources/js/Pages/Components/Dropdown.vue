@@ -4,6 +4,10 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 defineProps({
     label: String,
     triggerClass: { type: String, default: 'icon-btn' },
+    // Under its button at every width. Without it, on a phone the panel spans the screen under the
+    // navbar — right for the navbar's own menus, wrong for one in the page (a feed's Filters),
+    // which would open far from its button or on top of it.
+    anchored: { type: Boolean, default: false },
 });
 
 // `open` lets a menu load its content only when it is actually opened.
@@ -50,7 +54,7 @@ onBeforeUnmount(() => {
             <slot name="trigger" />
         </button>
 
-        <div v-if="open" class="menu-panel">
+        <div v-if="open" :class="anchored ? 'menu-panel-anchored' : 'menu-panel'">
             <slot :close="close" />
         </div>
     </div>

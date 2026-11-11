@@ -33,6 +33,29 @@ interface CommentRepositoryInterface
     public function create(string $postId, string $userId, string $text, ?string $parentId = null): Comment;
 
     /**
+     * Replaces the comment's text and notes when (`edited_at`).
+     */
+    public function update(string $commentId, string $text): void;
+
+    /**
+     * Marks the comment hidden (`hidden_at`): a moderation case is open on it, and it is shown as
+     * "hidden". Not deleted.
+     */
+    public function hide(string $commentId): void;
+
+    /**
+     * Shows the comment again: its case was closed with "no violation".
+     */
+    public function restore(string $commentId): void;
+
+    /**
+     * Takes the comment down by a moderation verdict (`removed_at`) and ends its hiding. The text is
+     * kept, so that its author can see what was marked in it, and the log can show it. Not the
+     * author's own deletion.
+     */
+    public function remove(string $commentId): void;
+
+    /**
      * Idempotent: following a comment already followed changes nothing.
      */
     public function follow(string $commentId, string $userId): void;
