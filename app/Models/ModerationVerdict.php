@@ -18,7 +18,6 @@ class ModerationVerdict extends BaseEntity
         'rule_index',
         'marks',
         'reason',
-        'warning_days',
     ];
 
     // `decided_by` is for reliability only, so it never leaves the server in a serialized model.

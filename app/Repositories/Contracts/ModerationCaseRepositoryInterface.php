@@ -39,7 +39,6 @@ interface ModerationCaseRepositoryInterface
         ?int $ruleIndex,
         ?array $marks,
         ?string $reason,
-        ?int $warningDays,
     ): ModerationVerdict;
 
     /**

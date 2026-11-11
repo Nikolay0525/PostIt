@@ -42,7 +42,6 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
         ?int $ruleIndex,
         ?array $marks,
         ?string $reason,
-        ?int $warningDays,
     ): ModerationVerdict {
         return ModerationVerdict::create([
             'moderation_case_id' => $caseId,
@@ -52,7 +51,6 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
             'rule_index' => $ruleIndex,
             'marks' => $marks,
             'reason' => $reason,
-            'warning_days' => $warningDays,
         ]);
     }
 

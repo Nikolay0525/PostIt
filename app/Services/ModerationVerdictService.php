@@ -18,12 +18,6 @@ use InvalidArgumentException;
 
 class ModerationVerdictService
 {
-    // How long a warning may last. Until a group sets its own bounds these apply everywhere; the
-    // platform keeps them anyway, so an absurd period can never be stored.
-    public const WARNING_MIN_DAYS = 1;
-
-    public const WARNING_MAX_DAYS = 90;
-
     public function __construct(
         protected ModerationCaseRepositoryInterface $caseRepository,
         protected PostRepositoryInterface $postRepository,
@@ -36,7 +30,8 @@ class ModerationVerdictService
      *
      * A verdict that punishes must name the rule it broke (an index in the rules the case opened
      * with), mark where in the content (a list of {start, end, quote}) and give the moderator's
-     * reason; a warning also says for how many days. What a verdict does not use is dropped.
+     * reason. What a verdict does not use is dropped. How long a warning's strike lasts is not
+     * chosen here: StrikeService works it out.
      *
      * @param  list<array{start: int, end: int, quote: string}>|null  $marks
      *
@@ -50,7 +45,6 @@ class ModerationVerdictService
         ?int $ruleIndex = null,
         ?array $marks = null,
         ?string $reason = null,
-        ?int $warningDays = null,
     ): ModerationVerdict {
         if ($case->status !== ModerationCaseStatus::Open) {
             throw new DomainException('The case is closed.');
@@ -59,17 +53,13 @@ class ModerationVerdictService
         $reason = $reason === null ? null : trim($reason);
 
         if ($type->punishes()) {
-            $this->assertComplete($case, $type, $ruleIndex, $marks, $reason, $warningDays);
+            $this->assertComplete($case, $ruleIndex, $marks, $reason);
         } else {
-            [$ruleIndex, $marks, $warningDays] = [null, null, null];
-        }
-
-        if ($type !== ModerationVerdictType::Warning) {
-            $warningDays = null;
+            [$ruleIndex, $marks] = [null, null];
         }
 
         try {
-            $verdict = DB::transaction(function () use ($case, $moderatorId, $type, $ruleIndex, $marks, $reason, $warningDays) {
+            $verdict = DB::transaction(function () use ($case, $moderatorId, $type, $ruleIndex, $marks, $reason) {
                 $verdict = $this->caseRepository->createVerdict(
                     $case->id,
                     $type,
@@ -78,7 +68,6 @@ class ModerationVerdictService
                     $ruleIndex,
                     $marks === null ? null : $this->cleanMarks($marks),
                     $reason === '' ? null : $reason,
-                    $warningDays,
                 );
 
                 $this->caseRepository->close($case->id);
@@ -95,7 +84,7 @@ class ModerationVerdictService
         return $verdict;
     }
 
-    private function assertComplete(ModerationCase $case, ModerationVerdictType $type, ?int $ruleIndex, ?array $marks, ?string $reason, ?int $warningDays): void
+    private function assertComplete(ModerationCase $case, ?int $ruleIndex, ?array $marks, ?string $reason): void
     {
         $rules = $case->ruleVersion?->rules ?? [];
 
@@ -118,11 +107,6 @@ class ModerationVerdictService
 
         if ($reason === null || $reason === '') {
             throw new InvalidArgumentException('A verdict that punishes must give the moderator\'s reason.');
-        }
-
-        if ($type === ModerationVerdictType::Warning
-            && ($warningDays === null || $warningDays < self::WARNING_MIN_DAYS || $warningDays > self::WARNING_MAX_DAYS)) {
-            throw new InvalidArgumentException('A warning must last between '.self::WARNING_MIN_DAYS.' and '.self::WARNING_MAX_DAYS.' days.');
         }
     }
 

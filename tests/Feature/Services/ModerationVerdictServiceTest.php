@@ -102,7 +102,6 @@ class ModerationVerdictServiceTest extends TestCase
         $this->assertSame($case->rule_version_id, $verdict->rule_version_id);
         $this->assertSame(0, $verdict->rule_index);
         $this->assertSame('stupid', $verdict->marks[0]['quote']);
-        $this->assertNull($verdict->warning_days);
     }
 
     public function test_a_removed_post_and_comment_are_redacted_for_the_page_and_say_they_were_removed(): void
@@ -110,7 +109,7 @@ class ModerationVerdictServiceTest extends TestCase
         $postCase = $this->openCase();
         $this->verdicts->decide($postCase, $this->moderator->id, ModerationVerdictType::Remove, 1, $this->marks(), 'Spam.');
         $commentCase = $this->openCase('comment');
-        $this->verdicts->decide($commentCase, $this->moderator->id, ModerationVerdictType::Warning, 0, $this->marks(), 'Rude.', 7);
+        $this->verdicts->decide($commentCase, $this->moderator->id, ModerationVerdictType::Warning, 0, $this->marks(), 'Rude.');
 
         $post = Post::with(['author', 'group'])->find($postCase->target_id)->setAttribute('upvotes_count', 0)->setAttribute('downvotes_count', 0);
         $postData = (new PostResource($post))->toArray(Request::create('/'));
@@ -136,13 +135,12 @@ class ModerationVerdictServiceTest extends TestCase
         $this->assertFalse(User::factory()->create()->can('vote', $post));
     }
 
-    public function test_a_warning_keeps_how_long_it_lasts_and_removes_a_comment(): void
+    public function test_a_warning_removes_a_comment(): void
     {
         $case = $this->openCase('comment');
 
-        $verdict = $this->verdicts->decide($case, $this->moderator->id, ModerationVerdictType::Warning, 0, $this->marks(), 'Rude.', 14);
+        $verdict = $this->verdicts->decide($case, $this->moderator->id, ModerationVerdictType::Warning, 0, $this->marks(), 'Rude.');
 
-        $this->assertSame(14, $verdict->warning_days);
         $this->assertTrue(Comment::find($case->target_id)->isRemoved());
     }
 
@@ -158,12 +156,12 @@ class ModerationVerdictServiceTest extends TestCase
     }
 
     #[DataProvider('incompleteVerdicts')]
-    public function test_a_punishing_verdict_must_be_complete(ModerationVerdictType $type, ?int $rule, ?array $marks, ?string $reason, ?int $days): void
+    public function test_a_punishing_verdict_must_be_complete(ModerationVerdictType $type, ?int $rule, ?array $marks, ?string $reason): void
     {
         $case = $this->openCase();
 
         try {
-            $this->verdicts->decide($case, $this->moderator->id, $type, $rule, $marks, $reason, $days);
+            $this->verdicts->decide($case, $this->moderator->id, $type, $rule, $marks, $reason);
             $this->fail('An incomplete verdict was accepted.');
         } catch (InvalidArgumentException) {
             // The case is still open and its content still hidden.
@@ -177,17 +175,14 @@ class ModerationVerdictServiceTest extends TestCase
         $marks = [['start' => 8, 'end' => 14, 'quote' => 'stupid']];
 
         return [
-            'no rule' => [ModerationVerdictType::Remove, null, $marks, 'Rude.', null],
-            'a rule the group does not have' => [ModerationVerdictType::Remove, 5, $marks, 'Rude.', null],
-            'no marks' => [ModerationVerdictType::Remove, 0, null, 'Rude.', null],
-            'empty marks' => [ModerationVerdictType::Remove, 0, [], 'Rude.', null],
-            'a mark ending before it starts' => [ModerationVerdictType::Remove, 0, [['start' => 9, 'end' => 3, 'quote' => 'x']], 'Rude.', null],
-            'a mark without text' => [ModerationVerdictType::Remove, 0, [['start' => 1, 'end' => 3, 'quote' => ' ']], 'Rude.', null],
-            'no reason' => [ModerationVerdictType::Remove, 0, $marks, null, null],
-            'a blank reason' => [ModerationVerdictType::Remove, 0, $marks, '   ', null],
-            'a warning without days' => [ModerationVerdictType::Warning, 0, $marks, 'Rude.', null],
-            'a warning too short' => [ModerationVerdictType::Warning, 0, $marks, 'Rude.', 0],
-            'a warning too long' => [ModerationVerdictType::Warning, 0, $marks, 'Rude.', 3650],
+            'no rule' => [ModerationVerdictType::Remove, null, $marks, 'Rude.'],
+            'a rule the group does not have' => [ModerationVerdictType::Remove, 5, $marks, 'Rude.'],
+            'no marks' => [ModerationVerdictType::Remove, 0, null, 'Rude.'],
+            'empty marks' => [ModerationVerdictType::Remove, 0, [], 'Rude.'],
+            'a mark ending before it starts' => [ModerationVerdictType::Remove, 0, [['start' => 9, 'end' => 3, 'quote' => 'x']], 'Rude.'],
+            'a mark without text' => [ModerationVerdictType::Remove, 0, [['start' => 1, 'end' => 3, 'quote' => ' ']], 'Rude.'],
+            'no reason' => [ModerationVerdictType::Remove, 0, $marks, null],
+            'a blank reason' => [ModerationVerdictType::Remove, 0, $marks, '   '],
         ];
     }
 
@@ -220,7 +215,6 @@ class ModerationVerdictServiceTest extends TestCase
         $this->assertNull($verdict->rule_version_id);
         $this->assertNull($verdict->rule_index);
         $this->assertNull($verdict->marks);
-        $this->assertNull($verdict->warning_days);
     }
 
     public function test_content_can_get_a_new_case_after_the_old_one_is_closed(): void

@@ -48,13 +48,11 @@ class ModerationVerdictTest extends TestCase
             'rule_index' => 0,
             'marks' => [['start' => 4, 'end' => 9, 'quote' => 'stupid']],
             'reason' => 'This is an insult, not an argument.',
-            'warning_days' => 30,
         ]);
 
         $verdict = $case->fresh()->verdict;
         $this->assertSame(ModerationVerdictType::Warning, $verdict->type);
         $this->assertSame('stupid', $verdict->marks[0]['quote']);
-        $this->assertSame(30, $verdict->warning_days);
         $this->assertSame($version->id, $verdict->ruleVersion->id);
         $this->assertSame($moderator->id, $verdict->decider->id);
     }
