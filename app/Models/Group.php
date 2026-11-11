@@ -21,6 +21,8 @@ class Group extends BaseEntity
         'language_code',
         'icon_url',
         'is_private',
+        'mute_strike_limit',
+        'ban_strike_limit',
     ];
 
     protected function casts(): array

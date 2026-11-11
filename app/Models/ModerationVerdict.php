@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ModerationVerdictType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ModerationVerdict extends BaseEntity
 {
@@ -40,6 +41,12 @@ class ModerationVerdict extends BaseEntity
     public function ruleVersion(): BelongsTo
     {
         return $this->belongsTo(GroupRuleVersion::class, 'rule_version_id');
+    }
+
+    // The strike a "Warning" verdict gave.
+    public function strike(): HasOne
+    {
+        return $this->hasOne(Strike::class, 'moderation_verdict_id');
     }
 
     public function decider(): BelongsTo
