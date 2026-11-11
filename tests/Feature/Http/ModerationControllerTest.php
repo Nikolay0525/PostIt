@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http;
 
 use App\Enums\GroupModeratorRole;
+use App\Enums\ModerationCaseStatus;
 use App\Enums\ReportTargetType;
 use App\Models\Group;
 use App\Models\Post;
@@ -11,6 +12,7 @@ use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use Database\Seeders\LanguageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -87,5 +89,54 @@ class ModerationControllerTest extends TestCase
                 ->where('role', 'owner')
                 ->where('can_edit', true)
                 ->has('cases.data', 0));
+    }
+
+    public function test_a_moderator_opens_one_case_of_their_group(): void
+    {
+        // The page itself is the next step: only what the controller sends is checked here.
+        config(['inertia.testing.ensure_pages_exist' => false]);
+        $group = Group::factory()->create();
+        $moderator = $this->moderatorOf($group);
+        $post = Post::factory()->hidden()->create(['group_id' => $group->id, 'title' => 'Reported title']);
+        $case = app(ModerationCaseRepositoryInterface::class)->open($group->id, ReportTargetType::Post, $post->id);
+
+        $this->actingAs($moderator)->get(route('groups.moderation.case', [$group->slug, $case->id]))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Groups/ModerationCase')
+                ->where('role', 'moderator')
+                ->where('case.id', $case->id)
+                ->where('case.target.title', 'Reported title')
+                ->missing('case.target.author')
+                ->missing('case.target.user_id'));
+    }
+
+    public function test_a_case_is_closed_to_guests_members_and_moderators_of_other_groups(): void
+    {
+        $group = Group::factory()->create();
+        $post = Post::factory()->hidden()->create(['group_id' => $group->id]);
+        $case = app(ModerationCaseRepositoryInterface::class)->open($group->id, ReportTargetType::Post, $post->id);
+        $url = route('groups.moderation.case', [$group->slug, $case->id]);
+        $member = User::factory()->create();
+        app(GroupRepositoryInterface::class)->subscribe($group->id, $member->id);
+
+        $this->get($url)->assertRedirect(route('login'));
+        $this->actingAs($member)->get($url)->assertForbidden();
+        $this->actingAs($this->moderatorOf(Group::factory()->create()))->get($url)->assertForbidden();
+    }
+
+    public function test_a_case_of_another_group_or_a_closed_or_unknown_one_is_not_found(): void
+    {
+        $group = Group::factory()->create();
+        $other = Group::factory()->create();
+        $moderator = $this->moderatorOf($group);
+        $cases = app(ModerationCaseRepositoryInterface::class);
+        $elsewhere = $cases->open($other->id, ReportTargetType::Post, Post::factory()->create(['group_id' => $other->id])->id);
+        $closed = $cases->open($group->id, ReportTargetType::Post, Post::factory()->create(['group_id' => $group->id])->id);
+        $closed->forceFill(['status' => ModerationCaseStatus::Closed, 'open_key' => null])->save();
+
+        foreach ([$elsewhere->id, $closed->id, (string) Str::uuid()] as $id) {
+            $this->actingAs($moderator)->get(route('groups.moderation.case', [$group->slug, $id]))->assertNotFound();
+        }
     }
 }

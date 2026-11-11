@@ -120,6 +120,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/groups/{groupSlug}/-/moderation', [ModerationController::class, 'index'])
         ->middleware('throttle:60,1')->name('groups.moderation');
+    Route::get('/groups/{groupSlug}/-/moderation/{caseId}', [ModerationController::class, 'show'])
+        ->whereUuid('caseId')->middleware('throttle:60,1')->name('groups.moderation.case');
 
     Route::post('/groups/{id}/subscribe',[MembershipController::class, 'subscribe'])
         ->whereUuid('id')->middleware('throttle:60,1')->name('groups.subscribe');
