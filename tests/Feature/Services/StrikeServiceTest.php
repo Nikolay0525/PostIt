@@ -246,4 +246,75 @@ class StrikeServiceTest extends TestCase
         $this->assertNull($latest->ends_at);
         $this->assertTrue($latest->isRunning());
     }
+
+    /** Three mute strikes: a one-day mute, over after two days. */
+    private function punishedAndServed(): Punishment
+    {
+        $this->warn();
+        $this->warn();
+        $this->warn();
+        $punishment = Punishment::sole();
+        $this->travel(2)->days();
+
+        return $punishment;
+    }
+
+    public function test_when_a_punishment_has_run_its_course_the_strikes_are_deleted_and_the_member_starts_over(): void
+    {
+        $service = app(StrikeService::class);
+        $punishment = $this->punishedAndServed();
+        $this->travelBack();
+
+        // Not over yet: nothing is touched.
+        $this->assertSame(0, $service->settleFinished());
+        $this->assertCount(3, $this->strikes());
+
+        $this->travel(2)->days();
+        $this->assertSame(1, $service->settleFinished());
+        $this->assertCount(0, $this->strikes());
+        $this->assertNotNull($punishment->fresh()->settled_at);
+
+        // Once only.
+        $this->assertSame(0, $service->settleFinished());
+    }
+
+    public function test_only_the_strikes_of_the_punished_kind_are_deleted(): void
+    {
+        $this->warn(1);
+        $this->punishedAndServed();
+
+        app(StrikeService::class)->settleFinished();
+
+        $this->assertCount(1, $this->strikes(kind: SanctionKind::Ban));
+        $this->assertCount(0, $this->strikes(kind: SanctionKind::Mute));
+    }
+
+    public function test_a_new_strike_after_the_punishment_ended_starts_the_count_over_without_waiting_for_the_schedule(): void
+    {
+        $this->punishedAndServed();
+
+        // The old strikes would still count, and a third would punish again, if it were not settled first.
+        $this->warn();
+
+        $this->assertSame(1, Punishment::count());
+        $this->assertCount(1, $this->strikes());
+    }
+
+    public function test_a_punishment_taken_back_by_an_appeal_or_a_permanent_one_is_not_settled(): void
+    {
+        $base = ['user_id' => $this->author->id, 'group_id' => $this->group->id, 'kind' => SanctionKind::Mute, 'step' => 1, 'starts_at' => now()->subDays(5)];
+        Punishment::create($base + ['ends_at' => now()->subDays(2), 'lifted_at' => now()->subDays(3)]);
+        Punishment::create($base + ['ends_at' => null]);
+
+        $this->assertSame(0, app(StrikeService::class)->settleFinished());
+    }
+
+    public function test_the_scheduled_command_settles_every_member(): void
+    {
+        $this->punishedAndServed();
+
+        $this->artisan('moderation:settle-punishments')->expectsOutput('Settled 1 punishment(s).')->assertSuccessful();
+
+        $this->assertCount(0, $this->strikes());
+    }
 }

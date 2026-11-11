@@ -70,6 +70,28 @@ class StrikeService
     }
 
     /**
+     * When a punishment has run its course, the member starts over: the strikes it was made of are
+     * deleted (those given later stay), and the punishment is marked so that this is done once.
+     * Of one member, or of everyone; returns how many punishments were settled.
+     */
+    public function settleFinished(?string $userId = null): int
+    {
+        $settled = 0;
+
+        foreach ($this->sanctionRepository->finishedUnsettled($userId) as $punishment) {
+            DB::transaction(function () use ($punishment) {
+                $this->sanctionRepository->lockRecordOf($punishment->user_id);
+                $this->sanctionRepository->deleteStrikesGivenUpTo($punishment->user_id, $punishment->group_id, $punishment->kind, $punishment->ends_at);
+                $this->sanctionRepository->markSettled($punishment->id);
+            });
+
+            $settled++;
+        }
+
+        return $settled;
+    }
+
+    /**
      * How many active strikes of a kind punish a member in a group: the platform's highest, or the
      * group's own number if the owner lowered it. A group cannot raise it above the highest.
      */
@@ -83,6 +105,10 @@ class StrikeService
 
     private function give(string $userId, ?string $groupId, SanctionKind $kind, string $verdictId, ?Punishment &$punishment): Strike
     {
+        // A punishment that ended a moment ago, before the scheduled settling got to it, must not leave
+        // the old strikes to count towards the next one.
+        $this->settleFinished($userId);
+
         $active = $this->sanctionRepository->countActiveStrikes($userId, $groupId, $kind);
 
         $strike = $this->sanctionRepository->createStrike(

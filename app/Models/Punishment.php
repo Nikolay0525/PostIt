@@ -18,6 +18,7 @@ class Punishment extends BaseEntity
         'starts_at',
         'ends_at',
         'lifted_at',
+        'settled_at',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class Punishment extends BaseEntity
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'lifted_at' => 'datetime',
+            'settled_at' => 'datetime',
         ];
     }
 

@@ -6,6 +6,7 @@ use App\Enums\SanctionKind;
 use App\Models\Punishment;
 use App\Models\Strike;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * A member's strikes and the punishments they led to: one record kept together, so one repository.
@@ -42,6 +43,22 @@ interface SanctionRepositoryInterface
      * Punishments of this kind that started since then and were not taken back by an appeal.
      */
     public function countPunishmentsSince(string $userId, ?string $groupId, SanctionKind $kind, CarbonInterface $since): int;
+
+    /**
+     * Punishments that have run their course (not taken back, not permanent) and whose strikes have
+     * not been deleted yet; of one member, or of everyone.
+     *
+     * @return Collection<int, Punishment>
+     */
+    public function finishedUnsettled(?string $userId = null): Collection;
+
+    /**
+     * Deletes the strikes of this kind that were given by then: the ones the punishment ended on.
+     * Those given later stay.
+     */
+    public function deleteStrikesGivenUpTo(string $userId, ?string $groupId, SanctionKind $kind, CarbonInterface $until): int;
+
+    public function markSettled(string $punishmentId): void;
 
     /**
      * @param  list<string>  $verdictIds  the verdicts it was made of

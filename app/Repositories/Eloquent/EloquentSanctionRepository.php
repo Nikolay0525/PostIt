@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Repositories\Contracts\SanctionRepositoryInterface;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class EloquentSanctionRepository implements SanctionRepositoryInterface
 {
@@ -52,6 +53,27 @@ class EloquentSanctionRepository implements SanctionRepositoryInterface
             ->whereNull('lifted_at')
             ->where('starts_at', '>=', $since)
             ->count();
+    }
+
+    public function finishedUnsettled(?string $userId = null): Collection
+    {
+        return Punishment::query()
+            ->whereNull('lifted_at')
+            ->whereNull('settled_at')
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '<=', now())
+            ->when($userId !== null, fn (Builder $q) => $q->where('user_id', $userId))
+            ->get();
+    }
+
+    public function deleteStrikesGivenUpTo(string $userId, ?string $groupId, SanctionKind $kind, CarbonInterface $until): int
+    {
+        return $this->scoped(Strike::query(), $userId, $groupId, $kind)->where('created_at', '<=', $until)->delete();
+    }
+
+    public function markSettled(string $punishmentId): void
+    {
+        Punishment::whereKey($punishmentId)->update(['settled_at' => now()]);
     }
 
     public function createPunishment(
