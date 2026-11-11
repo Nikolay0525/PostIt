@@ -46,6 +46,22 @@ interface SanctionRepositoryInterface
     public function runningIn(string $userId, string $groupId): ?Punishment;
 
     /**
+     * The groups the member is banned from now.
+     *
+     * @return list<string>
+     */
+    public function bannedGroupIds(string $userId): array;
+
+    /**
+     * Of these members, the ones banned from the group now: for someone who must not be told things
+     * about a group's content, among many at once.
+     *
+     * @param  list<string>  $userIds
+     * @return list<string>
+     */
+    public function bannedAmong(array $userIds, string $groupId): array;
+
+    /**
      * Punishments of this kind that started since then and were not taken back by an appeal.
      */
     public function countPunishmentsSince(string $userId, ?string $groupId, SanctionKind $kind, CarbonInterface $since): int;

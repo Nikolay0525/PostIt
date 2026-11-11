@@ -8,6 +8,7 @@ return [
     'load_failed' => 'Could not load notifications',
     'important' => 'Important',
     'post_deleted' => 'The post was deleted',
+    'post_unavailable' => 'The post is not available',
     'someone' => 'Someone',
 
     // Built by the frontend from the ids a notification stores; :user and :post are filled in.

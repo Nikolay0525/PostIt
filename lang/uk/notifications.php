@@ -8,6 +8,7 @@ return [
     'load_failed' => 'Не вдалося завантажити сповіщення',
     'important' => 'Важливе',
     'post_deleted' => 'Пост видалено',
+    'post_unavailable' => 'Пост недоступний',
     'someone' => 'Хтось',
 
     // Built by the frontend from the ids a notification stores; :user and :post are filled in.

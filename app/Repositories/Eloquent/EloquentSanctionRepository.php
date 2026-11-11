@@ -7,12 +7,18 @@ use App\Models\Punishment;
 use App\Models\Strike;
 use App\Models\User;
 use App\Repositories\Contracts\SanctionRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\ExcludesBannedGroups;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class EloquentSanctionRepository implements SanctionRepositoryInterface
 {
+    // The same question the lists of posts ask; here it is part of the repository's own answer.
+    use ExcludesBannedGroups {
+        bannedGroupIds as public;
+    }
+
     public function lockRecordOf(string $userId): void
     {
         User::whereKey($userId)->lockForUpdate()->first();
@@ -51,6 +57,16 @@ class EloquentSanctionRepository implements SanctionRepositoryInterface
             ->where('group_id', $groupId)
             ->orderByDesc('kind')
             ->first();
+    }
+
+    public function bannedAmong(array $userIds, string $groupId): array
+    {
+        return Punishment::running()
+            ->where('group_id', $groupId)
+            ->where('kind', SanctionKind::Ban->value)
+            ->whereIn('user_id', $userIds)
+            ->pluck('user_id')
+            ->all();
     }
 
     public function countPunishmentsSince(string $userId, ?string $groupId, SanctionKind $kind, CarbonInterface $since): int
