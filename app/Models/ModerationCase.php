@@ -14,6 +14,7 @@ class ModerationCase extends BaseEntity
 
     protected $fillable = [
         'group_id',
+        'rule_version_id',
         'target_type',
         'target_id',
         'status',
@@ -33,6 +34,11 @@ class ModerationCase extends BaseEntity
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class, 'group_id');
+    }
+
+    public function ruleVersion(): BelongsTo
+    {
+        return $this->belongsTo(GroupRuleVersion::class, 'rule_version_id');
     }
 
     public function reports(): HasMany

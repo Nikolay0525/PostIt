@@ -120,7 +120,7 @@ const saveEdit = async () => {
         <div class="comment-card">
             <p v-if="comment.is_deleted" class="comment-deleted">{{ $t('comments.deleted') }}</p>
             <!-- Under a moderation case: no text and no author from the server, but the replies stay. -->
-            <p v-else-if="comment.is_hidden" class="comment-deleted">{{ $t('comments.hidden') }}</p>
+            <p v-else-if="comment.is_hidden" class="comment-deleted">{{ comment.is_removed ? $t('comments.removed') : $t('comments.hidden') }}</p>
 
             <template v-else>
                 <p class="post-meta-text flex items-center gap-2">

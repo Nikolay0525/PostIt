@@ -3,9 +3,11 @@
 namespace App\Repositories\Eloquent;
 
 use App\Enums\ModerationCaseStatus;
+use App\Enums\ModerationVerdictType;
 use App\Enums\ReportTargetType;
 use App\Models\Comment;
 use App\Models\ModerationCase;
+use App\Models\ModerationVerdict;
 use App\Models\Post;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -20,14 +22,46 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
         return ModerationCase::where('open_key', $this->openKey($targetType, $targetId))->first();
     }
 
-    public function open(string $groupId, ReportTargetType $targetType, string $targetId): ModerationCase
+    public function open(string $groupId, ReportTargetType $targetType, string $targetId, ?string $ruleVersionId = null): ModerationCase
     {
         return ModerationCase::create([
             'group_id' => $groupId,
+            'rule_version_id' => $ruleVersionId,
             'target_type' => $targetType,
             'target_id' => $targetId,
             'status' => ModerationCaseStatus::Open,
             'open_key' => $this->openKey($targetType, $targetId),
+        ]);
+    }
+
+    public function createVerdict(
+        string $caseId,
+        ModerationVerdictType $type,
+        string $decidedBy,
+        ?string $ruleVersionId,
+        ?int $ruleIndex,
+        ?array $marks,
+        ?string $reason,
+        ?int $warningDays,
+    ): ModerationVerdict {
+        return ModerationVerdict::create([
+            'moderation_case_id' => $caseId,
+            'type' => $type,
+            'decided_by' => $decidedBy,
+            'rule_version_id' => $ruleVersionId,
+            'rule_index' => $ruleIndex,
+            'marks' => $marks,
+            'reason' => $reason,
+            'warning_days' => $warningDays,
+        ]);
+    }
+
+    public function close(string $caseId): void
+    {
+        ModerationCase::whereKey($caseId)->update([
+            'status' => ModerationCaseStatus::Closed,
+            'open_key' => null,
+            'closed_at' => now(),
         ]);
     }
 

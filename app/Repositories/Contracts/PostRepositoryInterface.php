@@ -103,6 +103,18 @@ interface PostRepositoryInterface
     public function hide(string $postId): void;
 
     /**
+     * Shows the post again: its case was closed with "no violation".
+     */
+    public function restore(string $postId): void;
+
+    /**
+     * Takes the post down by a moderation verdict (`removed_at`) and ends its hiding. The text is
+     * kept, so that its author can see what was marked in it, and the log can show it. Not the
+     * author's own deletion.
+     */
+    public function remove(string $postId): void;
+
+    /**
      * Notes that the user has seen the post (opened its page, voted on it). Idempotent: the first
      * time is kept. The caller has checked they may see it.
      */

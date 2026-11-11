@@ -62,7 +62,7 @@ class ModerationCaseService
 
         try {
             $case = DB::transaction(function () use ($report, $type, $targetId) {
-                $case = $this->caseRepository->open($report->group_id, $type, $targetId);
+                $case = $this->caseRepository->open($report->group_id, $type, $targetId, $this->groupRepository->find($report->group_id)?->currentRuleVersion?->id);
                 $this->reportRepository->attachToCase($type, $targetId, $case->id);
 
                 return $case;

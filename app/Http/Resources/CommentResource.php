@@ -25,7 +25,7 @@ class CommentResource extends JsonResource
     {
         // A hidden comment (under a moderation case) is like a deleted one for the page: it stays in
         // the thread so its replies keep their place, but only as a placeholder.
-        $hidden = $this->isHidden();
+        $hidden = $this->isConcealed();
         $concealed = $this->is_deleted || $hidden;
 
         return [
@@ -34,6 +34,7 @@ class CommentResource extends JsonResource
             'parent_id' => $this->parent_id,
             'is_deleted' => $this->is_deleted,
             'is_hidden' => $hidden,
+            'is_removed' => $this->isRemoved(),
             'text' => $concealed ? '' : $this->text,
             'author' => [
                 'id' => $concealed ? null : $this->author->id,

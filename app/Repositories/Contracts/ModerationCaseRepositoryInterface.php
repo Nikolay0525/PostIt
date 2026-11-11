@@ -2,8 +2,10 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Enums\ModerationVerdictType;
 use App\Enums\ReportTargetType;
 use App\Models\ModerationCase;
+use App\Models\ModerationVerdict;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\UniqueConstraintViolationException;
 
@@ -16,10 +18,34 @@ interface ModerationCaseRepositoryInterface
 
     /**
      * Opens a case on a post or comment. At most one case is open on a piece of content at a time.
+     * `$ruleVersionId` is the group's rules as they are now: the verdict names the broken rule from it.
      *
      * @throws UniqueConstraintViolationException when one already is
      */
-    public function open(string $groupId, ReportTargetType $targetType, string $targetId): ModerationCase;
+    public function open(string $groupId, ReportTargetType $targetType, string $targetId, ?string $ruleVersionId = null): ModerationCase;
+
+    /**
+     * Stores how the case was decided.
+     *
+     * @param  list<array{start: int, end: int, quote: string}>|null  $marks
+     *
+     * @throws UniqueConstraintViolationException when the case already has a verdict
+     */
+    public function createVerdict(
+        string $caseId,
+        ModerationVerdictType $type,
+        string $decidedBy,
+        ?string $ruleVersionId,
+        ?int $ruleIndex,
+        ?array $marks,
+        ?string $reason,
+        ?int $warningDays,
+    ): ModerationVerdict;
+
+    /**
+     * Closes the case: it leaves the queue, and its content may get a new case later.
+     */
+    public function close(string $caseId): void;
 
     /**
      * The group's open cases, the longest waiting first. Each carries `reports_count`, its

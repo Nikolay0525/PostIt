@@ -50,7 +50,7 @@ class PostPolicy
     {
         return $user->id === $post->user_id
             && ! $post->is_deleted
-            && ! $post->isHidden()
+            && ! $post->isConcealed()
             && $user->hasVerifiedEmail()
             && ! $this->isBannedFromGroup($user, $post->group_id);
     }
@@ -65,7 +65,7 @@ class PostPolicy
             return Response::denyAsNotFound();
         }
 
-        return $user->hasVerifiedEmail() && ! $post->is_deleted && ! $post->isHidden() && $user->id !== $post->user_id;
+        return $user->hasVerifiedEmail() && ! $post->is_deleted && ! $post->isConcealed() && $user->id !== $post->user_id;
     }
 
     /**
@@ -78,6 +78,6 @@ class PostPolicy
             return Response::denyAsNotFound();
         }
 
-        return ! $post->is_deleted && ! $post->isHidden() && $user->id !== $post->user_id;
+        return ! $post->is_deleted && ! $post->isConcealed() && $user->id !== $post->user_id;
     }
 }

@@ -55,8 +55,8 @@ onBeforeUnmount(() => untrackSeen(card.value));
 
         <!-- Under a moderation case the server sends no text and no author: only that it is hidden. -->
         <p v-if="post.is_hidden" class="comment-deleted mt-4">
-            <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ $t('posts.hidden') }}</Link>
-            <template v-else>{{ $t('posts.hidden') }}</template>
+            <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ post.is_removed ? $t('posts.removed') : $t('posts.hidden') }}</Link>
+            <template v-else>{{ post.is_removed ? $t('posts.removed') : $t('posts.hidden') }}</template>
         </p>
 
         <template v-else>

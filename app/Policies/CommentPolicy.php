@@ -40,7 +40,7 @@ class CommentPolicy
     {
         return $user->id === $comment->user_id
             && ! $comment->is_deleted
-            && ! $comment->isHidden()
+            && ! $comment->isConcealed()
             && $user->hasVerifiedEmail()
             && ! $this->isBannedFromGroup($user, $comment->post->group_id);
     }
@@ -54,7 +54,7 @@ class CommentPolicy
             return Response::denyAsNotFound();
         }
 
-        return $user->hasVerifiedEmail() && ! $comment->is_deleted && ! $comment->isHidden() && $user->id !== $comment->user_id;
+        return $user->hasVerifiedEmail() && ! $comment->is_deleted && ! $comment->isConcealed() && $user->id !== $comment->user_id;
     }
 
     /**
@@ -67,6 +67,6 @@ class CommentPolicy
             return Response::denyAsNotFound();
         }
 
-        return ! $comment->is_deleted && ! $comment->isHidden() && $user->id !== $comment->user_id;
+        return ! $comment->is_deleted && ! $comment->isConcealed() && $user->id !== $comment->user_id;
     }
 }

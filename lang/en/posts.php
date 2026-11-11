@@ -9,6 +9,7 @@ return [
     'copied' => 'Link copied',
 
     'hidden' => '[hidden while moderators review it]',
+    'removed' => '[removed by moderators]',
 
     'show' => [
         'title' => 'Post',

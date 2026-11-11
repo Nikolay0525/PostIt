@@ -22,6 +22,7 @@ class Comment extends BaseEntity
         'deleted_at',
         'edited_at',
         'hidden_at',
+        'removed_at',
     ];
 
     protected function casts(): array
@@ -31,6 +32,7 @@ class Comment extends BaseEntity
             'deleted_at' => 'datetime',
             'edited_at' => 'datetime',
             'hidden_at' => 'datetime',
+            'removed_at' => 'datetime',
         ];
     }
 
@@ -38,6 +40,18 @@ class Comment extends BaseEntity
     public function isHidden(): bool
     {
         return $this->hidden_at !== null;
+    }
+
+    // Taken down by a moderation verdict. The text is kept, but only its author may read it.
+    public function isRemoved(): bool
+    {
+        return $this->removed_at !== null;
+    }
+
+    // Hidden or removed: its text and author are not shown to the page.
+    public function isConcealed(): bool
+    {
+        return $this->isHidden() || $this->isRemoved();
     }
 
     public function post(): BelongsTo

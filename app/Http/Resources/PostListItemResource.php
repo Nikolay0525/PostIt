@@ -23,7 +23,7 @@ class PostListItemResource extends JsonResource
     public function toArray(Request $request): array
     {
         // Under a moderation case the text does not leave the server.
-        $hidden = $this->isHidden();
+        $hidden = $this->isConcealed();
 
         return [
             'id' => $this->id,

@@ -22,15 +22,17 @@ class PostResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        // Under a moderation case: the text and the author never leave the server, so that a moderator
+        // Under a moderation case, or removed by its verdict: the text and the author never leave the server, so that a moderator
         // judging it cannot tell whose it is, and the page shows only that it is hidden.
-        $hidden = $this->isHidden();
+        $hidden = $this->isConcealed();
 
         return [
             'id' => $this->id,
             'group_id' => $this->group_id,
             'slug' => $this->slug,
             'is_hidden' => $hidden,
+            // Taken down by a verdict rather than waiting for one; the page says so.
+            'is_removed' => $this->isRemoved(),
             'title' => $hidden ? null : $this->title,
             // Raw Markdown source, kept for a future edit form; display uses the two below.
             'article' => $hidden ? '' : $this->article,
