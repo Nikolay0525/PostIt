@@ -159,6 +159,15 @@ A lot depends on the owner, so it matters that the right person gets the role. I
 - [Cases are not assigned. They wait in the group's queue, and any moderator who comes takes one.]
 - [A case nobody takes within 24 hours goes to the owner; if the owner does not take it within another 24 hours, it goes to a platform administrator.]
 
+**Verdicts.** [A moderator who takes a case decides it with a verdict, on a page of its own for the case, so that a long post is not opened in the queue:]
+- [*No violation* — the case is closed, the content is shown again, and nothing is held against its author.]
+- [*Remove* — the content is removed for breaking one of the group's rules, and nothing more: no consequence for its author.]
+- [*Warning* — the content is removed in the same way, and the author also gets a warning for it (see Warnings). So the two punishing verdicts differ only in the consequence: removal without one, and removal with one.]
+- [A verdict that punishes — removing, a warning — names the rule that was broken, taken from the rule version in force when the case opened, and *marks where* the content breaks it: one or more fragments of its text. The mark is required: a moderator has to point at what exactly broke the rule, which keeps the punishment objective. Pictures and GIFs can be marked once posts can hold them; until then only text is.]
+- [It also carries the moderator's *reason*, written by hand in their own words: how they read the content against the rule. A moderator does not only say that a rule was broken, they say why they think so. The reason is a short free text with a limit.]
+- [A verdict notice is built from these automatically: "The post was removed under rule 3. Verdict: …", followed by the moderator's reason. The author gets it as a notification and sees it on their own removed post or comment, which is shown to them with the marked places highlighted, so they see at once where the rule was broken. To everyone else the content stays removed.]
+- [The moderator who decided is stored with the verdict, because an appeal that succeeds lowers their reliability, but that is never shown: not to the author, not in the log.]
+
 **Moderator reliability.** [A moderator has a reliability score inside the group, separate from sub-karma. It measures only how *correct* the moderator's decisions are — not how active they are: it drops when an appeal against their action succeeds, since that means the decision was wrong.] It is kept separate from sub-karma so that, since sub-karma is visible, falling reliability cannot be seen by others. Other users' opinion of the moderator's work does not affect whether the moderator keeps the role.
 - [Reliability is hidden from everyone, the moderator included. Seeing it change, a moderator could work out what moves it and play to it — in a good way or a bad one.]
 - [A new moderator starts at 100. While it stays above zero, they are a moderator; once it falls to zero, the system takes the role away.]
@@ -182,14 +191,16 @@ A lot depends on the owner, so it matters that the right person gets the role. I
 - [Warnings are separate from sub-karma: they do not lower it and do not affect the candidate pool. Their only consequence is the risk of a punishment.]
 
 **Moderation log.** [Moderator actions are logged, and the log is open to everyone, so a moderator's work is transparent.]
-- [The log is generated automatically — a moderator does not write it, so it cannot be embellished, and writing it by hand every time would take too long.]
+- [An entry is assembled automatically from the verdict — the content, the marked places, the rule and its version, and the kind of verdict — so a moderator writes no log entry and cannot embellish one. The one thing in it written by hand is the verdict's reason, shown as the moderator's own words and open to everyone: people see how moderators reason and draw their own conclusions, and a moderator who knows the reason will be read writes it with care.]
 - [The removed content is shown in the log, but not in a prominent place — on a separate moderation tab. The author's username is hidden.]
 - [An entry appears in the log one day after the removal, so it is not obvious whose post was removed, even if someone saw it and remembered.]
-- [An entry shows the same as an appeal: the content, the rule that was broken, and the rule version in force at the time — so anyone can judge whether the moderator acted fairly.]
+- [An entry shows the same as an appeal: the content with the marked places, the rule that was broken, the rule version in force at the time, and the moderator's reason — so anyone can judge whether the moderator acted fairly.]
+- [For everyone but the person the entry is about, the log is only for reading: transparency, not a complaint box. Nobody else can flag an entry as doubtful: whether a decision is questioned is for the person it was made about, and only for them. Everyone else can still judge a group by how it is moderated and stay or leave, and the entries are the same material the jury reads in an appeal. The person the entry is about sees an appeal button on it.]
 - [An entry names no moderator — neither a username nor a stable pseudonym. The log shows what was done, not who did it: nobody needs one moderator's history, and a name would only help to find out who they are.]
 
 **Appeals.** [Everything a moderator does that can be appealed is reviewed by a jury:]
 - [Only the user affected by an action may appeal it, and only that specific action — not a general complaint against the moderator.]
+- [The appeal can be made from two places: from the action's entry in the moderation log, and from the user's own removed post or comment, where they see their content with the marked places and the moderator's reason (see Verdicts).]
 - [The jury is drawn at random from *other* groups. First it is 2 moderators and 1 pool member without the rights; the appeal succeeds only if all 3 agree. If anyone disagrees, 1 more moderator and 1 more such pool member join, and the appeal then needs 4 votes of 5. By default the moderator's action stands: overturning it takes near-unanimous agreement.]
 - [Pool members without the rights sit on the jury alongside moderators. They are not "the crowd": there are only one or two of them, drawn at random from other groups, and they crossed the same thresholds as the moderators — the random draw just did not give them the rights.]
 - [Voting is blind: a juror sees the others' votes only after everyone has voted. A vote cannot be cast without picking the rule that was or was not broken and a short reason.]
