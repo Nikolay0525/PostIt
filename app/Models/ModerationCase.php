@@ -6,6 +6,7 @@ use App\Enums\ModerationCaseStatus;
 use App\Enums\ReportTargetType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ModerationCase extends BaseEntity
 {
@@ -17,6 +18,7 @@ class ModerationCase extends BaseEntity
         'target_id',
         'status',
         'open_key',
+        'closed_at',
     ];
 
     protected function casts(): array
@@ -24,6 +26,7 @@ class ModerationCase extends BaseEntity
         return [
             'target_type' => ReportTargetType::class,
             'status' => ModerationCaseStatus::class,
+            'closed_at' => 'datetime',
         ];
     }
 
@@ -35,5 +38,10 @@ class ModerationCase extends BaseEntity
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class, 'moderation_case_id');
+    }
+
+    public function verdict(): HasOne
+    {
+        return $this->hasOne(ModerationVerdict::class, 'moderation_case_id');
     }
 }
