@@ -9,6 +9,7 @@ use App\Models\GroupModerator;
 use App\Models\GroupRuleVersion;
 use App\Models\UserGroupSubscription;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Eloquent\Concerns\ExcludesBannedGroups;
 use App\Repositories\Eloquent\Concerns\ExcludesSeenPosts;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class EloquentGroupRepository implements GroupRepositoryInterface
 {
-    use ExcludesSeenPosts, SearchesText;
+    use ExcludesBannedGroups, ExcludesSeenPosts, SearchesText;
 
     public function find(string $id): ?Group
     {
@@ -146,12 +147,16 @@ class EloquentGroupRepository implements GroupRepositoryInterface
 
     public function attachedOnFeed(string $userId): Collection
     {
+        // A group the user is banned from has nothing new for them: its posts are closed.
+        $banned = $this->bannedGroupIds($userId);
+
         // select() before withCount(): with the join, get($columns) would be ignored in favour of `*`.
         return $this->subscriptionsOf($userId)
             ->where('user_group_subscriptions.attached_on_feed', true)
             ->select(['groups.id', 'groups.slug', 'groups.name', 'groups.icon_url', 'groups.is_private', 'groups.language_code'])
             // New = posted since the user joined, by someone else, and not seen yet (ExcludesSeenPosts).
             ->withCount(['posts as new_posts_count' => fn (Builder $posts) => $this->whereNotSeenBy($posts
+                ->whereNotIn('posts.group_id', $banned)
                 ->where('posts.is_deleted', false)
                 ->where('posts.user_id', '!=', $userId)
                 ->whereColumn('posts.created_at', '>=', 'user_group_subscriptions.created_at'), $userId)])

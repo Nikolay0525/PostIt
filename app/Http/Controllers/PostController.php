@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SanctionKind;
 use App\Http\Requests\MarkPostsSeenRequest;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\CommentResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\PostResource;
+use App\Http\Resources\RestrictionResource;
 use App\Models\Post;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Contracts\SanctionRepositoryInterface;
 use App\Services\CommentService;
 use App\Services\GroupService;
 use App\Services\PostService;
@@ -29,15 +32,22 @@ class PostController extends Controller
         protected CommentService $commentService,
         protected GroupRepositoryInterface $groupRepository,
         protected PostRepositoryInterface $postRepository,
-        protected GroupService $groupService
+        protected GroupService $groupService,
+        protected SanctionRepositoryInterface $sanctionRepository
     ) {}
 
-    public function show(Request $request, string $groupSlug, string $postSlug): Response
+    public function show(Request $request, string $groupSlug, string $postSlug): Response|RedirectResponse
     {
         // Throws ModelNotFoundException (rendered as 404) when the group does not exist.
         $group = $this->groupService->getGroupBySlug($groupSlug);
 
         $viewerId = $request->user()?->id;
+        $restriction = $viewerId === null ? null : $this->sanctionRepository->runningIn($viewerId, $group->id);
+
+        // A ban closes the group's content: the group's page tells the banned member so.
+        if ($restriction?->kind === SanctionKind::Ban) {
+            return redirect()->route('groups.show', $group->slug);
+        }
 
         // Throws ModelNotFoundException (rendered as 404) when the group has no such post.
         $post = $this->postService->getPostBySlug($group->id, $postSlug, $viewerId);
@@ -58,6 +68,8 @@ class PostController extends Controller
             'can_edit' => (bool) $request->user()?->can('update', $group),
             // The viewer's own role, for them alone: "owner", "moderator" or null.
             'role' => $viewerId === null ? null : $this->groupRepository->moderatorRole($group->id, $viewerId)?->key(),
+            // The mute or ban the viewer is under in this group, for them alone; otherwise null.
+            'restriction' => $restriction === null ? null : new RestrictionResource($restriction),
             // Merged page by page by the <InfiniteScroll> component on the client.
             'comments' => Inertia::scroll(
                 fn () => CommentResource::collection($this->commentService->getPostThreads($post->id, $viewerId))
@@ -192,7 +204,14 @@ class PostController extends Controller
 
         abort_if($group === null, 404);
 
-        $isMember = $this->groupService->isMember($group->id, $request->user()?->id);
+        $viewerId = $request->user()?->id;
+
+        // A banned member is sent to the group's page, which tells them the content is closed.
+        if ($viewerId !== null && $this->sanctionRepository->runningIn($viewerId, $group->id)?->kind === SanctionKind::Ban) {
+            return redirect()->route('groups.show', $group->slug);
+        }
+
+        $isMember = $this->groupService->isMember($group->id, $viewerId);
 
         abort_unless($this->groupService->canViewPosts($group, $isMember), 404);
 

@@ -41,9 +41,15 @@ class EloquentSanctionRepository implements SanctionRepositoryInterface
 
     public function findRunningPunishment(string $userId, ?string $groupId, SanctionKind $kind): ?Punishment
     {
-        return $this->punishments($userId, $groupId, $kind)
-            ->whereNull('lifted_at')
-            ->where(fn (Builder $running) => $running->whereNull('ends_at')->orWhere('ends_at', '>', now()))
+        return $this->punishments($userId, $groupId, $kind)->running()->first();
+    }
+
+    public function runningIn(string $userId, string $groupId): ?Punishment
+    {
+        return Punishment::running()
+            ->where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->orderByDesc('kind')
             ->first();
     }
 

@@ -15,6 +15,12 @@ return [
         'about' => 'About the group',
         'edit' => 'Edit',
         'moderation' => 'Moderation',
+        'restricted' => [
+            'mute' => 'You are muted in this group until :date: you can read, but not post, comment or vote.',
+            'mute_forever' => 'You are muted in this group for good: you can read, but not post, comment or vote.',
+            'ban' => 'You are banned from this group until :date: its content is closed to you.',
+            'ban_forever' => 'You are banned from this group for good: its content is closed to you.',
+        ],
         'moderation_log' => 'Moderation log',
         'language' => 'Group language',
         'role' => [

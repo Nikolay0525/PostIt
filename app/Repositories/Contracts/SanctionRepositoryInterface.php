@@ -40,6 +40,12 @@ interface SanctionRepositoryInterface
     public function findRunningPunishment(string $userId, ?string $groupId, SanctionKind $kind): ?Punishment;
 
     /**
+     * The mute or ban the member is under in this group now, if any; a ban if both. What keeps them
+     * from taking part, so policies and pages ask this one question.
+     */
+    public function runningIn(string $userId, string $groupId): ?Punishment;
+
+    /**
      * Punishments of this kind that started since then and were not taken back by an appeal.
      */
     public function countPunishmentsSince(string $userId, ?string $groupId, SanctionKind $kind, CarbonInterface $since): int;

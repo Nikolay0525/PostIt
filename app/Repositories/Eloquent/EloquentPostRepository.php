@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Vote;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Eloquent\Concerns\ExcludesSeenPosts;
+use App\Repositories\Eloquent\Concerns\ExcludesBannedGroups;
 use App\Repositories\Eloquent\Concerns\SearchesText;
 use App\Support\FeedFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 
 class EloquentPostRepository implements PostRepositoryInterface
 {
-    use ExcludesSeenPosts, SearchesText;
+    use ExcludesBannedGroups, ExcludesSeenPosts, SearchesText;
 
     public function find(string $id): ?Post
     {
@@ -332,6 +333,13 @@ class EloquentPostRepository implements PostRepositoryInterface
             ->where('is_deleted', false);
 
         if ($viewerId !== null) {
+            // The groups the viewer is banned from are closed to them, in every list built from this.
+            $banned = $this->bannedGroupIds($viewerId);
+
+            if ($banned !== []) {
+                $query->whereNotIn('posts.group_id', $banned);
+            }
+
             $query->addSelect(['viewer_vote' => Vote::query()
                 ->select('positive')
                 ->whereColumn('parent_id', 'posts.id')

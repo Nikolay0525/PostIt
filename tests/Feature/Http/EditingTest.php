@@ -139,7 +139,8 @@ class EditingTest extends TestCase
             'expires_at' => null,
         ]);
 
-        $this->actingAs($author)->get($this->editUrl($post))->assertForbidden();
+        // A ban closes the group's content to them, their own post included: it is not found for them.
+        $this->actingAs($author)->get($this->editUrl($post))->assertNotFound();
 
         $deleted = $this->postBy($author, ['is_deleted' => true]);
         $this->actingAs($author)->get($this->editUrl($deleted))->assertNotFound();

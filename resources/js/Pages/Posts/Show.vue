@@ -7,6 +7,7 @@ import GroupAside from '@/Pages/Components/GroupAside.vue';
 import PageHeader from '@/Pages/Components/PageHeader.vue';
 import PostCard from '@/Pages/Components/PostCard.vue';
 import CommentNode from '@/Pages/Components/CommentNode.vue';
+import { fullDate } from '@/utils/format';
 import { useGroupMembership } from '@/utils/groupMembership';
 import { postJson } from '@/utils/http';
 
@@ -20,6 +21,8 @@ const props = defineProps({
     can_edit: Boolean,
     // The viewer's own role in the group ("owner", "moderator"), or null.
     role: String,
+    // The viewer's own mute or ban in the post's group, { kind, until }, or null.
+    restriction: Object,
     comments: Object,
 });
 
@@ -77,7 +80,10 @@ const submitComment = async () => {
             <h2 class="feed-title">{{ $t('comments.heading') }}</h2>
 
             <!-- Guests can read comments but not write them. -->
-            <form v-if="$page.props.auth.user" class="comment-form" @submit.prevent="submitComment">
+            <p v-if="$page.props.auth.user && restriction" class="text-sm text-muted">
+                {{ $t(`groups.show.restricted.${restriction.kind}${restriction.until ? '' : '_forever'}`, { date: restriction.until ? fullDate(restriction.until) : '' }) }}
+            </p>
+            <form v-else-if="$page.props.auth.user" class="comment-form" @submit.prevent="submitComment">
                 <textarea
                     v-model="commentText"
                     class="field-input"

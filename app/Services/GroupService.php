@@ -122,10 +122,10 @@ class GroupService
     }
 
     /**
-     * Posts of a private group are visible to its members only.
+     * Posts of a private group are visible to its members only, and to nobody who is banned from it.
      */
-    public function canViewPosts(Group $group, bool $isMember): bool
+    public function canViewPosts(Group $group, bool $isMember, bool $banned = false): bool
     {
-        return ! $group->is_private || $isMember;
+        return ! $banned && (! $group->is_private || $isMember);
     }
 }

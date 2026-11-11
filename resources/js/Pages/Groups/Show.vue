@@ -1,11 +1,13 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { InfiniteScroll, router, usePage } from '@inertiajs/vue3';
+import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import Dropdown from '@/Pages/Components/Dropdown.vue';
 import GroupAside from '@/Pages/Components/GroupAside.vue';
 import TransSlots from '@/Pages/Components/TransSlots.vue';
 import PostCard from '@/Pages/Components/PostCard.vue';
+import { fullDate } from '@/utils/format';
 import { useGroupMembership } from '@/utils/groupMembership';
 import { postJson } from '@/utils/http';
 import { panel, takePanel } from '@/utils/sidePanel';
@@ -17,6 +19,8 @@ const props = defineProps({
     can_edit: Boolean,
     // The viewer's own role in the group ("owner", "moderator"), or null.
     role: String,
+    // The viewer's own mute or ban here, { kind: 'mute' | 'ban', until: ISO date or null }, or null.
+    restriction: Object,
     sort: String,
     // Paginated by <InfiniteScroll>. null when the group is private and the viewer is not a member.
     posts: Object,
@@ -49,9 +53,18 @@ const { joined, toggleJoin } = membership;
 // immediately, without waiting on a reload; for a private group it's still a fake toggle, so
 // only the server-truth `is_member` prop is trusted there.
 const canPost = computed(() => {
-    if (!page.props.auth.user) return false;
+    if (!page.props.auth.user || props.restriction) return false;
 
     return props.group.is_private ? props.is_member : joined.value;
+});
+
+// What the mute or ban says to the one under it: until when, and what is closed to them.
+const restrictionText = computed(() => {
+    if (!props.restriction) return '';
+
+    const { kind, until } = props.restriction;
+
+    return trans(`groups.show.restricted.${kind}${until ? '' : '_forever'}`, { date: until ? fullDate(until) : '' });
 });
 
 // "Read all" here, like the ✓ on the side panel. The count is the panel's, so it's known only
@@ -143,13 +156,16 @@ const readAll = async () => {
             </Dropdown>
         </div>
 
-        <!-- Private groups keep their posts hidden from non-members. -->
-        <p v-if="!posts" class="post-login-prompt">{{ $t('groups.show.private_notice') }}</p>
+        <!-- Private groups keep their posts hidden from non-members; a ban closes any group's. -->
+        <p v-if="!posts" class="post-login-prompt">{{ restriction ? restrictionText : $t('groups.show.private_notice') }}</p>
 
         <template v-else>
             <!-- Who can't post yet is told why, under the strip. -->
             <p v-if="!page.props.auth.user" class="text-sm text-muted">
                 <AuthPrompt action="post" />
+            </p>
+            <p v-else-if="restriction" class="text-sm text-muted">
+                {{ restrictionText }}
             </p>
             <p v-else-if="!canPost" class="text-sm text-muted">
                 <TransSlots :text="$t('groups.show.join_to_post')">

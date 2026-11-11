@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PostSort;
+use App\Enums\SanctionKind;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\PostResource;
+use App\Http\Resources\RestrictionResource;
 use App\Models\Group;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
+use App\Repositories\Contracts\SanctionRepositoryInterface;
 use App\Services\GroupService;
 use App\Services\PostService;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +27,8 @@ class GroupController extends Controller
         protected GroupService $groupService,
         protected PostService $postService,
         protected GroupRepositoryInterface $groupRepository,
-        protected LanguageRepositoryInterface $languageRepository
+        protected LanguageRepositoryInterface $languageRepository,
+        protected SanctionRepositoryInterface $sanctionRepository
     ) {}
 
     public function create(Request $request): Response
@@ -109,6 +113,7 @@ class GroupController extends Controller
         $viewerId = $request->user()?->id;
         $isMember = $this->groupService->isMember($group->id, $viewerId);
         $sort = PostSort::tryFrom((string) $request->query('sort')) ?? PostSort::Newest;
+        $restriction = $viewerId === null ? null : $this->sanctionRepository->runningIn($viewerId, $group->id);
 
         return Inertia::render('Groups/Show', [
             'group' => new GroupResource($group),
@@ -117,9 +122,11 @@ class GroupController extends Controller
             'can_edit' => (bool) $request->user()?->can('update', $group),
             // The viewer's own role, for them alone: "owner", "moderator" or null.
             'role' => $viewerId === null ? null : $this->groupRepository->moderatorRole($group->id, $viewerId)?->key(),
+            // The mute or ban the viewer is under in this group, for them alone; otherwise null.
+            'restriction' => $restriction === null ? null : new RestrictionResource($restriction),
             'sort' => $sort->value,
-            // null hides the posts of a private group from non-members.
-            'posts' => $this->groupService->canViewPosts($group, $isMember)
+            // null hides the posts of a private group from non-members, and of any group from the banned.
+            'posts' => $this->groupService->canViewPosts($group, $isMember, $restriction?->kind === SanctionKind::Ban)
                 ? Inertia::scroll(fn () => PostResource::collection($this->postService->getGroupPosts($group->id, $sort, $viewerId)))
                 : null,
         ]);

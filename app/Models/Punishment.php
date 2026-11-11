@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\SanctionKind;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -36,6 +37,13 @@ class Punishment extends BaseEntity
     public function isRunning(): bool
     {
         return $this->lifted_at === null && ($this->ends_at === null || $this->ends_at->isFuture());
+    }
+
+    // In force now: not taken back, and either permanent or not over yet.
+    public function scopeRunning(Builder $query): void
+    {
+        $query->whereNull('lifted_at')
+            ->where(fn (Builder $running) => $running->whereNull('ends_at')->orWhere('ends_at', '>', now()));
     }
 
     public function user(): BelongsTo
