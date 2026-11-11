@@ -93,8 +93,6 @@ class ModerationControllerTest extends TestCase
 
     public function test_a_moderator_opens_one_case_of_their_group(): void
     {
-        // The page itself is the next step: only what the controller sends is checked here.
-        config(['inertia.testing.ensure_pages_exist' => false]);
         $group = Group::factory()->create();
         $moderator = $this->moderatorOf($group);
         $post = Post::factory()->hidden()->create(['group_id' => $group->id, 'title' => 'Reported title']);
@@ -105,10 +103,10 @@ class ModerationControllerTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Groups/ModerationCase')
                 ->where('role', 'moderator')
-                ->where('case.id', $case->id)
-                ->where('case.target.title', 'Reported title')
-                ->missing('case.target.author')
-                ->missing('case.target.user_id'));
+                ->where('moderation_case.id', $case->id)
+                ->where('moderation_case.target.title', 'Reported title')
+                ->missing('moderation_case.target.author')
+                ->missing('moderation_case.target.user_id'));
     }
 
     public function test_a_case_is_closed_to_guests_members_and_moderators_of_other_groups(): void
@@ -138,5 +136,24 @@ class ModerationControllerTest extends TestCase
         foreach ([$elsewhere->id, $closed->id, (string) Str::uuid()] as $id) {
             $this->actingAs($moderator)->get(route('groups.moderation.case', [$group->slug, $id]))->assertNotFound();
         }
+    }
+
+    public function test_the_queue_sends_a_short_start_of_a_long_post_and_the_case_page_the_whole_of_it(): void
+    {
+        $group = Group::factory()->create();
+        $moderator = $this->moderatorOf($group);
+        $post = Post::factory()->hidden()->create(['group_id' => $group->id, 'article' => str_repeat('word ', 1000)]);
+        $case = app(ModerationCaseRepositoryInterface::class)->open($group->id, ReportTargetType::Post, $post->id);
+
+        $this->actingAs($moderator)->get(route('groups.moderation', $group->slug))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('cases.data.0.id', $case->id)
+                ->where('cases.data.0.target.excerpt', fn ($excerpt) => mb_strlen($excerpt) <= 203)
+                ->missing('cases.data.0.target.article_html')
+                ->missing('cases.data.0.reports'));
+
+        $this->actingAs($moderator)->get(route('groups.moderation.case', [$group->slug, $case->id]))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('moderation_case.target.article_html', fn ($html) => mb_strlen($html) > 4000));
     }
 }

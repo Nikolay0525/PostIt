@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ModerationCaseStatus;
 use App\Http\Resources\GroupResource;
+use App\Http\Resources\ModerationCaseListItemResource;
 use App\Http\Resources\ModerationCaseResource;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
@@ -54,7 +55,7 @@ class ModerationController extends Controller
             'is_member' => $this->groupService->isMember($group->id, $userId),
             'can_edit' => $request->user()->can('update', $group),
             'role' => $this->groupRepository->moderatorRole($group->id, $userId)?->key(),
-            'cases' => Inertia::scroll(fn () => ModerationCaseResource::collection(
+            'cases' => Inertia::scroll(fn () => ModerationCaseListItemResource::collection(
                 $this->moderationCaseRepository->openInGroup($group->id, self::PER_PAGE)
             )),
         ]);
@@ -81,7 +82,7 @@ class ModerationController extends Controller
             'is_member' => $this->groupService->isMember($group->id, $userId),
             'can_edit' => $request->user()->can('update', $group),
             'role' => $this->groupRepository->moderatorRole($group->id, $userId)?->key(),
-            'case' => new ModerationCaseResource($case),
+            'moderation_case' => new ModerationCaseResource($case),
         ]);
     }
 }

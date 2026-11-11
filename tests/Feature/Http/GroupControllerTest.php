@@ -49,11 +49,12 @@ class GroupControllerTest extends TestCase
         $this->get('/groups/-/create')->assertRedirect('/login');
     }
 
+    // The `verified` middleware stops them before the policy is asked: no confirmed email, no group.
     public function test_an_unverified_user_cannot_open_the_create_page(): void
     {
         $user = User::factory()->unverified()->create();
 
-        $this->actingAs($user)->get('/groups/-/create')->assertForbidden();
+        $this->actingAs($user)->get('/groups/-/create')->assertRedirect(route('verification.notice'));
     }
 
     public function test_a_verified_user_gets_the_create_page_with_languages_and_limits(): void
@@ -298,7 +299,7 @@ class GroupControllerTest extends TestCase
     {
         $user = User::factory()->unverified()->create();
 
-        $this->actingAs($user)->post('/groups', $this->payload())->assertForbidden();
+        $this->actingAs($user)->post('/groups', $this->payload())->assertRedirect(route('verification.notice'));
 
         $this->assertSame(0, Group::count());
     }

@@ -30,7 +30,13 @@ const membership = useGroupMembership(props);
         <p v-if="!cases.data.length" class="text-sm text-muted">{{ $t('moderation.none') }}</p>
 
         <InfiniteScroll data="cases" class="feed-list">
-            <article v-for="item in cases.data" :key="item.id" class="post-card">
+            <!-- A short start only: the whole text and the reports are on the case's own page. -->
+            <Link
+                v-for="item in cases.data"
+                :key="item.id"
+                :href="route('groups.moderation.case', [group.slug, item.id])"
+                class="post-card block"
+            >
                 <p class="post-meta-text">
                     <span class="font-medium text-ink">{{ item.target?.type === 'Post' ? $t('moderation.post') : $t('moderation.comment') }}</span>
                     <span aria-hidden="true"> · </span>
@@ -41,28 +47,11 @@ const membership = useGroupMembership(props);
 
                 <p v-if="!item.target" class="comment-deleted mt-4">{{ $t('moderation.gone') }}</p>
 
-                <template v-else-if="item.target.type === 'Post'">
-                    <h2 v-if="item.target.title" class="post-title" dir="auto">{{ item.target.title }}</h2>
-                    <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown). -->
-                    <div class="post-content" :class="{ 'mt-4': !item.target.title }" dir="auto" v-html="item.target.article_html"></div>
-                </template>
-
                 <template v-else>
-                    <p class="mt-2 text-sm text-muted" dir="auto">
-                        {{ $t('moderation.comment_on', { title: item.target.post.title || $t('moderation.untitled_post') }) }}
-                    </p>
-                    <p class="post-content whitespace-pre-line" dir="auto">{{ item.target.text }}</p>
+                    <h2 v-if="item.target.title" class="post-title" dir="auto">{{ item.target.title }}</h2>
+                    <p class="post-body" :class="{ 'mt-4': !item.target.title }" dir="auto">{{ item.target.excerpt }}</p>
                 </template>
-
-                <div class="case-reports">
-                    <p class="muted-heading">{{ $t('moderation.reported_for') }}</p>
-                    <p v-for="report in item.reports" :key="report.id" class="case-report" dir="auto">
-                        <span class="case-report-kind">{{ $t(`moderation.kind.${report.kind}`) }}</span>
-                        <template v-if="report.rule"> — {{ report.rule.index + 1 }}. {{ report.rule.text }}</template>
-                        <template v-if="report.text"> — {{ report.text }}</template>
-                    </p>
-                </div>
-            </article>
+            </Link>
 
             <template #loading>
                 <p class="text-sm text-muted">{{ $t('moderation.loading') }}</p>

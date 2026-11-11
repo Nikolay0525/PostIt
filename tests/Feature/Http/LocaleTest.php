@@ -98,6 +98,8 @@ class LocaleTest extends TestCase
         $user = User::where('email', 'ivan@example.com')->firstOrFail();
         $this->assertSame('en', $user->settings->ui_language_code);
 
+        // Settings are for confirmed emails only; the language is what is checked here, not that.
+        $user->markEmailAsVerified();
         $this->actingAs($user)->get('/settings')
             ->assertInertia(fn (AssertableInertia $page) => $page->where('locale', 'en'));
     }

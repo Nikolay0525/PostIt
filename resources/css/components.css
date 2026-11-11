@@ -388,7 +388,7 @@
     @apply h-0 overflow-hidden p-0;
   }
   .wizard-actions {
-    @apply flex items-center justify-between gap-3 border-t border-line pt-5;
+    @apply flex items-center justify-between gap-3 pt-2;
   }
   .settings-status {
     @apply rounded-lg border border-brand-100 bg-brand-50 p-3 text-sm text-brand-700;

@@ -1,6 +1,7 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import PageHeader from '@/Pages/Components/PageHeader.vue';
+import BackButton from '@/Pages/Components/BackButton.vue';
 import RulesEditor from '@/Pages/Components/RulesEditor.vue';
 import TextInput from '@/Pages/Components/TextInput.vue';
 
@@ -82,9 +83,7 @@ const submit = () => {
             </fieldset>
 
             <div class="wizard-actions">
-                <Link :href="route('groups.show', group.slug)" class="btn-secondary">
-                    <span class="back-arrow" aria-hidden="true">←</span> {{ $t('common.back') }}
-                </Link>
+                <BackButton :fallback="route('groups.show', group.slug)" />
                 <button type="submit" class="btn-primary" :disabled="form.processing">
                     {{ form.processing ? $t('groups.edit.saving') : $t('groups.edit.save') }}
                 </button>

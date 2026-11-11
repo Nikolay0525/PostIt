@@ -2,6 +2,7 @@
 import { useForm } from '@inertiajs/vue3';
 import MarkdownField from '@/Pages/Components/MarkdownField.vue';
 import PageHeader from '@/Pages/Components/PageHeader.vue';
+import BackButton from '@/Pages/Components/BackButton.vue';
 import TextInput from '@/Pages/Components/TextInput.vue';
 
 const props = defineProps({
@@ -30,9 +31,7 @@ const submit = () => {
             <MarkdownField v-model="form.article" :message="form.errors.article" />
 
             <div class="wizard-actions">
-                <Link :href="route('posts.show', [post.group.slug, post.slug])" class="btn-secondary">
-                    <span class="back-arrow" aria-hidden="true">←</span> {{ $t('common.back') }}
-                </Link>
+                <BackButton :fallback="route('posts.show', [post.group.slug, post.slug])" />
                 <button type="submit" class="btn-primary" :disabled="form.processing">
                     {{ form.processing ? $t('posts.edit.saving') : $t('posts.edit.save') }}
                 </button>

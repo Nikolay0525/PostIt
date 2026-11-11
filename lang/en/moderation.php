@@ -17,6 +17,9 @@ return [
         'platform' => 'Breaks the platform\'s rules',
         'other' => 'Something else',
     ],
+    'case' => [
+        'title' => 'Case',
+    ],
     'log' => [
         'title' => 'Moderation log',
         'none' => 'No actions yet.',
