@@ -89,7 +89,11 @@ class NotificationService
         $postId = $notification->data['post_id'] ?? null;
         $post = $postId ? $this->postRepository->findManyWithGroup([$postId])->first() : null;
 
-        return $this->postUrl($post, $this->sanctionRepository->bannedGroupIds($userId));
+        return $this->postUrl(
+            $post,
+            $this->sanctionRepository->bannedGroupIds($userId),
+            NotificationType::tryFrom($notification->type) === NotificationType::ContentHidden
+        );
     }
 
     public function markAllRead(string $userId): void
@@ -109,7 +113,8 @@ class NotificationService
             return $this->presentGroupMatter($notification, $type, $group);
         }
 
-        $postUrl = $this->postUrl($post, $bannedGroupIds);
+        // A notice to the author about their own hidden post is the one that may still name and open it.
+        $postUrl = $this->postUrl($post, $bannedGroupIds, $type === NotificationType::ContentHidden);
 
         return [
             'id' => $notification->id,
@@ -122,6 +127,8 @@ class NotificationService
             // of linking to nothing, and the title and the text never leave the server.
             'post_title' => $postUrl ? ($post->title ?: Str::words($post->article, 6)) : null,
             'post_unavailable' => $post !== null && ! $post->is_deleted && $postUrl === null,
+            // Plain values the text is built from: whether it was a post or a comment.
+            'details' => array_intersect_key($notification->data, array_flip(['target'])),
             'has_link' => $postUrl !== null,
         ];
     }
@@ -152,10 +159,11 @@ class NotificationService
      * moderation case, removed by its verdict, or in a group they are banned from.
      *
      * @param  list<string>  $bannedGroupIds
+     * @param  bool  $own  the notice is to the post's own author, who may still open a hidden one
      */
-    private function postUrl(?Post $post, array $bannedGroupIds): ?string
+    private function postUrl(?Post $post, array $bannedGroupIds, bool $own = false): ?string
     {
-        if ($post === null || $post->is_deleted || $post->isConcealed() || in_array($post->group_id, $bannedGroupIds, true)) {
+        if ($post === null || $post->is_deleted || (! $own && $post->isConcealed()) || in_array($post->group_id, $bannedGroupIds, true)) {
             return null;
         }
 

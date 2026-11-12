@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ReportTargetType;
 use App\Enums\SanctionKind;
 use App\Http\Requests\MarkPostsSeenRequest;
 use App\Http\Requests\StorePostRequest;
@@ -12,6 +13,7 @@ use App\Http\Resources\PostResource;
 use App\Http\Resources\RestrictionResource;
 use App\Models\Post;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\SanctionRepositoryInterface;
 use App\Services\CommentService;
@@ -33,7 +35,8 @@ class PostController extends Controller
         protected GroupRepositoryInterface $groupRepository,
         protected PostRepositoryInterface $postRepository,
         protected GroupService $groupService,
-        protected SanctionRepositoryInterface $sanctionRepository
+        protected SanctionRepositoryInterface $sanctionRepository,
+        protected ModerationCaseRepositoryInterface $moderationCaseRepository
     ) {}
 
     public function show(Request $request, string $groupSlug, string $postSlug): Response|RedirectResponse
@@ -54,6 +57,11 @@ class PostController extends Controller
 
         // A private group's post doesn't exist for outsiders: 404, not 403 (PostPolicy::view()).
         abort_unless(Gate::allows('view', $post), 404);
+
+        // Its own author is told how a post taken down by a verdict was dealt with: the rule, the marks, the reason.
+        if ($viewerId !== null && $viewerId === $post->user_id && $post->isRemoved()) {
+            $post->setRelation('moderationCase', $this->moderationCaseRepository->findLatestFor(ReportTargetType::Post, $post->id));
+        }
 
         // Seen: off the side panel's counters and "Only new" (members only; a guest has neither).
         if ($viewerId !== null) {

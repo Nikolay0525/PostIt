@@ -77,6 +77,16 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
         return $cases;
     }
 
+    public function findLatestFor(ReportTargetType $targetType, string $targetId): ?ModerationCase
+    {
+        return ModerationCase::where('target_type', $targetType->value)
+            ->where('target_id', $targetId)
+            ->with('verdict.ruleVersion')
+            ->latest('created_at')
+            ->latest('id')
+            ->first();
+    }
+
     public function findForModeration(string $id): ?ModerationCase
     {
         $case = $this->forModeration()->whereKey($id)->first();

@@ -56,6 +56,13 @@ interface ModerationCaseRepositoryInterface
     public function openInGroup(string $groupId, int $perPage): LengthAwarePaginator;
 
     /**
+     * The latest case on this post or comment, open or decided, with its verdict and the rules the
+     * verdict names: what the content's own author is shown of how it was dealt with. Null if it never
+     * had one.
+     */
+    public function findLatestFor(ReportTargetType $targetType, string $targetId): ?ModerationCase;
+
+    /**
      * One case with the same data as in the list, or null.
      */
     public function findForModeration(string $id): ?ModerationCase;

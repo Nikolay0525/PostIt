@@ -22,6 +22,8 @@ return [
     'kinds' => [
         'new_comment_under_post' => ':user commented on “:post”',
         'new_comment_answer' => ':user replied to your comment on “:post”',
+        'content_hidden_post' => 'Your post “:post” got many reports and was hidden until the moderators decide',
+        'content_hidden_comment' => 'Your comment under “:post” got many reports and was hidden until the moderators decide',
         'received_warning' => 'Warning in “:group”: strike :count of :limit towards a :sanction. This one lasts until :date',
         'group_mute' => 'You are muted in “:group” until :date: you can read, but not post, comment or vote',
         'group_mute_forever' => 'You are muted in “:group” for good: you can read, but not post, comment or vote',

@@ -34,7 +34,8 @@ function text(n) {
 
     if (n.post_title === null) return trans(n.post_unavailable ? 'notifications.post_unavailable' : 'notifications.post_deleted');
 
-    const key = `notifications.kinds.${n.type}`;
+    // Some kinds read differently for a post and a comment (`details.target`).
+    const key = `notifications.kinds.${n.type}${n.details?.target ? `_${n.details.target}` : ''}`;
     const sentence = trans(key, { user: n.author ?? trans('notifications.someone'), post: n.post_title });
 
     return sentence === key ? trans('notifications.kinds.unknown') : sentence;

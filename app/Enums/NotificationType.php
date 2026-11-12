@@ -15,6 +15,7 @@ enum NotificationType: string
     case NewCommentUnderPost = 'new_comment_under_post';
     case NewCommentAnswer = 'new_comment_answer';
 
+    case ContentHidden = 'content_hidden';
     case ReportCreated = 'report_created';
     case ReportReviewed = 'report_reviewed';
 
