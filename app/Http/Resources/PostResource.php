@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Post;
 use App\Services\ImageService;
+use App\Http\Resources\Concerns\DescribesModerationForAuthor;
 use App\Support\Concerns\ComputesControversy;
 use App\Support\Concerns\RendersMarkdown;
 use Illuminate\Http\Request;
@@ -18,24 +19,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class PostResource extends JsonResource
 {
     use ComputesControversy;
+    use DescribesModerationForAuthor;
     use RendersMarkdown;
-
-    /**
-     * @return array{state: string, verdict?: array<string, mixed>|null}
-     */
-    private function moderationForAuthor(Request $request): array
-    {
-        if ($this->isHidden()) {
-            return ['state' => 'pending'];
-        }
-
-        $verdict = $this->relationLoaded('moderationCase') ? $this->getRelation('moderationCase')?->verdict : null;
-
-        return [
-            'state' => 'removed',
-            'verdict' => $verdict === null ? null : (new AuthorVerdictResource($verdict))->toArray($request),
-        ];
-    }
 
     public function toArray(Request $request): array
     {

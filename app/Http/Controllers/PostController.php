@@ -79,9 +79,16 @@ class PostController extends Controller
             // The mute or ban the viewer is under in this group, for them alone; otherwise null.
             'restriction' => $restriction === null ? null : new RestrictionResource($restriction),
             // Merged page by page by the <InfiniteScroll> component on the client.
-            'comments' => Inertia::scroll(
-                fn () => CommentResource::collection($this->commentService->getPostThreads($post->id, $viewerId))
-            ),
+            'comments' => Inertia::scroll(function () use ($post, $viewerId) {
+                $threads = $this->commentService->getPostThreads($post->id, $viewerId);
+
+                // The viewer's own comments that a verdict took down come with the verdict, for them alone.
+                if ($viewerId !== null) {
+                    $this->commentService->attachVerdictsForAuthor($threads, $viewerId);
+                }
+
+                return CommentResource::collection($threads);
+            }),
         ]);
     }
 

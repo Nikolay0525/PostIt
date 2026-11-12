@@ -1,9 +1,11 @@
 <script setup>
-import { inject, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import ContentMenu from '@/Pages/Components/ContentMenu.vue';
+import HighlightedText from '@/Pages/Components/HighlightedText.vue';
+import ModerationNotice from '@/Pages/Components/ModerationNotice.vue';
 import ReportForm from '@/Pages/Components/ReportForm.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
@@ -16,6 +18,9 @@ const props = defineProps({
 });
 
 const page = usePage();
+
+// A removed comment is shown to its own author with the marked places picked out of their text.
+const verdict = computed(() => (props.comment.moderation?.state === 'removed' ? props.comment.moderation.verdict : null));
 
 const showLoginPrompt = ref(false);
 const reporting = ref(false);
@@ -119,6 +124,18 @@ const saveEdit = async () => {
     <article class="comment-node">
         <div class="comment-card">
             <p v-if="comment.is_deleted" class="comment-deleted">{{ $t('comments.deleted') }}</p>
+            <!-- Its own author's: their text, where it stands, and why; nobody else gets any of it. -->
+            <template v-else-if="comment.moderation">
+                <p class="post-meta-text flex items-center gap-2">
+                    <UserAvatar :url="comment.author.avatar_url" :username="comment.author.username" class="avatar-sm" />
+                    <span class="font-medium text-ink" dir="auto">{{ comment.author.username }}</span>
+                    <span aria-hidden="true"> · </span>
+                    <time :datetime="comment.created_at">{{ timeAgo(comment.created_at) }}</time>
+                </p>
+                <ModerationNotice :moderation="comment.moderation" kind="comment" class="mt-2" />
+                <HighlightedText v-if="verdict" :text="comment.text" :marks="verdict.marks" class="post-body mt-2 text-ink" />
+                <p v-else class="post-body mt-2 text-ink opacity-70" dir="auto">{{ comment.text }}</p>
+            </template>
             <!-- Under a moderation case: no text and no author from the server, but the replies stay. -->
             <p v-else-if="comment.is_hidden" class="comment-deleted">{{ comment.is_removed ? $t('comments.removed') : $t('comments.hidden') }}</p>
 

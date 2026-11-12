@@ -63,6 +63,15 @@ interface ModerationCaseRepositoryInterface
     public function findLatestFor(ReportTargetType $targetType, string $targetId): ?ModerationCase;
 
     /**
+     * The latest case, with its verdict and the rules the verdict names, of each of these posts or
+     * comments that ever had one, keyed by the content's id: a thread's worth in one query.
+     *
+     * @param  list<string>  $targetIds
+     * @return \Illuminate\Support\Collection<string, ModerationCase>
+     */
+    public function findLatestForMany(ReportTargetType $targetType, array $targetIds): \Illuminate\Support\Collection;
+
+    /**
      * One case with the same data as in the list, or null.
      */
     public function findForModeration(string $id): ?ModerationCase;

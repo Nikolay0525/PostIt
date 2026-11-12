@@ -325,6 +325,14 @@
   .comment-deleted {
     @apply text-sm italic text-muted;
   }
+  /* What the author of a hidden or removed post or comment is told: where it stands, and why. */
+  .moderation-notice {
+    @apply flex flex-col gap-1 rounded-lg border border-warning bg-warning-soft p-3 text-sm text-ink;
+  }
+  /* A place the moderator marked in the author's own text. */
+  .moderation-mark {
+    @apply rounded-sm bg-warning/25 px-0.5 text-ink underline decoration-warning decoration-2 underline-offset-2;
+  }
 
   .post-link {
     @apply hover:text-brand-600;

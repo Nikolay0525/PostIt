@@ -204,4 +204,69 @@ class AuthorModerationViewTest extends TestCase
 
         $this->assertCount(0, $this->author->notifications);
     }
+
+    private function caseOnComment(Comment $comment): ModerationCase
+    {
+        $case = app(ModerationCaseRepositoryInterface::class)->open($this->group->id, ReportTargetType::Comment, $comment->id, $this->versionId);
+        ModerationCaseOpened::dispatch($case);
+
+        return $case;
+    }
+
+    public function test_a_comments_author_sees_it_with_where_it_stands_inside_the_thread(): void
+    {
+        $comment = Comment::factory()->create(['post_id' => $this->post->id, 'user_id' => $this->author->id, 'text' => 'You are a complete idiot']);
+        $this->caseOnComment($comment);
+
+        $this->show($this->author)->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('comments.data.0.is_hidden', true)
+            ->where('comments.data.0.moderation.state', 'pending')
+            ->where('comments.data.0.text', 'You are a complete idiot')
+            ->where('comments.data.0.author.username', $this->author->username)
+            ->where('comments.data.0.can_edit', false));
+
+        // Anyone else gets the placeholder and no word of it.
+        $this->show(User::factory()->create())->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('comments.data.0.moderation', null)
+            ->where('comments.data.0.text', '')
+            ->where('comments.data.0.author.username', 'Hidden'));
+    }
+
+    public function test_a_guest_gets_a_hidden_comment_as_a_placeholder_too(): void
+    {
+        $comment = Comment::factory()->create(['post_id' => $this->post->id, 'user_id' => $this->author->id, 'text' => 'You are a complete idiot']);
+        $this->caseOnComment($comment);
+
+        $this->show()->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('comments.data.0.moderation', null)
+            ->where('comments.data.0.text', '')
+            ->where('comments.data.0.author.username', 'Hidden'));
+    }
+
+    public function test_a_removed_comment_comes_to_its_author_with_the_verdict_even_as_a_reply(): void
+    {
+        $parent = Comment::factory()->create(['post_id' => $this->post->id]);
+        $reply = Comment::factory()->create(['post_id' => $this->post->id, 'parent_id' => $parent->id, 'user_id' => $this->author->id, 'text' => 'You are a complete idiot']);
+        $this->decide($this->caseOnComment($reply));
+
+        $this->show($this->author)->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('comments.data.0.replies.0.moderation.state', 'removed')
+            ->where('comments.data.0.replies.0.moderation.verdict.rule.text', 'Be respectful')
+            ->where('comments.data.0.replies.0.moderation.verdict.marks.0.quote', 'complete idiot')
+            ->where('comments.data.0.replies.0.moderation.verdict.reason', 'An insult, not an argument.')
+            ->where('comments.data.0.replies.0.text', 'You are a complete idiot'));
+
+        $this->show(User::factory()->create())->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('comments.data.0.replies.0.moderation', null)
+            ->where('comments.data.0.replies.0.text', ''));
+    }
+
+    public function test_a_comment_a_user_deleted_themselves_stays_gone_even_for_them(): void
+    {
+        $comment = Comment::factory()->create(['post_id' => $this->post->id, 'user_id' => $this->author->id, 'is_deleted' => true, 'hidden_at' => now()]);
+
+        $this->show($this->author)->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('comments.data.0.moderation', null)
+            ->where('comments.data.0.text', ''));
+    }
 }

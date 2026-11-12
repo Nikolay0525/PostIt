@@ -87,6 +87,18 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
             ->first();
     }
 
+    public function findLatestForMany(ReportTargetType $targetType, array $targetIds): \Illuminate\Support\Collection
+    {
+        // Oldest first, so that for content that had several cases the latest one is the one kept.
+        return ModerationCase::where('target_type', $targetType->value)
+            ->whereIn('target_id', $targetIds)
+            ->with('verdict.ruleVersion')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get()
+            ->keyBy('target_id');
+    }
+
     public function findForModeration(string $id): ?ModerationCase
     {
         $case = $this->forModeration()->whereKey($id)->first();

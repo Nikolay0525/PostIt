@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import ContentMenu from '@/Pages/Components/ContentMenu.vue';
+import HighlightedText from '@/Pages/Components/HighlightedText.vue';
+import ModerationNotice from '@/Pages/Components/ModerationNotice.vue';
 import ReportForm from '@/Pages/Components/ReportForm.vue';
 import ShareButton from '@/Pages/Components/ShareButton.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
@@ -17,6 +19,13 @@ const props = defineProps({
 });
 
 const preview = computed(() => excerpt(props.post.article_text));
+
+// Hidden or removed. Its own author alone gets `moderation` and their text with it; for everyone
+// else it stays a placeholder.
+const own = computed(() => Boolean(props.post.moderation));
+const concealed = computed(() => props.post.is_hidden && !own.value);
+// A removed post is shown to its author as plain text with the marked places picked out.
+const verdict = computed(() => (props.post.moderation?.state === 'removed' ? props.post.moderation.verdict : null));
 
 const showLoginPrompt = ref(false);
 const reporting = ref(false);
@@ -34,7 +43,7 @@ onBeforeUnmount(() => untrackSeen(card.value));
 <template>
     <article ref="card" class="post-card">
         <header class="post-meta">
-            <UserAvatar v-if="!post.is_hidden" :url="post.author.avatar_url" :username="post.author.username" class="avatar" />
+            <UserAvatar v-if="!concealed" :url="post.author.avatar_url" :username="post.author.username" class="avatar" />
 
             <!-- dir="auto" lets each piece of user text align by its own language -->
             <p class="post-meta-text">
@@ -46,15 +55,30 @@ onBeforeUnmount(() => untrackSeen(card.value));
                     <span aria-hidden="true"> · </span>
                     <time :datetime="post.edited_at" :title="fullDate(post.edited_at)">({{ $t('common.edited', { time: timeAgo(post.edited_at) }) }})</time>
                 </template>
-                <template v-if="!post.is_hidden">
+                <template v-if="!concealed">
                     <br />
                     <Link :href="route('users.show', post.author.username)" class="post-author" dir="auto">{{ post.author.username }}</Link>
                 </template>
             </p>
         </header>
 
-        <!-- Under a moderation case the server sends no text and no author: only that it is hidden. -->
-        <p v-if="post.is_hidden" class="comment-deleted mt-4">
+        <!-- Its own author is told where it stands and, on its page, gets their text back. -->
+        <template v-if="own">
+            <ModerationNotice :moderation="post.moderation" kind="post" :compact="!full" class="mt-4" />
+
+            <template v-if="full">
+                <h2 v-if="post.title" class="post-title" dir="auto">{{ post.title }}</h2>
+                <HighlightedText v-if="verdict" :text="post.article_text" :marks="verdict.marks" class="post-content" />
+                <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown). -->
+                <div v-else class="post-content opacity-70" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
+            </template>
+            <p v-else class="mt-2 text-sm">
+                <Link :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ $t('posts.see_full') }}</Link>
+            </p>
+        </template>
+
+        <!-- Under a moderation case the server sends no text and no author to anyone else: only that it is hidden. -->
+        <p v-else-if="concealed" class="comment-deleted mt-4">
             <Link v-if="!full" :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ post.is_removed ? $t('posts.removed') : $t('posts.hidden') }}</Link>
             <template v-else>{{ post.is_removed ? $t('posts.removed') : $t('posts.hidden') }}</template>
         </p>

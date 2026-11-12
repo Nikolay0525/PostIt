@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\ReportTargetType;
 use App\Events\CommentCreated;
 use App\Models\Comment;
 use App\Repositories\Contracts\CommentRepositoryInterface;
+use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
@@ -14,12 +16,44 @@ class CommentService
     private const PER_PAGE = 20;
 
     public function __construct(
-        protected CommentRepositoryInterface $commentRepository
+        protected CommentRepositoryInterface $commentRepository,
+        protected ModerationCaseRepositoryInterface $moderationCaseRepository
     ) {}
 
     public function getPostThreads(string $postId, ?string $viewerId = null): LengthAwarePaginator
     {
         return $this->commentRepository->paginateThreadsForPost($postId, self::PER_PAGE, $viewerId);
+    }
+
+    /**
+     * Puts, on each comment of the viewer's own that a verdict took down, the case it was decided in,
+     * so that they are shown the rule, the marks and the reason. Walks the replies too; one query.
+     */
+    public function attachVerdictsForAuthor(LengthAwarePaginator $threads, string $viewerId): void
+    {
+        $own = [];
+        $walk = function ($comments) use (&$walk, &$own, $viewerId) {
+            foreach ($comments as $comment) {
+                if ($comment->user_id === $viewerId && $comment->isRemoved()) {
+                    $own[$comment->id] = $comment;
+                }
+
+                if ($comment->relationLoaded('replies')) {
+                    $walk($comment->replies);
+                }
+            }
+        };
+        $walk($threads->getCollection());
+
+        if ($own === []) {
+            return;
+        }
+
+        $cases = $this->moderationCaseRepository->findLatestForMany(ReportTargetType::Comment, array_keys($own));
+
+        foreach ($own as $id => $comment) {
+            $comment->setRelation('moderationCase', $cases->get($id));
+        }
     }
 
     /**
