@@ -3,7 +3,9 @@
 namespace Tests\Feature\Http;
 
 use App\Models\Group;
+use App\Enums\SanctionKind;
 use App\Models\GroupBan;
+use App\Models\Punishment;
 use App\Models\User;
 use Database\Seeders\LanguageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -97,43 +99,34 @@ class MembershipControllerTest extends TestCase
         $this->assertDatabaseMissing('user_group_subscriptions', ['group_id' => $group->id]);
     }
 
-    public function test_a_user_banned_from_the_group_cannot_subscribe(): void
+    // A ban closes the group's content to the member, and a subscription opens nothing: it is only
+    // their own list, so being banned neither stops them joining nor leaving.
+    public function test_a_ban_does_not_stop_a_user_subscribing(): void
     {
         $user = User::factory()->create();
         $group = Group::factory()->create(['is_private' => false]);
-        $moderator = User::factory()->create();
 
         GroupBan::create([
             'group_id' => $group->id,
             'blamed_user_id' => $user->id,
-            'moderator_id' => $moderator->id,
+            'moderator_id' => User::factory()->create()->id,
             'reason' => 'Spam',
             'expires_at' => null,
         ]);
-
-        $response = $this->actingAs($user)->postJson("/groups/{$group->id}/subscribe");
-
-        $response->assertForbidden();
-        $this->assertDatabaseMissing('user_group_subscriptions', ['group_id' => $group->id, 'user_id' => $user->id]);
-    }
-
-    public function test_an_expired_ban_does_not_block_subscribing(): void
-    {
-        $user = User::factory()->create();
-        $group = Group::factory()->create(['is_private' => false]);
-        $moderator = User::factory()->create();
-
-        GroupBan::create([
+        Punishment::create([
+            'user_id' => $user->id,
             'group_id' => $group->id,
-            'blamed_user_id' => $user->id,
-            'moderator_id' => $moderator->id,
-            'reason' => 'Spam',
-            'expires_at' => now()->subDay(),
+            'kind' => SanctionKind::Ban,
+            'step' => 1,
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->addDay(),
         ]);
 
-        $response = $this->actingAs($user)->postJson("/groups/{$group->id}/subscribe");
-
-        $response->assertOk()->assertJson(['is_member' => true]);
+        $this->actingAs($user)->postJson("/groups/{$group->id}/subscribe")
+            ->assertOk()
+            ->assertJson(['is_member' => true]);
+        $this->actingAs($user)->deleteJson("/groups/{$group->id}/subscribe")->assertOk();
+        $this->actingAs($user)->postJson("/groups/{$group->id}/subscribe")->assertOk();
     }
 
     public function test_subscribing_to_a_missing_group_is_a_404(): void

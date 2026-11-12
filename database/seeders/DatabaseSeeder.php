@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             StaticAccountsSeeder::class,
             PostSeeder::class,
             CommentSeeder::class,
+            // After the comments: its groups and posts are its own, and it needs the accounts.
+            SanctionSeeder::class,
             VoteSeeder::class,
             // Last, so these fresh posts have no votes or comments yet: they read as just posted.
             UnreadPostsSeeder::class,

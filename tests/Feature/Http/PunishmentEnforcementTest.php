@@ -89,7 +89,7 @@ class PunishmentEnforcementTest extends TestCase
         $this->actingAs($this->member)->postJson('/votes', ['target_type' => 'post', 'target_id' => $post->id, 'positive' => true])->assertForbidden();
     }
 
-    public function test_a_banned_member_cannot_contribute_and_cannot_join(): void
+    public function test_a_banned_member_cannot_contribute_but_may_still_subscribe(): void
     {
         $this->punish(SanctionKind::Ban);
         $stranger = User::factory()->create();
@@ -99,8 +99,9 @@ class PunishmentEnforcementTest extends TestCase
         $this->assertFalse($other->can('create', [Post::class, $this->group]));
         $this->assertFalse($other->can('vote', $post));
 
+        // Subscribing opens nothing, so a ban does not stop it.
         app(GroupRepositoryInterface::class)->unsubscribe($this->group->id, $other->id);
-        $this->assertFalse($other->can('subscribe', $this->group));
+        $this->assertTrue($other->can('subscribe', $this->group));
         $this->assertTrue($stranger->can('subscribe', $this->group));
     }
 
