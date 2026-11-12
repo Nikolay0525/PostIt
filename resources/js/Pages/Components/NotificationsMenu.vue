@@ -4,7 +4,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import Dropdown from '@/Pages/Components/Dropdown.vue';
 import { getJson, postJson } from '@/utils/http';
-import { timeAgo } from '@/utils/format';
+import { fullDate, timeAgo } from '@/utils/format';
 
 const page = usePage();
 
@@ -29,10 +29,30 @@ async function load() {
 
 // A notification stores ids only; the sentence is built here, in the page language.
 function text(n) {
+    // What happened to the user in a group: a strike, a mute, a ban, or the end of one.
+    if (n.group_name !== undefined) return groupText(n);
+
     if (n.post_title === null) return trans(n.post_unavailable ? 'notifications.post_unavailable' : 'notifications.post_deleted');
 
     const key = `notifications.kinds.${n.type}`;
     const sentence = trans(key, { user: n.author ?? trans('notifications.someone'), post: n.post_title });
+
+    return sentence === key ? trans('notifications.kinds.unknown') : sentence;
+}
+
+// A mute or a ban with no end is for good; the sentence differs, not just the date.
+function groupText(n) {
+    const { sanction, until, count, limit } = n.details ?? {};
+    const forever = ['group_mute', 'group_ban'].includes(n.type) && !until;
+    const key = `notifications.kinds.${n.type}${forever ? '_forever' : ''}`;
+
+    const sentence = trans(key, {
+        group: n.group_name ?? trans('notifications.a_group'),
+        sanction: sanction ? trans(`notifications.sanctions.${sanction}`) : '',
+        date: until ? fullDate(until) : '',
+        count: count ?? '',
+        limit: limit ?? '',
+    });
 
     return sentence === key ? trans('notifications.kinds.unknown') : sentence;
 }

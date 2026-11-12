@@ -18,6 +18,14 @@ interface GroupRepositoryInterface
     public function find(string $id): ?Group;
 
     /**
+     * Several groups at once by id, keyed for lookup by the caller; without the display data.
+     *
+     * @param  list<string>  $ids
+     * @return Collection<int, Group>
+     */
+    public function findMany(array $ids): Collection;
+
+    /**
      * Plain lookup by the slug used in page URLs.
      */
     public function findBySlug(string $slug): ?Group;

@@ -22,6 +22,8 @@ enum NotificationType: string
 
     case ReceivedWarning = 'received_warning';
     case WarningRemoved = 'warning_removed';
+    case GroupMute = 'group_mute';
+    case GroupUnmute = 'group_unmute';
     case GroupBan = 'group_ban';
     case GroupUnban = 'group_unban';
     case PlatformBan = 'platform_ban';
@@ -44,6 +46,8 @@ enum NotificationType: string
     {
         return match ($this) {
             self::ModeratorRoleInvite,
+            self::GroupMute,
+            self::GroupUnmute,
             self::GroupBan,
             self::GroupUnban,
             self::PlatformBan,

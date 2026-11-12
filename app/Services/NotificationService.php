@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Enums\NotificationCategory;
 use App\Enums\NotificationType;
+use App\Models\Group;
 use App\Models\Post;
 use App\Models\User;
+use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Repositories\Contracts\SanctionRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -25,6 +27,7 @@ class NotificationService
         protected UserRepositoryInterface $userRepository,
         protected PostRepositoryInterface $postRepository,
         protected SanctionRepositoryInterface $sanctionRepository,
+        protected GroupRepositoryInterface $groupRepository,
     ) {}
 
     public function unreadCount(string $userId): int
@@ -46,12 +49,16 @@ class NotificationService
         $authors = $this->userRepository
             ->findMany($notifications->pluck('data.author_id')->filter()->unique()->values()->all())
             ->keyBy('id');
+        $groups = $this->groupRepository
+            ->findMany($notifications->pluck('data.group_id')->filter()->unique()->values()->all())
+            ->keyBy('id');
         $banned = $this->sanctionRepository->bannedGroupIds($userId);
 
         return $notifications->map(fn (DatabaseNotification $n) => $this->present(
             $n,
             $posts->get($n->data['post_id'] ?? null),
             $authors->get($n->data['author_id'] ?? null),
+            $groups->get($n->data['group_id'] ?? null),
             $banned,
         ))->values()->all();
     }
@@ -71,6 +78,14 @@ class NotificationService
 
         $this->userRepository->markNotificationRead($notification);
 
+        // A notification about what happened to the user in a group leads to the group, whose page
+        // says what applies to them; one about a post leads to the post.
+        if (isset($notification->data['group_id']) && ! isset($notification->data['post_id'])) {
+            $slug = $this->groupRepository->findMany([$notification->data['group_id']])->first()?->slug;
+
+            return $slug === null ? null : route('groups.show', $slug);
+        }
+
         $postId = $notification->data['post_id'] ?? null;
         $post = $postId ? $this->postRepository->findManyWithGroup([$postId])->first() : null;
 
@@ -85,9 +100,15 @@ class NotificationService
     /**
      * @param  list<string>  $bannedGroupIds  the groups the user is banned from
      */
-    private function present(DatabaseNotification $notification, ?Post $post, ?User $author, array $bannedGroupIds): array
+    private function present(DatabaseNotification $notification, ?Post $post, ?User $author, ?Group $group, array $bannedGroupIds): array
     {
         $type = NotificationType::tryFrom($notification->type);
+
+        // What happened to the user in a group (a strike, a mute, a ban): about the group, not a post.
+        if (isset($notification->data['group_id']) && ! isset($notification->data['post_id'])) {
+            return $this->presentGroupMatter($notification, $type, $group);
+        }
+
         $postUrl = $this->postUrl($post, $bannedGroupIds);
 
         return [
@@ -102,6 +123,27 @@ class NotificationService
             'post_title' => $postUrl ? ($post->title ?: Str::words($post->article, 6)) : null,
             'post_unavailable' => $post !== null && ! $post->is_deleted && $postUrl === null,
             'has_link' => $postUrl !== null,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function presentGroupMatter(DatabaseNotification $notification, ?NotificationType $type, ?Group $group): array
+    {
+        return [
+            'id' => $notification->id,
+            'type' => $notification->type,
+            'important' => $type?->category() === NotificationCategory::Important,
+            'read' => $notification->read_at !== null,
+            'created_at' => $notification->created_at->toIso8601String(),
+            'author' => null,
+            'post_title' => null,
+            'post_unavailable' => false,
+            'group_name' => $group?->name,
+            // Plain values the text is built from; nothing here names a moderator.
+            'details' => array_intersect_key($notification->data, array_flip(['sanction', 'until', 'count', 'limit'])),
+            'has_link' => $group !== null,
         ];
     }
 

@@ -25,6 +25,11 @@ class EloquentGroupRepository implements GroupRepositoryInterface
         return Group::find($id);
     }
 
+    public function findMany(array $ids): Collection
+    {
+        return Group::whereIn('id', $ids)->get(['id', 'slug', 'name']);
+    }
+
     public function findBySlug(string $slug): ?Group
     {
         return Group::where('slug', $slug)->first();

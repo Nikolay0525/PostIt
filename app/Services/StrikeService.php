@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Enums\ModerationVerdictType;
 use App\Enums\ReportTargetType;
 use App\Enums\SanctionKind;
+use App\Events\PunishmentEnded;
 use App\Events\PunishmentGiven;
+use App\Events\StrikeGiven;
 use App\Models\Group;
 use App\Models\ModerationVerdict;
 use App\Models\Punishment;
@@ -55,12 +57,16 @@ class StrikeService
         }
 
         $punishment = null;
+        $count = 0;
+        $limit = 0;
 
-        $strike = DB::transaction(function () use ($authorId, $case, $kind, $verdict, &$punishment) {
+        $strike = DB::transaction(function () use ($authorId, $case, $kind, $verdict, &$punishment, &$count, &$limit) {
             $this->sanctionRepository->lockRecordOf($authorId);
 
-            return $this->give($authorId, $case->group_id, $kind, $verdict->id, $punishment);
+            return $this->give($authorId, $case->group_id, $kind, $verdict->id, $punishment, $count, $limit);
         });
+
+        StrikeGiven::dispatch($strike, $count, $limit);
 
         if ($punishment !== null) {
             PunishmentGiven::dispatch($punishment);
@@ -85,6 +91,8 @@ class StrikeService
                 $this->sanctionRepository->markSettled($punishment->id);
             });
 
+            PunishmentEnded::dispatch($punishment);
+
             $settled++;
         }
 
@@ -103,7 +111,7 @@ class StrikeService
         return $own === null ? $highest : max(1, min($own, $highest));
     }
 
-    private function give(string $userId, ?string $groupId, SanctionKind $kind, string $verdictId, ?Punishment &$punishment): Strike
+    private function give(string $userId, ?string $groupId, SanctionKind $kind, string $verdictId, ?Punishment &$punishment, int &$count, int &$limit): Strike
     {
         // A punishment that ended a moment ago, before the scheduled settling got to it, must not leave
         // the old strikes to count towards the next one.
@@ -124,7 +132,9 @@ class StrikeService
         $group = $groupId === null ? null : $this->groupRepository->find($groupId);
         $limit = $group === null ? (int) config('moderation.strike_limit.'.$kind->key()) : $this->limitFor($group, $kind);
 
-        if ($active + 1 >= $limit && $this->sanctionRepository->findRunningPunishment($userId, $groupId, $kind) === null) {
+        $count = $active + 1;
+
+        if ($count >= $limit && $this->sanctionRepository->findRunningPunishment($userId, $groupId, $kind) === null) {
             $punishment = $this->punish($userId, $groupId, $kind);
         }
 
