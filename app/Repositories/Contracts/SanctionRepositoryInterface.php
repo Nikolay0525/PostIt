@@ -75,6 +75,15 @@ interface SanctionRepositoryInterface
     public function finishedUnsettled(?string $userId = null): Collection;
 
     /**
+     * Strikes whose time has run out and that are still stored, the oldest first, up to $limit.
+     *
+     * @return Collection<int, Strike>
+     */
+    public function expiredStrikes(int $limit): Collection;
+
+    public function deleteStrike(string $strikeId): void;
+
+    /**
      * Deletes the strikes of this kind that were given by then: the ones the punishment ended on.
      * Those given later stay.
      */

@@ -26,6 +26,7 @@ use App\Repositories\Eloquent\EloquentPostRepository;
 use App\Repositories\Eloquent\EloquentReportRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Repositories\Eloquent\EloquentVoteRepository;
+use Illuminate\Foundation\DevCommands;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
 
@@ -102,5 +103,11 @@ class AppServiceProvider extends ServiceProvider
         // A single resource is sent as a plain object, without the `data` wrapper.
         // Paginated collections still come as { data, links, meta }.
         JsonResource::withoutWrapping();
+
+        // `php artisan dev` also runs the scheduler (routes/console.php), which in production is a cron
+        // line: without it nothing scheduled, like ending a punishment, would ever run while developing.
+        if ($this->app->runningInConsole()) {
+            DevCommands::artisan('schedule:work', 'schedule');
+        }
     }
 }

@@ -25,6 +25,7 @@ return [
         'received_warning' => 'Warning in “:group”: strike :count of :limit towards a :sanction. This one lasts until :date',
         'group_mute' => 'You are muted in “:group” until :date: you can read, but not post, comment or vote',
         'group_mute_forever' => 'You are muted in “:group” for good: you can read, but not post, comment or vote',
+        'warning_removed' => 'Your warning in “:group” has expired',
         'group_unmute' => 'Your mute in “:group” is over',
         'group_ban' => 'You are banned from “:group” until :date: its content is closed to you',
         'group_ban_forever' => 'You are banned from “:group” for good: its content is closed to you',

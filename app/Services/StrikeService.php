@@ -7,6 +7,7 @@ use App\Enums\ReportTargetType;
 use App\Enums\SanctionKind;
 use App\Events\PunishmentEnded;
 use App\Events\PunishmentGiven;
+use App\Events\StrikeExpired;
 use App\Events\StrikeGiven;
 use App\Models\Group;
 use App\Models\ModerationVerdict;
@@ -97,6 +98,29 @@ class StrikeService
         }
 
         return $settled;
+    }
+
+    /**
+     * Removes the strikes whose time has run out and tells their members. They stopped counting the
+     * moment they ran out; this only tidies up and announces it, so how soon it runs does not matter
+     * for fairness. Run it after settleFinished(): a punishment's end clears its strikes without
+     * announcing each one. Returns how many were removed.
+     */
+    public function retireExpiredStrikes(): int
+    {
+        $retired = 0;
+
+        while (($expired = $this->sanctionRepository->expiredStrikes(500))->isNotEmpty()) {
+            foreach ($expired as $strike) {
+                $this->sanctionRepository->deleteStrike($strike->id);
+
+                StrikeExpired::dispatch($strike);
+
+                $retired++;
+            }
+        }
+
+        return $retired;
     }
 
     /**

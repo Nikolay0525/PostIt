@@ -88,6 +88,16 @@ class EloquentSanctionRepository implements SanctionRepositoryInterface
             ->get();
     }
 
+    public function expiredStrikes(int $limit): Collection
+    {
+        return Strike::where('expires_at', '<=', now())->orderBy('expires_at')->limit($limit)->get();
+    }
+
+    public function deleteStrike(string $strikeId): void
+    {
+        Strike::whereKey($strikeId)->delete();
+    }
+
     public function deleteStrikesGivenUpTo(string $userId, ?string $groupId, SanctionKind $kind, CarbonInterface $until): int
     {
         return $this->scoped(Strike::query(), $userId, $groupId, $kind)->where('created_at', '<=', $until)->delete();

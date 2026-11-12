@@ -192,4 +192,73 @@ class SanctionNotificationsTest extends TestCase
         $mute = $this->author->notifications()->where('type', NotificationType::GroupMute->value)->sole();
         $this->assertNull($mute->data['until']);
     }
+
+    public function test_a_strike_that_ran_out_is_removed_and_its_member_told_once(): void
+    {
+        $this->warn();
+        $this->author->notifications()->delete();
+        $service = app(StrikeService::class);
+
+        // A day is the first strike's whole life: not out yet.
+        $this->assertSame(0, $service->retireExpiredStrikes());
+
+        $this->travel(2)->days();
+        $this->assertSame(1, $service->retireExpiredStrikes());
+        $this->assertSame(0, $service->retireExpiredStrikes());
+
+        $this->assertSame(0, \App\Models\Strike::count());
+        $notification = $this->author->notifications()->sole();
+        $this->assertSame(NotificationType::WarningRemoved->value, $notification->type);
+        $this->assertSame($this->group->id, $notification->data['group_id']);
+        $this->assertSame('mute', $notification->data['sanction']);
+    }
+
+    public function test_a_strike_still_in_force_is_left_alone(): void
+    {
+        $this->warn();
+        $this->warn();
+        $this->travel(2)->days();
+
+        $this->assertSame(1, app(StrikeService::class)->retireExpiredStrikes());
+        $this->assertSame(1, \App\Models\Strike::count());
+    }
+
+    public function test_the_end_of_a_punishment_clears_its_strikes_without_announcing_each(): void
+    {
+        $this->warn();
+        $this->warn();
+        $this->warn();
+        $this->author->notifications()->delete();
+        // The first strike has run out too, by the time the mute is over.
+        $this->travel(2)->days();
+
+        $this->artisan('moderation:settle-punishments')->assertSuccessful();
+
+        $this->assertSame([NotificationType::GroupUnmute->value], $this->types());
+    }
+
+    public function test_the_command_reports_both_steps(): void
+    {
+        $this->warn();
+        $this->travel(2)->days();
+
+        $this->artisan('moderation:settle-punishments')
+            ->expectsOutput('Settled 0 punishment(s).')
+            ->expectsOutput('Retired 1 expired strike(s).')
+            ->assertSuccessful();
+    }
+
+    public function test_the_notice_of_a_strike_running_out_is_listed_with_the_group_and_leads_to_it(): void
+    {
+        $this->warn();
+        $this->author->notifications()->delete();
+        $this->travel(2)->days();
+        app(StrikeService::class)->retireExpiredStrikes();
+
+        $this->actingAs($this->author)->getJson('/notifications')
+            ->assertJsonPath('notifications.0.type', NotificationType::WarningRemoved->value)
+            ->assertJsonPath('notifications.0.group_name', 'Cooks')
+            ->assertJsonPath('notifications.0.important', true)
+            ->assertJsonPath('notifications.0.has_link', true);
+    }
 }
