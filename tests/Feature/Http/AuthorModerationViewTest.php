@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http;
 
 use App\Enums\ModerationVerdictType;
+use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
 use App\Enums\ReportTargetType;
 use App\Enums\SanctionKind;
@@ -172,6 +173,7 @@ class AuthorModerationViewTest extends TestCase
             ->assertJsonPath('notifications.0.post_title', 'My own title')
             ->assertJsonPath('notifications.0.has_link', true)
             ->assertJsonPath('notifications.0.details.target', 'post')
+            ->assertJsonPath('notifications.0.important', true)
             ->assertJsonPath('notifications.0.post_unavailable', false);
 
         $this->actingAs($this->author)->post("/notifications/{$notification->id}/open")
@@ -268,5 +270,16 @@ class AuthorModerationViewTest extends TestCase
         $this->show($this->author)->assertInertia(fn (AssertableInertia $page) => $page
             ->where('comments.data.0.moderation', null)
             ->where('comments.data.0.text', ''));
+    }
+
+    public function test_it_cannot_be_turned_off_only_silenced(): void
+    {
+        $this->author->settings->update(['notification_preferences' => [
+            NotificationType::ContentHidden->value => NotificationStatus::Disabled->value,
+        ]]);
+
+        $this->openCase();
+
+        $this->assertTrue($this->author->notifications()->sole()->data['silent']);
     }
 }

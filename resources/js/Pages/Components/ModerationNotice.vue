@@ -10,6 +10,9 @@ const props = defineProps({
     moderation: { type: Object, required: true },
     kind: { type: String, default: 'post' },
     compact: Boolean,
+    // Only the rule, what it leads to and the reason: for a place that already says what happened, such as
+    // the opened-out header of a comment.
+    detailsOnly: Boolean,
 });
 
 const verdict = computed(() => props.moderation.verdict ?? null);
@@ -17,11 +20,11 @@ const removedKey = computed(() => (verdict.value?.type === 'warning' ? 'warned' 
 </script>
 
 <template>
-    <div class="moderation-notice" role="status">
-        <p v-if="moderation.state === 'pending'">{{ $t(`moderation.author.pending.${kind}`) }}</p>
+    <div :class="detailsOnly ? 'flex flex-col gap-1' : 'moderation-notice'" role="status">
+        <p v-if="moderation.state === 'pending'">{{ detailsOnly ? '' : $t(`moderation.author.pending.${kind}`) }}</p>
 
         <template v-else>
-            <p class="font-medium">{{ $t(`moderation.author.${removedKey}.${kind}`) }}</p>
+            <p v-if="!detailsOnly" class="font-medium">{{ $t(`moderation.author.${removedKey}.${kind}`) }}</p>
 
             <template v-if="verdict && !compact">
                 <p v-if="verdict.rule" dir="auto">

@@ -70,11 +70,8 @@ onBeforeUnmount(() => untrackSeen(card.value));
                 <h2 v-if="post.title" class="post-title" dir="auto">{{ post.title }}</h2>
                 <HighlightedText v-if="verdict" :text="post.article_text" :marks="verdict.marks" class="post-content" />
                 <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown). -->
-                <div v-else class="post-content opacity-70" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
+                <div v-else class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
             </template>
-            <p v-else class="mt-2 text-sm">
-                <Link :href="route('posts.show', [post.group.slug, post.slug])" class="post-link">{{ $t('posts.see_full') }}</Link>
-            </p>
         </template>
 
         <!-- Under a moderation case the server sends no text and no author to anyone else: only that it is hidden. -->
@@ -99,8 +96,12 @@ onBeforeUnmount(() => untrackSeen(card.value));
             </p>
         </template>
 
-        <footer v-if="!post.is_hidden" class="post-footer">
+        <!-- Its own author keeps the comments and copies counters of a hidden or removed post, read only: no
+             score, no copying the link, no menu. Everyone else sees no footer at all. -->
+        <footer v-if="!concealed" class="post-footer">
+            <!-- A hidden or removed post is not voted on, so its author sees no score either. -->
             <VoteButtons
+                v-if="!own"
                 target-type="post"
                 :target-id="post.id"
                 :author-id="post.author.id"
@@ -130,14 +131,22 @@ onBeforeUnmount(() => untrackSeen(card.value));
                 />
             </svg> {{ post.comments_count }}</Link>
 
+            <span v-if="own" class="post-stat">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z" />
+                    <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z" />
+                </svg>
+                {{ post.shares_count }}
+            </span>
             <ShareButton
+                v-else
                 :post-id="post.id"
                 :url="route('posts.show', [post.group.slug, post.slug])"
                 :count="post.shares_count"
             />
 
             <!-- What can be done with the post: its author edits it, anyone else (a guest has no menu) reports it. -->
-            <ContentMenu v-if="page.props.auth.user">
+            <ContentMenu v-if="page.props.auth.user && !own">
                 <template #default="{ close }">
                     <Link v-if="post.can_edit" :href="route('posts.edit', [post.group.slug, post.slug])" class="menu-item" @click="close">{{ $t('posts.edit.link') }}</Link>
                     <button v-else type="button" class="menu-item" @click="close(); reporting = true">{{ $t('reports.menu') }}</button>

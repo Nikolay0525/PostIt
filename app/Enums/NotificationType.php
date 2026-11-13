@@ -47,6 +47,7 @@ enum NotificationType: string
     {
         return match ($this) {
             self::ModeratorRoleInvite,
+            self::ContentHidden,
             self::GroupMute,
             self::GroupUnmute,
             self::GroupBan,

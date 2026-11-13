@@ -22,6 +22,16 @@ const page = usePage();
 // A removed comment is shown to its own author with the marked places picked out of their text.
 const verdict = computed(() => (props.comment.moderation?.state === 'removed' ? props.comment.moderation.verdict : null));
 
+// Its author's own moderated comment is a one-line banner until they open it out into the full version.
+const opened = ref(false);
+const summaryKey = computed(() => {
+    const moderation = props.comment.moderation;
+
+    if (moderation?.state === 'pending') return 'moderation.author.collapsed.pending';
+
+    return `moderation.author.collapsed.${verdict.value?.type === 'warning' ? 'warned' : 'removed'}`;
+});
+
 const showLoginPrompt = ref(false);
 const reporting = ref(false);
 // The group of the post the comments are under: Posts/Show provides it.
@@ -126,15 +136,43 @@ const saveEdit = async () => {
             <p v-if="comment.is_deleted" class="comment-deleted">{{ $t('comments.deleted') }}</p>
             <!-- Its own author's: their text, where it stands, and why; nobody else gets any of it. -->
             <template v-else-if="comment.moderation">
+                <!-- Always in view, above the banner that opens out: who wrote it, and when. -->
                 <p class="post-meta-text flex items-center gap-2">
                     <UserAvatar :url="comment.author.avatar_url" :username="comment.author.username" class="avatar-sm" />
                     <span class="font-medium text-ink" dir="auto">{{ comment.author.username }}</span>
                     <span aria-hidden="true"> · </span>
                     <time :datetime="comment.created_at">{{ timeAgo(comment.created_at) }}</time>
                 </p>
-                <ModerationNotice :moderation="comment.moderation" kind="comment" class="mt-2" />
-                <HighlightedText v-if="verdict" :text="comment.text" :marks="verdict.marks" class="post-body mt-2 text-ink" />
-                <p v-else class="post-body mt-2 text-ink opacity-70" dir="auto">{{ comment.text }}</p>
+
+                <div class="moderation-notice mt-2">
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between gap-3 text-start"
+                        :aria-expanded="opened"
+                        @click="opened = !opened"
+                    >
+                        <span class="font-medium">{{ $t(`${summaryKey}.comment`) }}</span>
+                        <svg
+                            class="h-4 w-4 shrink-0 transition-transform"
+                            :class="{ 'rotate-180': opened }"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            aria-hidden="true"
+                        >
+                            <path d="m3.5 6 4.5 4.5L12.5 6" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+
+                    <!-- What the verdict said: only once the comment is opened out, and only if it is one. -->
+                    <ModerationNotice v-if="opened && verdict" :moderation="comment.moderation" kind="comment" details-only class="mt-1" />
+                </div>
+
+                <template v-if="opened">
+                    <HighlightedText v-if="verdict" :text="comment.text" :marks="verdict.marks" class="post-body mt-2 text-ink" />
+                    <p v-else class="post-body mt-2 text-ink" dir="auto">{{ comment.text }}</p>
+                </template>
             </template>
             <!-- Under a moderation case: no text and no author from the server, but the replies stay. -->
             <p v-else-if="comment.is_hidden" class="comment-deleted">{{ comment.is_removed ? $t('comments.removed') : $t('comments.hidden') }}</p>

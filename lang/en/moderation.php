@@ -33,6 +33,17 @@ return [
             'post' => 'The moderators removed your post and gave you a warning.',
             'comment' => 'The moderators removed your comment and gave you a warning.',
         ],
+        'collapsed' => [
+            'pending' => [
+                'comment' => 'Your comment is hidden: the moderators have not decided yet',
+            ],
+            'removed' => [
+                'comment' => 'Your comment was removed',
+            ],
+            'warned' => [
+                'comment' => 'Your comment was removed, and you got a warning',
+            ],
+        ],
         'rule' => 'Rule :number: “:text”.',
         'rule_kind' => [
             'mute' => 'Breaking it counts towards a mute.',

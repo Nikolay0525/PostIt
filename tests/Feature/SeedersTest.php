@@ -56,7 +56,10 @@ class SeedersTest extends TestCase
         }
 
         // One in each of the main groups. The demo ones (SanctionSeeder) have none waiting: their cases are decided.
-        $this->assertSame(Group::where('slug', 'not like', 'demo-%')->count(), Post::whereNotNull('hidden_at')->count());
+        $this->assertSame(
+            Group::where('slug', 'not like', 'demo-%')->count(),
+            Post::whereNotNull('hidden_at')->whereIn('group_id', Group::where('slug', 'not like', 'demo-%')->pluck('id'))->count()
+        );
     }
 
     public function test_the_static_user_owns_one_group_and_moderates_two_and_every_group_keeps_one_owner(): void
@@ -97,7 +100,8 @@ class SeedersTest extends TestCase
         foreach (['received_warning', 'group_mute', 'group_ban'] as $type) {
             $this->assertContains($type, $types);
         }
-        $this->assertSame(0, Post::where('user_id', $user->id)->whereNotNull('hidden_at')->whereIn('group_id', Group::where('slug', 'like', 'demo-%')->pluck('id'))->count());
+        // Hidden in the demo groups only where a case is still open: the one waiting post (see the showcase test).
+        $this->assertSame(1, Post::where('user_id', $user->id)->whereNotNull('hidden_at')->whereIn('group_id', Group::where('slug', 'like', 'demo-%')->pluck('id'))->count());
         $this->assertGreaterThan(0, Post::where('user_id', $user->id)->whereNotNull('removed_at')->count());
     }
 
@@ -123,5 +127,38 @@ class SeedersTest extends TestCase
         $this->seed(\Database\Seeders\SanctionSeeder::class);
 
         $this->assertSame($strikes, Strike::where('user_id', $user->id)->count());
+    }
+
+    public function test_the_regular_account_has_moderated_posts_and_comments_of_its_own_to_look_at(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $user = User::where('email', 'user@gmail.com')->first();
+        $group = Group::where('slug', 'demo-warned')->first();
+
+        // Waiting for a decision: hidden, with its case still open, and the account was told.
+        $waiting = Post::where('user_id', $user->id)->where('group_id', $group->id)->whereNotNull('hidden_at')->sole();
+        $this->assertSame(ModerationCaseStatus::Open, ModerationCase::where('target_id', $waiting->id)->sole()->status);
+        $this->assertTrue($user->notifications()->where('type', 'content_hidden')->exists());
+
+        // Taken down, with the verdict and two marked places; and comments, one waiting, two removed.
+        $removed = Post::where('user_id', $user->id)->where('title', 'Why your recipe is wrong')->sole();
+        $this->assertNotNull($removed->removed_at);
+        $verdict = ModerationCase::where('target_id', $removed->id)->sole()->verdict;
+        $this->assertCount(2, $verdict->marks);
+
+        // Only in this group's threads: CommentSeeder hides some comments at random elsewhere.
+        $inGroup = Comment::where('user_id', $user->id)->whereIn('post_id', Post::where('group_id', $group->id)->pluck('id'));
+        $this->assertSame(1, (clone $inGroup)->whereNotNull('hidden_at')->count());
+        $this->assertSame(2, (clone $inGroup)->whereNotNull('removed_at')->count());
+
+        // None of it is a strike: the "warned" group still has just the two.
+        $this->assertSame(2, Strike::where('user_id', $user->id)->where('group_id', $group->id)->count());
+
+        // And what the account sees of the removed post is the verdict, and nothing of who decided.
+        $this->actingAs($user)->get(route('posts.show', [$group->slug, $removed->slug]))
+            ->assertInertia(fn ($page) => $page
+                ->where('post.moderation.state', 'removed')
+                ->where('post.moderation.verdict.type', 'remove')
+                ->where('post.moderation.verdict.rule.kind', 'mute'));
     }
 }
