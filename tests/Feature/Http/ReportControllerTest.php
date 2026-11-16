@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Http;
 
-use App\Enums\ReportStatus;
 use App\Enums\ReportTargetType;
 use App\Http\Requests\StoreReportRequest;
 use App\Models\Comment;
@@ -48,7 +47,6 @@ class ReportControllerTest extends TestCase
         $this->assertSame($post->id, $report->target_id);
         $this->assertSame($post->group_id, $report->group_id);
         $this->assertSame('Spam', $report->text);
-        $this->assertSame(ReportStatus::Pending, $report->status);
         $this->assertSame(1, $this->reportsSent($reporter));
     }
 

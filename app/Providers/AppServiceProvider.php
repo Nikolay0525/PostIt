@@ -8,6 +8,7 @@ use App\Repositories\Contracts\AchievementRepositoryInterface;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\AppealRepositoryInterface;
 use App\Repositories\Contracts\GroupRepositoryInterface;
+use App\Repositories\Contracts\PlatformRuleRepositoryInterface;
 use App\Repositories\Contracts\ImageRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
@@ -20,6 +21,7 @@ use App\Repositories\Eloquent\EloquentAchievementRepository;
 use App\Repositories\Eloquent\EloquentCommentRepository;
 use App\Repositories\Eloquent\EloquentAppealRepository;
 use App\Repositories\Eloquent\EloquentGroupRepository;
+use App\Repositories\Eloquent\EloquentPlatformRuleRepository;
 use App\Repositories\Eloquent\EloquentImageRepository;
 use App\Repositories\Eloquent\EloquentLanguageRepository;
 use App\Repositories\Eloquent\EloquentModerationCaseRepository;
@@ -97,6 +99,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             AppealRepositoryInterface::class,
             EloquentAppealRepository::class
+        );
+
+        $this->app->bind(
+            PlatformRuleRepositoryInterface::class,
+            EloquentPlatformRuleRepository::class
         );
     }
 

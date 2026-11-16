@@ -2,7 +2,6 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\Enums\ReportStatus;
 use App\Enums\ReportTargetType;
 use App\Models\Report;
 use App\Repositories\Contracts\ReportRepositoryInterface;
@@ -57,7 +56,6 @@ class EloquentReportRepository implements ReportRepositoryInterface
             'rule_index' => $ruleIndex,
             'breaks_platform_rules' => $breaksPlatformRules,
             'text' => $text,
-            'status' => ReportStatus::Pending,
         ]);
     }
 }

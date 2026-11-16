@@ -28,7 +28,9 @@ class StoreVerdictRequest extends FormRequest
         // "No violation" punishes nobody: it names no rule, marks nothing and needs no reason, so what
         // a form still sends for those is dropped rather than refused.
         return [
-            'type' => ['required', Rule::in(['no_violation', 'remove', 'warning'])],
+            // pass_up is not a verdict, but it is decided in the same form: the case goes to the platform's
+            // administrators. Its rule_index is then a rule of the platform's, not the group's.
+            'type' => ['required', Rule::in(['no_violation', 'remove', 'warning', 'pass_up'])],
             'rule_index' => ['exclude_if:type,no_violation', 'required', 'integer', 'min:0'],
             'marks' => ['exclude_if:type,no_violation', 'required', 'array', 'min:1', 'max:'.self::MAX_MARKS],
             // Where the mark is: a post's title or its body; a comment has only a body. Left out, the body.

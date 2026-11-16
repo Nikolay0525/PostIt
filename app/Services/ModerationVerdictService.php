@@ -5,11 +5,14 @@ namespace App\Services;
 use App\Enums\ModerationCaseStatus;
 use App\Enums\ModerationVerdictType;
 use App\Enums\ReportTargetType;
+use App\Events\ModerationCasePassedUp;
 use App\Events\ModerationVerdictGiven;
 use App\Models\ModerationCase;
+use App\Models\ModerationPassUp;
 use App\Models\ModerationVerdict;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
+use App\Repositories\Contracts\PlatformRuleRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
 use App\Support\Concerns\RendersMarkdown;
 use DomainException;
@@ -24,7 +27,8 @@ class ModerationVerdictService
     public function __construct(
         protected ModerationCaseRepositoryInterface $caseRepository,
         protected PostRepositoryInterface $postRepository,
-        protected CommentRepositoryInterface $commentRepository
+        protected CommentRepositoryInterface $commentRepository,
+        protected PlatformRuleRepositoryInterface $platformRuleRepository
     ) {}
 
     /**
@@ -88,6 +92,51 @@ class ModerationVerdictService
         return $verdict;
     }
 
+    /**
+     * Passes the case up to the platform's administrators: for content that breaks the platform's rules,
+     * which a moderator does not punish for. Not a verdict — the case leaves the group's queue and its
+     * verdict will be an administrator's — but it carries the same hint a verdict would: the platform
+     * rule (an index in the platform's rules in force), where it is broken, and why. The content stays
+     * hidden meanwhile.
+     *
+     * @param  list<array{field?: string, start: int, end: int, quote: string}>  $marks
+     *
+     * @throws InvalidArgumentException when the hint is incomplete
+     * @throws DomainException when the case is not open any more, or was just decided or passed up
+     */
+    public function passUp(ModerationCase $case, string $moderatorId, ?int $ruleIndex, ?array $marks, ?string $reason): ModerationPassUp
+    {
+        if ($case->status !== ModerationCaseStatus::Open) {
+            throw new DomainException('The case is not open.');
+        }
+
+        $platformRules = $this->platformRuleRepository->current();
+
+        if ($ruleIndex === null || ! isset($platformRules?->rules[$ruleIndex])) {
+            throw new InvalidArgumentException('A case is passed up under a rule of the platform.');
+        }
+
+        $reason = trim((string) $reason);
+        $this->assertMarksAndReason($case, $marks, $reason);
+
+        try {
+            $passUp = DB::transaction(fn () => $this->caseRepository->passUp(
+                $case->id,
+                $moderatorId,
+                $platformRules->id,
+                $ruleIndex,
+                $this->cleanMarks($marks),
+                $reason,
+            ));
+        } catch (UniqueConstraintViolationException) {
+            throw new DomainException('The case was passed up already.');
+        }
+
+        ModerationCasePassedUp::dispatch($passUp);
+
+        return $passUp;
+    }
+
     private function assertComplete(ModerationCase $case, ?int $ruleIndex, ?array $marks, ?string $reason): void
     {
         $rules = $case->ruleVersion?->rules ?? [];
@@ -96,6 +145,15 @@ class ModerationVerdictService
             throw new InvalidArgumentException('A verdict that punishes must name a rule of the group.');
         }
 
+        $this->assertMarksAndReason($case, $marks, $reason);
+    }
+
+    /**
+     * What a punishing verdict and a pass-up both need: the places marked, each quoting the part of the
+     * content it says it is in, and the moderator's reason.
+     */
+    private function assertMarksAndReason(ModerationCase $case, ?array $marks, ?string $reason): void
+    {
         if ($marks === null || $marks === []) {
             throw new InvalidArgumentException('A verdict that punishes must mark where the rule was broken.');
         }

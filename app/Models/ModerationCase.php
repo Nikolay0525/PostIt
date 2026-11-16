@@ -46,6 +46,12 @@ class ModerationCase extends BaseEntity
         return $this->hasMany(Report::class, 'moderation_case_id');
     }
 
+    // The moderator's hand-over to the administrators, if it was passed up.
+    public function passUp(): HasOne
+    {
+        return $this->hasOne(ModerationPassUp::class, 'moderation_case_id');
+    }
+
     public function verdict(): HasOne
     {
         return $this->hasOne(ModerationVerdict::class, 'moderation_case_id');

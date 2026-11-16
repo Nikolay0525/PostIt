@@ -7,6 +7,7 @@ use App\Enums\ModerationVerdictType;
 use App\Enums\ReportTargetType;
 use App\Models\Comment;
 use App\Models\ModerationCase;
+use App\Models\ModerationPassUp;
 use App\Models\ModerationVerdict;
 use App\Models\Post;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
@@ -52,6 +53,28 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
             'marks' => $marks,
             'reason' => $reason,
         ]);
+    }
+
+    public function passUp(
+        string $caseId,
+        string $moderatorId,
+        ?string $platformRuleVersionId,
+        int $ruleIndex,
+        array $marks,
+        string $reason,
+    ): ModerationPassUp {
+        $passUp = ModerationPassUp::create([
+            'moderation_case_id' => $caseId,
+            'passed_up_by' => $moderatorId,
+            'platform_rule_version_id' => $platformRuleVersionId,
+            'rule_index' => $ruleIndex,
+            'marks' => $marks,
+            'reason' => $reason,
+        ]);
+
+        ModerationCase::whereKey($caseId)->update(['status' => ModerationCaseStatus::PassedUp]);
+
+        return $passUp;
     }
 
     public function close(string $caseId): void

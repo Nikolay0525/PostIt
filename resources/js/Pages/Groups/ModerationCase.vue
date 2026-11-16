@@ -23,14 +23,25 @@ const props = defineProps({
     rules: Array,
     // The rule most reports named, to start with; the moderator decides.
     suggested_rule: { type: Number, default: null },
+    // The platform's rules in force, for passing the case up under one: [{ index, text, kind }].
+    platform_rules: { type: Array, default: () => [] },
 });
 
 const membership = useGroupMembership(props);
 
 const REASON_MAX_LENGTH = 1000;
-const TYPES = ['no_violation', 'remove', 'warning'];
+// The last is not a verdict: the case goes to the platform's administrators. It is chosen here all the same.
+const TYPES = ['no_violation', 'remove', 'warning', 'pass_up'];
 
-// Without rules nothing can be punished: a case can only be closed as "no violation".
+// Removing and warning name a rule of the group, passing up one of the platform's: without such rules,
+// that choice is not there. "No violation" always is.
+const isAvailable = (type) => {
+    if (type === 'pass_up') return props.platform_rules.length > 0;
+
+    return type === 'no_violation' || props.rules.length > 0;
+};
+
+// Without group rules nothing can be punished here: the case can be closed as "no violation", or passed up.
 const form = useForm({
     type: props.rules.length ? 'remove' : 'no_violation',
     rule_index: props.suggested_rule ?? props.rules[0]?.index ?? null,
@@ -38,8 +49,18 @@ const form = useForm({
     reason: '',
 });
 
-const punishes = computed(() => form.type !== 'no_violation');
-const chosenRule = computed(() => props.rules.find((rule) => rule.index === form.rule_index) ?? null);
+// Everything but "no violation" names a rule, marks the places and gives a reason.
+const needsGrounds = computed(() => form.type !== 'no_violation');
+const passingUp = computed(() => form.type === 'pass_up');
+const activeRules = computed(() => (passingUp.value ? props.platform_rules : props.rules));
+const chosenRule = computed(() => activeRules.value.find((rule) => rule.index === form.rule_index) ?? null);
+
+// Switching between the group's rules and the platform's: the chosen rule is one of the new list.
+watch(passingUp, (up) => {
+    form.rule_index = up
+        ? props.platform_rules[0]?.index ?? null
+        : props.suggested_rule ?? props.rules[0]?.index ?? null;
+});
 
 // Marking happens in the judged text itself, as a translator's pop-up does: select words in it and a
 // small "Mark" button appears over them; click a marked place and one appears to take it off. Only
@@ -89,7 +110,7 @@ const onSelectionEnd = (event) => {
     // A press on the floating button itself: leave it be, or it would be gone before its click lands.
     if (event.target instanceof Element && event.target.closest('.mark-popover')) return;
 
-    if (!punishes.value || !markable().length) {
+    if (!needsGrounds.value || !markable().length) {
         popover.value = null;
         return;
     }
@@ -131,7 +152,7 @@ onBeforeUnmount(() => {
     window.removeEventListener('scroll', hidePopover, true);
 });
 
-watch(punishes, (can) => {
+watch(needsGrounds, (can) => {
     if (!can) popover.value = null;
 });
 
@@ -180,14 +201,14 @@ const submit = () => {
                     <legend class="settings-heading">{{ $t('moderation.verdict.title') }}</legend>
 
                     <div v-for="type in TYPES" :key="type">
-                        <label class="settings-toggle" :class="{ 'is-disabled': type !== 'no_violation' && !rules.length }">
+                        <label class="settings-toggle" :class="{ 'is-disabled': !isAvailable(type) }">
                             <input
                                 v-model="form.type"
                                 type="radio"
                                 name="verdict-type"
                                 class="checkbox-input mt-0.5 rounded-full"
                                 :value="type"
-                                :disabled="type !== 'no_violation' && !rules.length"
+                                :disabled="!isAvailable(type)"
                             />
                             <span>
                                 <span class="block text-sm font-medium text-ink">{{ $t(`moderation.verdict.types.${type}`) }}</span>
@@ -199,16 +220,16 @@ const submit = () => {
                     <p v-if="form.errors.type" class="field-error">{{ form.errors.type }}</p>
                 </fieldset>
 
-                <fieldset v-if="punishes" class="settings-section">
+                <fieldset v-if="needsGrounds" class="settings-section">
                     <legend class="settings-heading">{{ $t('moderation.verdict.grounds') }}</legend>
 
                     <div>
-                        <label class="field-label" for="verdict-rule">{{ $t('moderation.verdict.rule') }}</label>
+                        <label class="field-label" for="verdict-rule">{{ passingUp ? $t('moderation.verdict.platform_rule') : $t('moderation.verdict.rule') }}</label>
                         <select id="verdict-rule" v-model.number="form.rule_index" class="field-input" :class="{ 'has-error': form.errors.rule_index }">
-                            <option v-for="rule in rules" :key="rule.index" :value="rule.index">{{ rule.index + 1 }}. {{ rule.text }}</option>
+                            <option v-for="rule in activeRules" :key="rule.index" :value="rule.index">{{ rule.index + 1 }}. {{ rule.text }}</option>
                         </select>
                         <!-- What breaking it gives, if the verdict is a warning: fixed by the rule, not chosen here. -->
-                        <p v-if="chosenRule" class="field-hint">{{ $t(`moderation.verdict.rule_kind.${chosenRule.kind}`) }}</p>
+                        <p v-if="chosenRule && !passingUp" class="field-hint">{{ $t(`moderation.verdict.rule_kind.${chosenRule.kind}`) }}</p>
                         <p v-if="form.errors.rule_index" class="field-error">{{ form.errors.rule_index }}</p>
                     </div>
 

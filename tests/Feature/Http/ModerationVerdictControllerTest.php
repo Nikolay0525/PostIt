@@ -237,4 +237,75 @@ class ModerationVerdictControllerTest extends TestCase
             ]))
             ->assertSessionHasErrors('marks');
     }
+
+    private function passUp(array $override = []): array
+    {
+        return $this->warning(['type' => 'pass_up', 'rule_index' => 0, ...$override]);
+    }
+
+    public function test_passing_up_hands_the_case_to_the_administrators_without_a_verdict(): void
+    {
+        $this->verdict($this->passUp())
+            ->assertRedirect(route('groups.moderation', $this->group->slug))
+            ->assertSessionHas('status', 'case-passed-up');
+
+        $case = $this->case->fresh();
+        $this->assertSame(ModerationCaseStatus::PassedUp, $case->status);
+        $this->assertSame(0, ModerationVerdict::count());
+
+        $passUp = $case->passUp;
+        $this->assertSame($this->moderator->id, $passUp->passed_up_by);
+        $this->assertSame(\App\Models\PlatformRuleVersion::sole()->id, $passUp->platform_rule_version_id);
+        $this->assertSame(0, $passUp->rule_index);
+        $this->assertSame('complete idiot', $passUp->marks[0]['quote']);
+        $this->assertSame('An insult instead of an argument.', $passUp->reason);
+        $this->assertArrayNotHasKey('passed_up_by', $passUp->toArray());
+
+        // Nobody is punished, and the content stays hidden.
+        $this->assertTrue($this->post->fresh()->isHidden());
+        $this->assertSame(0, Strike::count());
+    }
+
+    public function test_a_passed_up_case_leaves_the_groups_queue_and_cannot_be_decided_there(): void
+    {
+        $this->verdict($this->passUp());
+
+        $this->assertSame(0, app(ModerationCaseRepositoryInterface::class)->openInGroup($this->group->id, 10)->total());
+        $this->actingAs($this->moderator)->get(route('groups.moderation.case', [$this->group->slug, $this->case->id]))->assertNotFound();
+        $this->verdict($this->warning())->assertNotFound();
+    }
+
+    public function test_it_is_passed_up_under_a_rule_of_the_platform_with_marks_and_a_reason(): void
+    {
+        $this->verdict($this->passUp(['rule_index' => 5]))->assertSessionHasErrors('rule_index');
+        $this->verdict($this->passUp(['marks' => []]))->assertSessionHasErrors('marks');
+        $this->verdict($this->passUp(['reason' => '']))->assertSessionHasErrors('reason');
+
+        $this->assertSame(ModerationCaseStatus::Open, $this->case->fresh()->status);
+    }
+
+    public function test_a_group_without_rules_can_still_pass_a_case_up(): void
+    {
+        $bare = Group::factory()->create();
+        app(GroupRepositoryInterface::class)->addModerator($bare->id, $this->moderator->id, GroupModeratorRole::Moderator);
+        $post = Post::factory()->hidden()->create(['group_id' => $bare->id, 'article' => 'You are a complete idiot']);
+        $case = app(ModerationCaseRepositoryInterface::class)->open($bare->id, ReportTargetType::Post, $post->id);
+
+        $this->actingAs($this->moderator)
+            ->post(route('groups.moderation.verdict', [$bare->slug, $case->id]), $this->passUp([
+                'marks' => [['start' => 10, 'end' => 24, 'quote' => 'complete idiot']],
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(ModerationCaseStatus::PassedUp, $case->fresh()->status);
+    }
+
+    public function test_the_page_offers_the_platforms_rules_in_the_readers_language(): void
+    {
+        $this->actingAs($this->moderator)->get(route('groups.moderation.case', [$this->group->slug, $this->case->id]))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('platform_rules', 1)
+                ->where('platform_rules.0.kind', 'ban')
+                ->where('platform_rules.0.text', fn (string $text) => str_starts_with($text, app()->getLocale() === 'uk' ? 'Заборонений вміст' : 'Forbidden content')));
+    }
 }

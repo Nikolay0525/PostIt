@@ -11,6 +11,7 @@ use App\Http\Resources\ModerationCaseListItemResource;
 use App\Http\Resources\ModerationCaseResource;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
+use App\Repositories\Contracts\PlatformRuleRepositoryInterface;
 use App\Services\GroupService;
 use App\Services\ModerationContextService;
 use App\Services\ModerationVerdictService;
@@ -33,7 +34,8 @@ class ModerationController extends Controller
         protected GroupRepositoryInterface $groupRepository,
         protected ModerationCaseRepositoryInterface $moderationCaseRepository,
         protected ModerationContextService $moderationContextService,
-        protected ModerationVerdictService $moderationVerdictService
+        protected ModerationVerdictService $moderationVerdictService,
+        protected PlatformRuleRepositoryInterface $platformRuleRepository
     ) {}
 
     // What the group's moderators did, newest first. Open to everyone, a guest included; nothing is
@@ -98,6 +100,8 @@ class ModerationController extends Controller
             'rules' => $this->rulesOf($case),
             // The one most of the reports named, to start the form with; the moderator decides.
             'suggested_rule' => $this->suggestedRule($case),
+            // The platform's rules in force, for passing the case up under one of them.
+            'platform_rules' => $this->platformRules(),
         ]);
     }
 
@@ -109,8 +113,13 @@ class ModerationController extends Controller
         $this->authorize('moderate', $group);
 
         $case = $this->openCaseOf($group, $caseId);
-        $type = ModerationVerdictType::fromKey($request->validated('type'));
         $ruleIndex = $request->validated('rule_index');
+
+        if ($request->validated('type') === 'pass_up') {
+            return $this->passUp($request, $group, $case, $ruleIndex);
+        }
+
+        $type = ModerationVerdictType::fromKey($request->validated('type'));
 
         if ($type->punishes() && ! isset($case->ruleVersion?->rules[$ruleIndex])) {
             throw ValidationException::withMessages(['rule_index' => __('moderation.verdict.unknown_rule')]);
@@ -133,6 +142,41 @@ class ModerationController extends Controller
         }
 
         return redirect()->route('groups.moderation', $group->slug)->with('status', 'verdict-given');
+    }
+
+    // Not a verdict: the case goes to the platform's administrators, with the moderator's hint.
+    private function passUp(StoreVerdictRequest $request, Group $group, ModerationCase $case, ?int $ruleIndex): RedirectResponse
+    {
+        if (! isset($this->platformRuleRepository->current()?->rules[$ruleIndex])) {
+            throw ValidationException::withMessages(['rule_index' => __('moderation.verdict.unknown_rule')]);
+        }
+
+        try {
+            $this->moderationVerdictService->passUp($case, $request->user()->id, $ruleIndex, $request->validated('marks'), $request->validated('reason'));
+        } catch (InvalidArgumentException) {
+            throw ValidationException::withMessages(['marks' => __('moderation.verdict.invalid')]);
+        } catch (DomainException) {
+            return redirect()->route('groups.moderation', $group->slug)->with('status', 'case-already-decided');
+        }
+
+        return redirect()->route('groups.moderation', $group->slug)->with('status', 'case-passed-up');
+    }
+
+    /**
+     * @return list<array{index: int, text: string, kind: string}>
+     */
+    private function platformRules(): array
+    {
+        $version = $this->platformRuleRepository->current();
+
+        if ($version === null) {
+            return [];
+        }
+
+        return collect($version->rules)
+            ->map(fn (array $rule, int $index) => ['index' => $index, 'text' => $version->textOfRule($index), 'kind' => $version->kindOfRule($index)->key()])
+            ->values()
+            ->all();
     }
 
     // A case of another group is "not found" here, not "forbidden": a moderator must not be able to

@@ -31,6 +31,7 @@ const page = usePage();
         <PageHeader :title="$t('moderation.title')" tight />
 
         <p v-if="page.props.status === 'verdict-given'" class="settings-status" role="status">{{ $t('moderation.verdict.given') }}</p>
+        <p v-else-if="page.props.status === 'case-passed-up'" class="settings-status" role="status">{{ $t('moderation.verdict.passed_up') }}</p>
         <p v-else-if="page.props.status === 'case-already-decided'" class="settings-status" role="status">{{ $t('moderation.verdict.already') }}</p>
 
         <p v-if="!cases.data.length" class="text-sm text-muted">{{ $t('moderation.none') }}</p>

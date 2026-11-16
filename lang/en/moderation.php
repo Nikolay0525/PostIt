@@ -87,14 +87,17 @@ return [
             'no_violation' => 'No violation',
             'remove' => 'Remove',
             'warning' => 'Warning',
+            'pass_up' => 'Pass up',
         ],
         'type_hints' => [
             'no_violation' => 'The content is shown again, and nobody is punished.',
             'remove' => 'The content is removed, and nothing more happens to its author.',
             'warning' => 'The content is removed, and its author gets a strike.',
+            'pass_up' => 'It breaks the platform\'s rules, not the group\'s: the case goes to the administrators, and the content stays hidden. You punish nobody.',
         ],
-        'no_rules' => 'The group has no rules, so nothing here can be punished: the case can only be closed as "no violation".',
+        'no_rules' => 'The group has no rules, so nothing here can be punished: the case can be closed as "no violation", or passed up if it breaks the platform\'s rules.',
         'rule' => 'The rule that was broken',
+        'platform_rule' => 'The platform\'s rule that was broken',
         'rule_kind' => [
             'mute' => 'A warning under it is a strike towards a mute.',
             'ban' => 'A warning under it is a strike towards a ban.',
@@ -112,6 +115,7 @@ return [
         'unknown_rule' => 'The group has no such rule.',
         'invalid' => 'The verdict is not complete: check that the marked words are in the text.',
         'given' => 'The verdict was given.',
+        'passed_up' => 'The case was passed up to the administrators.',
         'already' => 'Another moderator decided that case first.',
     ],
     'log' => [

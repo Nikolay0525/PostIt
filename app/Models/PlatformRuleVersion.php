@@ -18,6 +18,21 @@ class PlatformRuleVersion extends BaseEntity
 
     protected $fillable = ['rules'];
 
+    /**
+     * A rule's text in the language asked for, else in English. The platform's rules are written in
+     * each language of the interface; a rule written as one plain text has only that.
+     */
+    public function textOfRule(int $index, ?string $locale = null): ?string
+    {
+        $text = $this->rules[$index]['text'] ?? null;
+
+        if (! is_array($text)) {
+            return $text;
+        }
+
+        return $text[$locale ?? app()->getLocale()] ?? $text['en'] ?? (reset($text) ?: null);
+    }
+
     protected function casts(): array
     {
         return [

@@ -5,6 +5,7 @@ namespace App\Repositories\Contracts;
 use App\Enums\ModerationVerdictType;
 use App\Enums\ReportTargetType;
 use App\Models\ModerationCase;
+use App\Models\ModerationPassUp;
 use App\Models\ModerationVerdict;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -40,6 +41,23 @@ interface ModerationCaseRepositoryInterface
         ?array $marks,
         ?string $reason,
     ): ModerationVerdict;
+
+    /**
+     * Passes the case up to the platform's administrators with the moderator's hint: it leaves the
+     * group's queue but stays open on its content (no new case can be opened on it meanwhile).
+     *
+     * @param  list<array{field?: string, start: int, end: int, quote: string}>  $marks
+     *
+     * @throws UniqueConstraintViolationException when the case was passed up already
+     */
+    public function passUp(
+        string $caseId,
+        string $moderatorId,
+        ?string $platformRuleVersionId,
+        int $ruleIndex,
+        array $marks,
+        string $reason,
+    ): ModerationPassUp;
 
     /**
      * Closes the case: it leaves the queue, and its content may get a new case later.
