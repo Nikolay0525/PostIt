@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\Comment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Comments are returned with their author and the aggregates upvotes_count and downvotes_count.
@@ -19,6 +20,18 @@ interface CommentRepositoryInterface
      * Used where the comment itself is needed (e.g. authorization checks), not its display data.
      */
     public function find(string $id): ?Comment;
+
+    /**
+     * The comments this one answers, up its thread — its parent, the parent's parent and so on — the
+     * nearest $limit of them, the top one first. One query a level: threads are rarely deep. Rows
+     * with their authors' ids, for a moderation case's context, never sent to a page as they are.
+     */
+    public function ancestorsOf(Comment $comment, int $limit): Collection;
+
+    /**
+     * The direct replies to a comment, oldest first, at most $limit; not their own replies.
+     */
+    public function repliesTo(string $commentId, int $limit): Collection;
 
     /**
      * Paginates the top-level comments of a post, oldest first. Every comment

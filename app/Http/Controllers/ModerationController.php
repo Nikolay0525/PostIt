@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ModerationCaseStatus;
+use App\Http\Resources\CaseContextResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\ModerationCaseListItemResource;
 use App\Http\Resources\ModerationCaseResource;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use App\Services\GroupService;
+use App\Services\ModerationContextService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,7 +22,8 @@ class ModerationController extends Controller
     public function __construct(
         protected GroupService $groupService,
         protected GroupRepositoryInterface $groupRepository,
-        protected ModerationCaseRepositoryInterface $moderationCaseRepository
+        protected ModerationCaseRepositoryInterface $moderationCaseRepository,
+        protected ModerationContextService $moderationContextService
     ) {}
 
     // What the group's moderators did, newest first. Open to everyone, a guest included; nothing is
@@ -83,6 +86,8 @@ class ModerationController extends Controller
             'can_edit' => $request->user()->can('update', $group),
             'role' => $this->groupRepository->moderatorRole($group->id, $userId)?->key(),
             'moderation_case' => new ModerationCaseResource($case),
+            // The conversation it stands in, by label, so that it is judged in it; see ModerationContextService.
+            'context' => new CaseContextResource($this->moderationContextService->forCase($case)),
         ]);
     }
 }

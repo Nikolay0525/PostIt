@@ -18,6 +18,30 @@ class EloquentCommentRepository implements CommentRepositoryInterface
         return Comment::find($id);
     }
 
+    public function ancestorsOf(Comment $comment, int $limit): Collection
+    {
+        $chain = [];
+        $parentId = $comment->parent_id;
+
+        while ($parentId !== null && count($chain) < $limit) {
+            $parent = Comment::find($parentId);
+
+            if ($parent === null) {
+                break;
+            }
+
+            $chain[] = $parent;
+            $parentId = $parent->parent_id;
+        }
+
+        return $comment->newCollection(array_reverse($chain));
+    }
+
+    public function repliesTo(string $commentId, int $limit): Collection
+    {
+        return Comment::where('parent_id', $commentId)->oldest()->orderBy('id')->limit($limit)->get();
+    }
+
     public function create(string $postId, string $userId, string $text, ?string $parentId = null): Comment
     {
         return Comment::create([
