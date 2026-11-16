@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Observers\UserObserver;
 use App\Repositories\Contracts\AchievementRepositoryInterface;
 use App\Repositories\Contracts\CommentRepositoryInterface;
+use App\Repositories\Contracts\AppealRepositoryInterface;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ImageRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
@@ -17,6 +18,7 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\VoteRepositoryInterface;
 use App\Repositories\Eloquent\EloquentAchievementRepository;
 use App\Repositories\Eloquent\EloquentCommentRepository;
+use App\Repositories\Eloquent\EloquentAppealRepository;
 use App\Repositories\Eloquent\EloquentGroupRepository;
 use App\Repositories\Eloquent\EloquentImageRepository;
 use App\Repositories\Eloquent\EloquentLanguageRepository;
@@ -90,6 +92,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             SanctionRepositoryInterface::class,
             EloquentSanctionRepository::class
+        );
+
+        $this->app->bind(
+            AppealRepositoryInterface::class,
+            EloquentAppealRepository::class
         );
     }
 

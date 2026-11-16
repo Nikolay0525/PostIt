@@ -3,6 +3,7 @@ import { computed, inject, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
+import AppealForm from '@/Pages/Components/AppealForm.vue';
 import ContentMenu from '@/Pages/Components/ContentMenu.vue';
 import HighlightedText from '@/Pages/Components/HighlightedText.vue';
 import ModerationNotice from '@/Pages/Components/ModerationNotice.vue';
@@ -167,6 +168,7 @@ const saveEdit = async () => {
 
                     <!-- What the verdict said: only once the comment is opened out, and only if it is one. -->
                     <ModerationNotice v-if="opened && verdict" :moderation="comment.moderation" kind="comment" details-only class="mt-1" />
+                    <AppealForm v-if="opened && verdict" :verdict="verdict" />
                 </div>
 
                 <template v-if="opened">

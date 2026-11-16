@@ -205,6 +205,7 @@ A lot depends on the owner, so it matters that the right person gets the role. I
 
 **Appeals.** [Everything a moderator does that can be appealed is reviewed by a jury:]
 - [Only the user affected by an action may appeal it, and only that specific action — not a general complaint against the moderator.]
+- [An appeal is made within 7 days of the action, once: one action is appealed one time. The appealing user writes a short explanation, up to 500 characters, of why they think the action is wrong — the only thing the jury hears from them. Only a verdict that punished (removal, warning) can be appealed: a "no violation" verdict punished nobody.]
 - [The appeal can be made from two places: from the action's entry in the moderation log, and from the user's own removed post or comment, where they see their content with the marked places and the moderator's reason (see Verdicts).]
 - [The jury is drawn at random from *other* groups. First it is 2 moderators and 1 pool member without the rights; the appeal succeeds only if all 3 agree. If anyone disagrees, 1 more moderator and 1 more such pool member join, and the appeal then needs 4 votes of 5. By default the moderator's action stands: overturning it takes near-unanimous agreement.]
 - [Pool members without the rights sit on the jury alongside moderators. They are not "the crowd": there are only one or two of them, drawn at random from other groups, and they crossed the same thresholds as the moderators — the random draw just did not give them the rights.]

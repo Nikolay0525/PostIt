@@ -18,6 +18,9 @@ return [
     // starts from the first step again.
     'punishment_memory_days' => 180,
 
+    // How many days after a verdict its author may appeal it, once.
+    'appeal_window_days' => 7,
+
     // The most active strikes of a kind that a group may allow before the punishment. A group's owner
     // can lower it for their group (stricter), never raise it.
     'strike_limit' => [

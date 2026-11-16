@@ -52,6 +52,21 @@ return [
         'reason' => 'The moderator\'s reason',
         'marked' => 'The places where the rule was broken are marked in your text below.',
     ],
+    'appeal' => [
+        'open' => 'Appeal this decision',
+        'until' => 'You can appeal it until :date.',
+        'placeholder' => 'Why do you think the decision is wrong?',
+        'send' => 'Send the appeal',
+        'sending' => 'Sending…',
+        'failed' => 'Could not send the appeal',
+        'your_statement' => 'You wrote',
+        'closed' => 'The time to appeal this decision ended on :date.',
+        'status' => [
+            'pending' => 'Your appeal was sent and is waiting to be reviewed. The content stays removed meanwhile.',
+            'overturned' => 'Your appeal was granted: the decision was taken back.',
+            'upheld' => 'Your appeal was rejected: the decision stands.',
+        ],
+    ],
     'log' => [
         'title' => 'Moderation log',
         'none' => 'No actions yet.',

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import AppealForm from '@/Pages/Components/AppealForm.vue';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import ContentMenu from '@/Pages/Components/ContentMenu.vue';
 import HighlightedText from '@/Pages/Components/HighlightedText.vue';
@@ -64,7 +65,10 @@ onBeforeUnmount(() => untrackSeen(card.value));
 
         <!-- Its own author is told where it stands and, on its page, gets their text back. -->
         <template v-if="own">
-            <ModerationNotice :moderation="post.moderation" kind="post" :compact="!full" class="mt-4" />
+            <ModerationNotice :moderation="post.moderation" kind="post" :compact="!full" class="mt-4">
+                <!-- On the post's own page, where the verdict is: the way to appeal it. -->
+                <AppealForm v-if="full && verdict" :verdict="verdict" />
+            </ModerationNotice>
 
             <template v-if="full">
                 <h2 v-if="post.title" class="post-title" dir="auto">{{ post.title }}</h2>

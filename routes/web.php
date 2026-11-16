@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppealController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FollowController;
@@ -64,6 +65,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/moderation/verdicts/{verdictId}/appeal', [AppealController::class, 'store'])
+        ->whereUuid('verdictId')->middleware('throttle:10,1')->name('appeals.store');
 
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [SettingsController::class, 'update'])

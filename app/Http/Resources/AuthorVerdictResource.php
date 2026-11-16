@@ -21,7 +21,11 @@ class AuthorVerdictResource extends JsonResource
     {
         $rule = $this->rule_index === null ? null : ($this->ruleVersion?->rules[$this->rule_index] ?? null);
 
+        // `appeal` is there when the verdict was loaded with it (the finders of ModerationCaseRepository do).
+        $appeal = $this->relationLoaded('appeal') ? $this->appeal : null;
+
         return [
+            'id' => $this->id,
             'type' => $this->type->key(),
             // The rule as it was when the case opened, and what breaking it leads to: a mute or a ban strike.
             'rule' => $rule === null ? null : [
@@ -33,6 +37,14 @@ class AuthorVerdictResource extends JsonResource
             'marks' => $this->marks ?? [],
             'reason' => $this->reason,
             'decided_at' => $this->created_at,
+            // Whether the author may still appeal it, and until when; the appeal if they did.
+            'can_appeal' => (bool) $request->user()?->can('appeal', $this->resource),
+            'appeal_until' => $this->created_at->copy()->addDays((int) config('moderation.appeal_window_days')),
+            'appeal' => $appeal === null ? null : [
+                'status' => $appeal->status->key(),
+                'statement' => $appeal->statement,
+                'filed_at' => $appeal->created_at,
+            ],
         ];
     }
 }

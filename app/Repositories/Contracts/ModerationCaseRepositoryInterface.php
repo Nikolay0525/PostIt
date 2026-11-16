@@ -56,6 +56,17 @@ interface ModerationCaseRepositoryInterface
     public function openInGroup(string $groupId, int $perPage): LengthAwarePaginator;
 
     /**
+     * A verdict by id, with the case it belongs to, or null.
+     */
+    public function findVerdict(string $verdictId): ?ModerationVerdict;
+
+    /**
+     * Who wrote the post or comment the case is about, or null if it is gone. For deciding who may
+     * appeal; never shown to a moderator.
+     */
+    public function authorIdOf(ModerationCase $case): ?string;
+
+    /**
      * The latest case on this post or comment, open or decided, with its verdict and the rules the
      * verdict names: what the content's own author is shown of how it was dealt with. Null if it never
      * had one.

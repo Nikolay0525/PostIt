@@ -77,11 +77,25 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
         return $cases;
     }
 
+    public function findVerdict(string $verdictId): ?ModerationVerdict
+    {
+        return ModerationVerdict::with('moderationCase')->find($verdictId);
+    }
+
+    public function authorIdOf(ModerationCase $case): ?string
+    {
+        return match ($case->target_type) {
+            ReportTargetType::Post => Post::whereKey($case->target_id)->value('user_id'),
+            ReportTargetType::Comment => Comment::whereKey($case->target_id)->value('user_id'),
+            ReportTargetType::User => null,
+        };
+    }
+
     public function findLatestFor(ReportTargetType $targetType, string $targetId): ?ModerationCase
     {
         return ModerationCase::where('target_type', $targetType->value)
             ->where('target_id', $targetId)
-            ->with('verdict.ruleVersion')
+            ->with(['verdict.ruleVersion', 'verdict.appeal'])
             ->latest('created_at')
             ->latest('id')
             ->first();
@@ -92,7 +106,7 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
         // Oldest first, so that for content that had several cases the latest one is the one kept.
         return ModerationCase::where('target_type', $targetType->value)
             ->whereIn('target_id', $targetIds)
-            ->with('verdict.ruleVersion')
+            ->with(['verdict.ruleVersion', 'verdict.appeal'])
             ->orderBy('created_at')
             ->orderBy('id')
             ->get()

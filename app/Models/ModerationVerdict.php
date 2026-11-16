@@ -48,6 +48,12 @@ class ModerationVerdict extends BaseEntity
         return $this->hasOne(Strike::class, 'moderation_verdict_id');
     }
 
+    // The author's appeal against it, if one was made.
+    public function appeal(): HasOne
+    {
+        return $this->hasOne(Appeal::class, 'moderation_verdict_id');
+    }
+
     public function decider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by');
