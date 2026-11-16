@@ -32,11 +32,12 @@ class ModerationVerdictService
      * content — shows it again, or takes it down.
      *
      * A verdict that punishes must name the rule it broke (an index in the rules the case opened
-     * with), mark where in the content (a list of {start, end, quote}) and give the moderator's
+     * with), mark where in the content (a list of {field, start, end, quote}: `field` is "title" or
+     * "body", the body if left out; the positions count in that part's plain text) and give the moderator's
      * reason. What a verdict does not use is dropped. How long a warning's strike lasts is not
      * chosen here: StrikeService works it out.
      *
-     * @param  list<array{start: int, end: int, quote: string}>|null  $marks
+     * @param  list<array{field?: string, start: int, end: int, quote: string}>|null  $marks
      *
      * @throws InvalidArgumentException when the verdict is incomplete
      * @throws DomainException when the case is not open any more, or was just decided by someone else
@@ -99,19 +100,25 @@ class ModerationVerdictService
             throw new InvalidArgumentException('A verdict that punishes must mark where the rule was broken.');
         }
 
-        $text = $this->contentText($case);
+        $texts = $this->contentTexts($case);
 
         foreach ($marks as $mark) {
             $start = $mark['start'] ?? null;
             $end = $mark['end'] ?? null;
             $quote = (string) ($mark['quote'] ?? '');
+            $field = $mark['field'] ?? 'body';
 
             if (! is_int($start) || ! is_int($end) || $start < 0 || $end <= $start || trim($quote) === '') {
                 throw new InvalidArgumentException('A mark needs a start, an end after it, and the quoted text.');
             }
 
+            // A post has a title and a body to mark in; a comment only a body.
+            if (! array_key_exists($field, $texts)) {
+                throw new InvalidArgumentException('A mark is in a part the content does not have.');
+            }
+
             // What is marked must be in what was judged; the positions only say where to look first.
-            if ($text !== null && ! str_contains($text, $quote)) {
+            if ($texts[$field] !== null && ! str_contains($texts[$field], $quote)) {
                 throw new InvalidArgumentException('A mark quotes something that is not in the content.');
             }
         }
@@ -122,26 +129,43 @@ class ModerationVerdictService
     }
 
     /**
-     * The text a moderator reads and marks: a post's as plain text, a comment's as it is. Null if the
-     * content is gone.
+     * The parts of the content a moderator reads and marks, by name: a post's title and its body as
+     * plain text, a comment's body as it is. A part is null if the content is gone (nothing to check
+     * against); a part a piece of content does not have is not in the list at all.
+     *
+     * @return array<string, ?string>
      */
-    private function contentText(ModerationCase $case): ?string
+    private function contentTexts(ModerationCase $case): array
     {
-        return match ($case->target_type) {
-            ReportTargetType::Post => ($post = $this->postRepository->find($case->target_id)) === null ? null : $this->markdownToPlainText($post->article),
-            ReportTargetType::Comment => $this->commentRepository->find($case->target_id)?->text,
-            ReportTargetType::User => null,
-        };
+        if ($case->target_type === ReportTargetType::Post) {
+            $post = $this->postRepository->find($case->target_id);
+
+            return [
+                'title' => $post?->title,
+                'body' => $post === null ? null : $this->markdownToPlainText($post->article),
+            ];
+        }
+
+        if ($case->target_type === ReportTargetType::Comment) {
+            return ['body' => $this->commentRepository->find($case->target_id)?->text];
+        }
+
+        return [];
     }
 
     /**
      * @param  list<array<string, mixed>>  $marks
-     * @return list<array{start: int, end: int, quote: string}>
+     * @return list<array{field: string, start: int, end: int, quote: string}>
      */
     private function cleanMarks(array $marks): array
     {
         return array_map(
-            fn (array $mark) => ['start' => $mark['start'], 'end' => $mark['end'], 'quote' => $mark['quote']],
+            fn (array $mark) => [
+                'field' => $mark['field'] ?? 'body',
+                'start' => $mark['start'],
+                'end' => $mark['end'],
+                'quote' => $mark['quote'],
+            ],
             array_values($marks)
         );
     }

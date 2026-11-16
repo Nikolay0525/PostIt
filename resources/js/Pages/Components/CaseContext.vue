@@ -23,8 +23,14 @@ const props = defineProps({
     judgedInfo: { type: Object, default: null },
 });
 
+// Where a moderator selects what to mark: the judged body (`target`) and, in a case on a post, its title.
 const target = ref(null);
-defineExpose({ target });
+const titleTarget = ref(null);
+defineExpose({ target, titleTarget });
+
+// A mark says which part it is in; one without is in the body, as marks were before titles could be marked.
+const titleMarks = computed(() => props.marks.filter((mark) => mark.field === 'title'));
+const bodyMarks = computed(() => props.marks.filter((mark) => (mark.field ?? 'body') === 'body'));
 
 // The judged comment is drawn deep in CaseThread; it hands its text's element back here.
 provide('caseTarget', (el) => (target.value = el));
@@ -56,11 +62,16 @@ const label = ({ kind, number }) => (kind === 'author'
             <p v-if="context.post.is_deleted" class="comment-deleted mt-4">{{ $t('moderation.context.deleted') }}</p>
 
             <template v-else>
-                <h2 v-if="context.post.title" class="post-title" dir="auto">{{ context.post.title }}</h2>
+                <h2 v-if="context.post.title" class="post-title" dir="auto">
+                    <span v-if="onPost" ref="titleTarget" data-mark-field="title">
+                        <HighlightedText tag="span" :text="context.post.title" :marks="titleMarks" />
+                    </span>
+                    <template v-else>{{ context.post.title }}</template>
+                </h2>
 
                 <!-- Judged: plain text, so that what is selected lines up with the text the marks are counted in. -->
-                <div v-if="onPost" ref="target" class="post-content" :class="{ 'mt-4': !context.post.title }">
-                    <HighlightedText :text="context.post.article_text" :marks="marks" />
+                <div v-if="onPost" ref="target" data-mark-field="body" class="post-content" :class="{ 'mt-4': !context.post.title }">
+                    <HighlightedText :text="context.post.article_text" :marks="bodyMarks" />
                 </div>
 
                 <template v-else>
@@ -84,7 +95,7 @@ const label = ({ kind, number }) => (kind === 'author'
             :ancestors="context.ancestors"
             :comment="context.comment"
             :replies="context.replies"
-            :marks="marks"
+            :marks="bodyMarks"
             :judged-info="judgedInfo"
         />
     </div>

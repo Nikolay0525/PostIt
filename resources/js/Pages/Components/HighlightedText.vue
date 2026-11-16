@@ -8,6 +8,8 @@ const props = defineProps({
     text: { type: String, required: true },
     // [{ start, end, quote }]
     marks: { type: Array, default: () => [] },
+    // The element it is drawn as: a paragraph, or a span inside a heading.
+    tag: { type: String, default: 'p' },
 });
 
 const parts = computed(() => {
@@ -55,5 +57,5 @@ const parts = computed(() => {
 </script>
 
 <template>
-    <p class="whitespace-pre-line" dir="auto"><template v-for="(part, index) in parts" :key="index"><mark v-if="part.marked" class="moderation-mark" :data-from="part.from">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
+    <component :is="tag" class="whitespace-pre-line" dir="auto"><template v-for="(part, index) in parts" :key="index"><mark v-if="part.marked" class="moderation-mark" :data-from="part.from">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></component>
 </template>

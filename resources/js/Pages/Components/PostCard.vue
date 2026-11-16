@@ -27,6 +27,9 @@ const own = computed(() => Boolean(props.post.moderation));
 const concealed = computed(() => props.post.is_hidden && !own.value);
 // A removed post is shown to its author as plain text with the marked places picked out.
 const verdict = computed(() => (props.post.moderation?.state === 'removed' ? props.post.moderation.verdict : null));
+// A mark says which part it is in, the title or the body (the body if it does not say).
+const titleMarks = computed(() => (verdict.value?.marks ?? []).filter((mark) => mark.field === 'title'));
+const bodyMarks = computed(() => (verdict.value?.marks ?? []).filter((mark) => (mark.field ?? 'body') === 'body'));
 
 const showLoginPrompt = ref(false);
 const reporting = ref(false);
@@ -71,8 +74,11 @@ onBeforeUnmount(() => untrackSeen(card.value));
             </ModerationNotice>
 
             <template v-if="full">
-                <h2 v-if="post.title" class="post-title" dir="auto">{{ post.title }}</h2>
-                <HighlightedText v-if="verdict" :text="post.article_text" :marks="verdict.marks" class="post-content" />
+                <h2 v-if="post.title" class="post-title" dir="auto">
+                    <HighlightedText v-if="verdict" tag="span" :text="post.title" :marks="titleMarks" />
+                    <template v-else>{{ post.title }}</template>
+                </h2>
+                <HighlightedText v-if="verdict" :text="post.article_text" :marks="bodyMarks" class="post-content" />
                 <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown). -->
                 <div v-else class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
             </template>

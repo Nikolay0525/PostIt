@@ -52,7 +52,7 @@ const setTarget = inject('caseTarget');
                         {{ $tChoice('moderation.reports', judgedInfo.reports_count, { num: judgedInfo.reports_count }) }}
                     </template>
                 </p>
-                <div :ref="(el) => el && setTarget(el)" class="post-body mt-2 text-ink">
+                <div :ref="(el) => el && setTarget(el)" data-mark-field="body" class="post-body mt-2 text-ink">
                     <HighlightedText :text="comment.text" :marks="marks" />
                 </div>
             </div>

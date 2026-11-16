@@ -31,6 +31,8 @@ class StoreVerdictRequest extends FormRequest
             'type' => ['required', Rule::in(['no_violation', 'remove', 'warning'])],
             'rule_index' => ['exclude_if:type,no_violation', 'required', 'integer', 'min:0'],
             'marks' => ['exclude_if:type,no_violation', 'required', 'array', 'min:1', 'max:'.self::MAX_MARKS],
+            // Where the mark is: a post's title or its body; a comment has only a body. Left out, the body.
+            'marks.*.field' => ['exclude_if:type,no_violation', 'nullable', Rule::in(['title', 'body'])],
             'marks.*.start' => ['exclude_if:type,no_violation', 'required', 'integer', 'min:0'],
             'marks.*.end' => ['exclude_if:type,no_violation', 'required', 'integer', 'min:1'],
             'marks.*.quote' => ['exclude_if:type,no_violation', 'required', 'string', 'max:'.self::QUOTE_MAX_LENGTH],

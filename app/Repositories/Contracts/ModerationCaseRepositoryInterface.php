@@ -27,7 +27,7 @@ interface ModerationCaseRepositoryInterface
     /**
      * Stores how the case was decided.
      *
-     * @param  list<array{start: int, end: int, quote: string}>|null  $marks
+     * @param  list<array{field?: string, start: int, end: int, quote: string}>|null  $marks
      *
      * @throws UniqueConstraintViolationException when the case already has a verdict
      */

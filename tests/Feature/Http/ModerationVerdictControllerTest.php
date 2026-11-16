@@ -192,4 +192,49 @@ class ModerationVerdictControllerTest extends TestCase
             ->post(route('groups.moderation.verdict', [$bare->slug, $case->id]), $this->warning())
             ->assertSessionHasErrors('rule_index');
     }
+
+    public function test_a_mark_can_be_in_the_title_of_a_post(): void
+    {
+        $this->post->update(['title' => 'Idiots only, please']);
+
+        $this->verdict($this->warning(['marks' => [
+            ['field' => 'title', 'start' => 0, 'end' => 6, 'quote' => 'Idiots'],
+            ['start' => 10, 'end' => 24, 'quote' => 'complete idiot'],
+        ]]))->assertSessionHasNoErrors();
+
+        $marks = ModerationVerdict::sole()->marks;
+        $this->assertSame('title', $marks[0]['field']);
+        $this->assertSame('Idiots', $marks[0]['quote']);
+        // Left out, the part is the body.
+        $this->assertSame('body', $marks[1]['field']);
+
+        // The author is shown where each mark is.
+        $this->actingAs(User::find($this->post->user_id))->get(route('posts.show', [$this->group->slug, $this->post->slug]))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('post.moderation.verdict.marks.0.field', 'title')
+                ->where('post.moderation.verdict.marks.1.field', 'body'));
+    }
+
+    public function test_a_mark_must_be_in_the_part_it_says(): void
+    {
+        // In the body, not in the title.
+        $this->verdict($this->warning(['marks' => [['field' => 'title', 'start' => 10, 'end' => 24, 'quote' => 'complete idiot']]]))
+            ->assertSessionHasErrors('marks');
+        $this->verdict($this->warning(['marks' => [['field' => 'footer', 'start' => 0, 'end' => 3, 'quote' => 'You']]]))
+            ->assertSessionHasErrors('marks.0.field');
+
+        $this->assertSame(0, ModerationVerdict::count());
+    }
+
+    public function test_a_comment_has_no_title_to_mark(): void
+    {
+        $comment = Comment::factory()->hidden()->create(['post_id' => Post::factory()->create(['group_id' => $this->group->id, 'title' => 'Idiots'])->id, 'text' => 'complete idiot']);
+        $case = app(ModerationCaseRepositoryInterface::class)->open($this->group->id, ReportTargetType::Comment, $comment->id, $this->case->rule_version_id);
+
+        $this->actingAs($this->moderator)
+            ->post(route('groups.moderation.verdict', [$this->group->slug, $case->id]), $this->warning([
+                'marks' => [['field' => 'title', 'start' => 0, 'end' => 6, 'quote' => 'Idiots']],
+            ]))
+            ->assertSessionHasErrors('marks');
+    }
 }

@@ -104,6 +104,7 @@ return [
         'mark' => 'Mark',
         'no_marks' => 'Nothing is marked yet.',
         'unmark' => 'Remove the mark',
+        'in_title' => 'in the title',
         'reason' => 'Your reason',
         'reason_placeholder' => 'How do you read it against the rule? Everyone will see this.',
         'submit' => 'Give the verdict',

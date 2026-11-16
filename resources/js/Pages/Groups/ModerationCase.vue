@@ -50,10 +50,29 @@ const popover = ref(null);
 
 const above = (rect) => ({ x: rect.left + rect.width / 2, y: rect.top - 8 });
 
-const markSelection = () => {
-    const mark = selectionIn(contextView.value?.target);
+// The parts of the judged content a mark can be in: its body, and a post's title.
+const markable = () => [
+    ['title', contextView.value?.titleTarget],
+    ['body', contextView.value?.target],
+].filter(([, element]) => element);
 
-    if (mark && !form.marks.some((m) => m.start < mark.end && mark.start < m.end)) {
+const fieldOf = (mark) => mark.field ?? 'body';
+
+// The selection as a mark, in the part it lies in; null when it is in none of them.
+const selectedMark = () => {
+    for (const [field, element] of markable()) {
+        const mark = selectionIn(element);
+
+        if (mark) return { field, ...mark };
+    }
+
+    return null;
+};
+
+const markSelection = () => {
+    const mark = selectedMark();
+
+    if (mark && !form.marks.some((m) => fieldOf(m) === mark.field && m.start < mark.end && mark.start < m.end)) {
         form.marks.push(mark);
     }
 
@@ -70,20 +89,20 @@ const onSelectionEnd = (event) => {
     // A press on the floating button itself: leave it be, or it would be gone before its click lands.
     if (event.target instanceof Element && event.target.closest('.mark-popover')) return;
 
-    const target = contextView.value?.target;
-
-    if (!punishes.value || !target) {
+    if (!punishes.value || !markable().length) {
         popover.value = null;
         return;
     }
 
     const selection = window.getSelection();
     const marked = event.target instanceof Element ? event.target.closest('mark[data-from]') : null;
+    const part = marked?.closest('[data-mark-field]');
 
     // A click on a marked place, selecting nothing: offer to take that mark off.
-    if (marked && target.contains(marked) && (!selection || selection.isCollapsed)) {
+    if (part && markable().some(([, element]) => element === part) && (!selection || selection.isCollapsed)) {
         const from = Number(marked.dataset.from);
-        const index = form.marks.findIndex((m) => m.start <= from && from < m.end);
+        const field = part.dataset.markField;
+        const index = form.marks.findIndex((m) => fieldOf(m) === field && m.start <= from && from < m.end);
 
         if (index >= 0) {
             popover.value = { kind: 'unmark', index, ...above(marked.getBoundingClientRect()) };
@@ -91,7 +110,7 @@ const onSelectionEnd = (event) => {
         }
     }
 
-    popover.value = selectionIn(target)
+    popover.value = selectedMark()
         ? { kind: 'mark', ...above(selection.getRangeAt(0).getBoundingClientRect()) }
         : null;
 };
@@ -200,7 +219,8 @@ const submit = () => {
 
                         <ul v-if="form.marks.length" class="flex flex-wrap gap-2">
                             <li v-for="(mark, index) in form.marks" :key="`${mark.start}-${mark.end}`" class="case-mark-chip">
-                                <span dir="auto">«{{ mark.quote }}»</span>
+                                <span v-if="mark.field === 'title'" class="text-muted">{{ $t('moderation.verdict.in_title') }}</span>
+                            <span dir="auto">«{{ mark.quote }}»</span>
                                 <button type="button" class="language-chip-remove" :aria-label="$t('moderation.verdict.unmark')" @click="unmark(index)">✕</button>
                             </li>
                         </ul>
