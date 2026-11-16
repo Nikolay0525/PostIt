@@ -18,6 +18,9 @@ const props = defineProps({
     context: { type: Object, required: true },
     // [{ start, end, quote }]
     marks: { type: Array, default: () => [] },
+    // { hidden_at, reports_count }: shown on the judged content's line, after its author and date.
+    // None where the context is only read.
+    judgedInfo: { type: Object, default: null },
 });
 
 const target = ref(null);
@@ -35,13 +38,19 @@ const label = ({ kind, number }) => (kind === 'author'
 </script>
 
 <template>
-    <div class="flex flex-col gap-3">
+    <div class="feed-list">
         <!-- The post: the judged content in a case on a post; otherwise what the conversation is under. -->
         <article v-if="context.post" class="post-card" :class="{ 'case-reported': onPost }">
             <p class="post-meta-text">
                 <span class="case-label" :class="{ 'is-author': context.post.label.kind === 'author' }">{{ label(context.post.label) }}</span>
                 <span aria-hidden="true"> · </span>
                 <time :datetime="context.post.created_at" :title="fullDate(context.post.created_at)">{{ timeAgo(context.post.created_at) }}</time>
+                <template v-if="onPost && judgedInfo">
+                    <span aria-hidden="true"> · </span>
+                    <time :datetime="judgedInfo.hidden_at" :title="fullDate(judgedInfo.hidden_at)">{{ $t('moderation.case.hidden', { time: timeAgo(judgedInfo.hidden_at) }) }}</time>
+                    <span aria-hidden="true"> · </span>
+                    {{ $tChoice('moderation.reports', judgedInfo.reports_count, { num: judgedInfo.reports_count }) }}
+                </template>
             </p>
 
             <p v-if="context.post.is_deleted" class="comment-deleted mt-4">{{ $t('moderation.context.deleted') }}</p>
@@ -76,6 +85,7 @@ const label = ({ kind, number }) => (kind === 'author'
             :comment="context.comment"
             :replies="context.replies"
             :marks="marks"
+            :judged-info="judgedInfo"
         />
     </div>
 </template>

@@ -3,7 +3,7 @@ import { inject } from 'vue';
 import { trans } from 'laravel-vue-i18n';
 import CaseComment from '@/Pages/Components/CaseComment.vue';
 import HighlightedText from '@/Pages/Components/HighlightedText.vue';
-import { timeAgo } from '@/utils/format';
+import { fullDate, timeAgo } from '@/utils/format';
 
 // A case's thread, drawn the way a thread is on a post's page — the same .comment-node, .comment-card
 // and .comment-replies, so the same line on the left — but only one branch of it: the first of the
@@ -19,6 +19,8 @@ defineProps({
     replies: { type: Array, required: true },
     // [{ start, end, quote }]
     marks: { type: Array, default: () => [] },
+    // { hidden_at, reports_count }: on the judged comment's line, after its author and date.
+    judgedInfo: { type: Object, default: null },
 });
 
 // CaseContext's: where the judged text is, for marking.
@@ -33,7 +35,7 @@ const setTarget = inject('caseTarget');
                 <CaseComment :item="ancestors[0]" />
             </div>
             <div class="comment-replies">
-                <CaseThread :ancestors="ancestors.slice(1)" :comment="comment" :replies="replies" :marks="marks" />
+                <CaseThread :ancestors="ancestors.slice(1)" :comment="comment" :replies="replies" :marks="marks" :judged-info="judgedInfo" />
             </div>
         </template>
 
@@ -42,7 +44,13 @@ const setTarget = inject('caseTarget');
                 <p class="post-meta-text">
                     <span class="case-label is-author">{{ trans('moderation.context.author') }}</span>
                     <span aria-hidden="true"> · </span>
-                    <time :datetime="comment.created_at">{{ timeAgo(comment.created_at) }}</time>
+                    <time :datetime="comment.created_at" :title="fullDate(comment.created_at)">{{ timeAgo(comment.created_at) }}</time>
+                    <template v-if="judgedInfo">
+                        <span aria-hidden="true"> · </span>
+                        <time :datetime="judgedInfo.hidden_at" :title="fullDate(judgedInfo.hidden_at)">{{ $t('moderation.case.hidden', { time: timeAgo(judgedInfo.hidden_at) }) }}</time>
+                        <span aria-hidden="true"> · </span>
+                        {{ $tChoice('moderation.reports', judgedInfo.reports_count, { num: judgedInfo.reports_count }) }}
+                    </template>
                 </p>
                 <div :ref="(el) => el && setTarget(el)" class="post-body mt-2 text-ink">
                     <HighlightedText :text="comment.text" :marks="marks" />

@@ -6,7 +6,6 @@ import CaseContext from '@/Pages/Components/CaseContext.vue';
 import GroupAside from '@/Pages/Components/GroupAside.vue';
 import PageHeader from '@/Pages/Components/PageHeader.vue';
 import { useGroupMembership } from '@/utils/groupMembership';
-import { fullDate, timeAgo } from '@/utils/format';
 import { selectionIn } from '@/utils/selection';
 
 // One case of the moderation queue: the content in its conversation, what it was reported for, and
@@ -132,109 +131,108 @@ const submit = () => {
     <section class="feed">
         <PageHeader :title="$t('moderation.case.title')" />
 
-        <!-- What is being judged, since when, and how many reported it, in a plain card of its own. -->
-        <div class="post-card text-sm text-ink">
-            <p>
-                <span class="font-medium">{{ context.comment ? $t('moderation.comment') : $t('moderation.post') }}</span>
-                <span aria-hidden="true"> · </span>
-                <time :datetime="moderation_case.created_at" :title="fullDate(moderation_case.created_at)">{{ $t('moderation.case.hidden', { time: timeAgo(moderation_case.created_at) }) }}</time>
-                <span aria-hidden="true"> · </span>
-                {{ $tChoice('moderation.reports', moderation_case.reports_count, { num: moderation_case.reports_count }) }}
-            </p>
+        <!-- Spaced as the posts of the home feed are. -->
+        <div class="feed-list">
+            <p v-if="!context.post && !context.comment" class="comment-deleted">{{ $t('moderation.gone') }}</p>
+            <!-- Since when it is hidden and how many reported it: on the judged content's own line. -->
+            <CaseContext
+                v-else
+                ref="contextView"
+                :context="context"
+                :marks="form.marks"
+                :judged-info="{ hidden_at: moderation_case.created_at, reports_count: moderation_case.reports_count }"
+            />
+
+            <section class="post-card flex flex-col gap-2 text-sm">
+                <h2 class="feed-title">{{ $t('moderation.reported_for') }}</h2>
+                <template v-if="moderation_case.reports.length">
+                    <p v-for="report in moderation_case.reports" :key="report.id" class="case-report" dir="auto">
+                        <span class="case-report-kind">{{ $t(`moderation.kind.${report.kind}`) }}</span>
+                        <template v-if="report.rule"> — {{ report.rule.index + 1 }}. {{ report.rule.text }}</template>
+                        <template v-if="report.text"> — {{ report.text }}</template>
+                    </p>
+                </template>
+                <p v-else class="text-muted">{{ $t('moderation.case.no_reports') }}</p>
+            </section>
+
+            <!-- The verdict, with the content above in view, laid out as the Settings form is. -->
+            <form class="post-form" @submit.prevent="submit">
+                <fieldset class="settings-section">
+                    <legend class="settings-heading">{{ $t('moderation.verdict.title') }}</legend>
+
+                    <div v-for="type in TYPES" :key="type">
+                        <label class="settings-toggle" :class="{ 'is-disabled': type !== 'no_violation' && !rules.length }">
+                            <input
+                                v-model="form.type"
+                                type="radio"
+                                name="verdict-type"
+                                class="checkbox-input mt-0.5 rounded-full"
+                                :value="type"
+                                :disabled="type !== 'no_violation' && !rules.length"
+                            />
+                            <span>
+                                <span class="block text-sm font-medium text-ink">{{ $t(`moderation.verdict.types.${type}`) }}</span>
+                                <span class="block text-xs text-muted">{{ $t(`moderation.verdict.type_hints.${type}`) }}</span>
+                            </span>
+                        </label>
+                    </div>
+                    <p v-if="!rules.length" class="field-hint mt-0">{{ $t('moderation.verdict.no_rules') }}</p>
+                    <p v-if="form.errors.type" class="field-error">{{ form.errors.type }}</p>
+                </fieldset>
+
+                <fieldset v-if="punishes" class="settings-section">
+                    <legend class="settings-heading">{{ $t('moderation.verdict.grounds') }}</legend>
+
+                    <div>
+                        <label class="field-label" for="verdict-rule">{{ $t('moderation.verdict.rule') }}</label>
+                        <select id="verdict-rule" v-model.number="form.rule_index" class="field-input" :class="{ 'has-error': form.errors.rule_index }">
+                            <option v-for="rule in rules" :key="rule.index" :value="rule.index">{{ rule.index + 1 }}. {{ rule.text }}</option>
+                        </select>
+                        <!-- What breaking it gives, if the verdict is a warning: fixed by the rule, not chosen here. -->
+                        <p v-if="chosenRule" class="field-hint">{{ $t(`moderation.verdict.rule_kind.${chosenRule.kind}`) }}</p>
+                        <p v-if="form.errors.rule_index" class="field-error">{{ form.errors.rule_index }}</p>
+                    </div>
+
+                    <!-- The marks are made in the judged text above; here they are listed, each with its ✕. -->
+                    <div>
+                        <p class="field-label">{{ $t('moderation.verdict.marks') }}</p>
+                        <p class="field-hint mt-0 mb-2">{{ $t('moderation.verdict.marks_hint') }}</p>
+
+                        <ul v-if="form.marks.length" class="flex flex-wrap gap-2">
+                            <li v-for="(mark, index) in form.marks" :key="`${mark.start}-${mark.end}`" class="case-mark-chip">
+                                <span dir="auto">«{{ mark.quote }}»</span>
+                                <button type="button" class="language-chip-remove" :aria-label="$t('moderation.verdict.unmark')" @click="unmark(index)">✕</button>
+                            </li>
+                        </ul>
+                        <p v-else class="field-hint">{{ $t('moderation.verdict.no_marks') }}</p>
+                        <p v-if="form.errors.marks" class="field-error">{{ form.errors.marks }}</p>
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="verdict-reason">{{ $t('moderation.verdict.reason') }}</label>
+                        <textarea
+                            id="verdict-reason"
+                            v-model="form.reason"
+                            class="field-input"
+                            :class="{ 'has-error': form.errors.reason }"
+                            rows="3"
+                            :maxlength="REASON_MAX_LENGTH"
+                            dir="auto"
+                            :placeholder="$t('moderation.verdict.reason_placeholder')"
+                        ></textarea>
+                        <p class="field-hint">{{ form.reason.length }} / {{ REASON_MAX_LENGTH }}</p>
+                        <p v-if="form.errors.reason" class="field-error">{{ form.errors.reason }}</p>
+                    </div>
+                </fieldset>
+
+                <div class="wizard-actions">
+                    <BackButton :fallback="route('groups.moderation', group.slug)" />
+                    <button type="submit" class="btn-primary" :disabled="form.processing">
+                        {{ form.processing ? $t('moderation.verdict.submitting') : $t('moderation.verdict.submit') }}
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <p v-if="!context.post && !context.comment" class="comment-deleted">{{ $t('moderation.gone') }}</p>
-        <CaseContext v-else ref="contextView" :context="context" :marks="form.marks" />
-
-        <section class="post-card flex flex-col gap-2 text-sm">
-            <h2 class="feed-title">{{ $t('moderation.reported_for') }}</h2>
-            <template v-if="moderation_case.reports.length">
-                <p v-for="report in moderation_case.reports" :key="report.id" class="case-report" dir="auto">
-                    <span class="case-report-kind">{{ $t(`moderation.kind.${report.kind}`) }}</span>
-                    <template v-if="report.rule"> — {{ report.rule.index + 1 }}. {{ report.rule.text }}</template>
-                    <template v-if="report.text"> — {{ report.text }}</template>
-                </p>
-            </template>
-            <p v-else class="text-muted">{{ $t('moderation.case.no_reports') }}</p>
-        </section>
-
-        <!-- The verdict, with the content above in view, laid out as the Settings form is. -->
-        <form class="post-form" @submit.prevent="submit">
-            <fieldset class="settings-section">
-                <legend class="settings-heading">{{ $t('moderation.verdict.title') }}</legend>
-
-                <div v-for="type in TYPES" :key="type">
-                    <label class="settings-toggle" :class="{ 'is-disabled': type !== 'no_violation' && !rules.length }">
-                        <input
-                            v-model="form.type"
-                            type="radio"
-                            name="verdict-type"
-                            class="checkbox-input mt-0.5 rounded-full"
-                            :value="type"
-                            :disabled="type !== 'no_violation' && !rules.length"
-                        />
-                        <span>
-                            <span class="block text-sm font-medium text-ink">{{ $t(`moderation.verdict.types.${type}`) }}</span>
-                            <span class="block text-xs text-muted">{{ $t(`moderation.verdict.type_hints.${type}`) }}</span>
-                        </span>
-                    </label>
-                </div>
-                <p v-if="!rules.length" class="field-hint mt-0">{{ $t('moderation.verdict.no_rules') }}</p>
-                <p v-if="form.errors.type" class="field-error">{{ form.errors.type }}</p>
-            </fieldset>
-
-            <fieldset v-if="punishes" class="settings-section">
-                <legend class="settings-heading">{{ $t('moderation.verdict.grounds') }}</legend>
-
-                <div>
-                    <label class="field-label" for="verdict-rule">{{ $t('moderation.verdict.rule') }}</label>
-                    <select id="verdict-rule" v-model.number="form.rule_index" class="field-input" :class="{ 'has-error': form.errors.rule_index }">
-                        <option v-for="rule in rules" :key="rule.index" :value="rule.index">{{ rule.index + 1 }}. {{ rule.text }}</option>
-                    </select>
-                    <!-- What breaking it gives, if the verdict is a warning: fixed by the rule, not chosen here. -->
-                    <p v-if="chosenRule" class="field-hint">{{ $t(`moderation.verdict.rule_kind.${chosenRule.kind}`) }}</p>
-                    <p v-if="form.errors.rule_index" class="field-error">{{ form.errors.rule_index }}</p>
-                </div>
-
-                <!-- The marks are made in the judged text above; here they are listed, each with its ✕. -->
-                <div>
-                    <p class="field-label">{{ $t('moderation.verdict.marks') }}</p>
-                    <p class="field-hint mt-0 mb-2">{{ $t('moderation.verdict.marks_hint') }}</p>
-
-                    <ul v-if="form.marks.length" class="flex flex-wrap gap-2">
-                        <li v-for="(mark, index) in form.marks" :key="`${mark.start}-${mark.end}`" class="case-mark-chip">
-                            <span dir="auto">«{{ mark.quote }}»</span>
-                            <button type="button" class="language-chip-remove" :aria-label="$t('moderation.verdict.unmark')" @click="unmark(index)">✕</button>
-                        </li>
-                    </ul>
-                    <p v-else class="field-hint">{{ $t('moderation.verdict.no_marks') }}</p>
-                    <p v-if="form.errors.marks" class="field-error">{{ form.errors.marks }}</p>
-                </div>
-
-                <div>
-                    <label class="field-label" for="verdict-reason">{{ $t('moderation.verdict.reason') }}</label>
-                    <textarea
-                        id="verdict-reason"
-                        v-model="form.reason"
-                        class="field-input"
-                        :class="{ 'has-error': form.errors.reason }"
-                        rows="3"
-                        :maxlength="REASON_MAX_LENGTH"
-                        dir="auto"
-                        :placeholder="$t('moderation.verdict.reason_placeholder')"
-                    ></textarea>
-                    <p class="field-hint">{{ form.reason.length }} / {{ REASON_MAX_LENGTH }}</p>
-                    <p v-if="form.errors.reason" class="field-error">{{ form.errors.reason }}</p>
-                </div>
-            </fieldset>
-
-            <div class="wizard-actions">
-                <BackButton :fallback="route('groups.moderation', group.slug)" />
-                <button type="submit" class="btn-primary" :disabled="form.processing">
-                    {{ form.processing ? $t('moderation.verdict.submitting') : $t('moderation.verdict.submit') }}
-                </button>
-            </div>
-        </form>
     </section>
 
     <!-- In <body>, out of the page's layout, which stretches every element of the page to the column's
