@@ -187,7 +187,7 @@ const submit = () => {
                 <h2 class="feed-title">{{ $t('moderation.reported_for') }}</h2>
                 <template v-if="moderation_case.reports.length">
                     <p v-for="report in moderation_case.reports" :key="report.id" class="case-report" dir="auto">
-                        <span class="case-report-kind">{{ $t(`moderation.kind.${report.kind}`) }}</span>
+                        <span>{{ $t(`moderation.kind.${report.kind}`) }}</span>
                         <template v-if="report.rule"> — {{ report.rule.index + 1 }}. {{ report.rule.text }}</template>
                         <template v-if="report.text"> — {{ report.text }}</template>
                     </p>

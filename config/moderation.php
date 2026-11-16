@@ -18,6 +18,10 @@ return [
     // starts from the first step again.
     'punishment_memory_days' => 180,
 
+    // How long after a verdict its entry shows in the group's moderation log, so that it is not too
+    // obvious whose content it was. Its author sees their own at once.
+    'log_delay_minutes' => 30,
+
     // How many days after a verdict its author may appeal it, once.
     'appeal_window_days' => 7,
 

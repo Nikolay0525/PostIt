@@ -40,7 +40,16 @@ interface ModerationCaseRepositoryInterface
         ?int $ruleIndex,
         ?array $marks,
         ?string $reason,
+        ?array $context = null,
     ): ModerationVerdict;
+
+    /**
+     * A group's moderation log: the verdicts that punished (removing, warning), the newest first, each
+     * once it is $delayMinutes old — except, for the viewer, their own, which they see at once. Each
+     * comes with its ruleVersion and appeal, and `is_own` (true for the viewer's own content).
+     * A "no violation" verdict is not in it.
+     */
+    public function logOf(string $groupId, ?string $viewerId, int $perPage, int $delayMinutes): LengthAwarePaginator;
 
     /**
      * Passes the case up to the platform's administrators with the moderator's hint: it leaves the

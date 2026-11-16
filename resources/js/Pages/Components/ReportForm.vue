@@ -3,8 +3,9 @@ import { computed, onMounted, ref } from 'vue';
 import { trans } from 'laravel-vue-i18n';
 import { getJson, postJson } from '@/utils/http';
 
-// A report on a post or a comment, under it: first what kind of wrong it is (the group's rules, the
-// platform's, something else), and only for the group's rules which one. A feed shows a post of a
+// A report on a post or a comment, under it: first what kind of wrong it is (the group's rules or the
+// platform's — nothing else, since content cannot be punished under a rule that does not exist), and only
+// for the group's rules which one. A feed shows a post of a
 // group whose rules the reader may not know, so they are offered after that choice. The rules are
 // fetched when the form opens, not sent with every card of a feed. `limit` is the reason's longest.
 const props = defineProps({
@@ -18,10 +19,9 @@ const emit = defineEmits(['close']);
 
 const GROUP = 'group';
 const PLATFORM = 'platform';
-const OTHER = 'other';
 
 const rules = ref(null);
-// GROUP, PLATFORM or OTHER; null until picked.
+// GROUP or PLATFORM; null until picked.
 const kind = ref(null);
 // With GROUP: the index of the rule; null until picked.
 const ruleIndex = ref(null);
@@ -39,12 +39,11 @@ onMounted(async () => {
     }
 });
 
-// The reason is asked for "something else" (required) and for the platform's rules (optional).
-const asksReason = computed(() => kind.value === OTHER || kind.value === PLATFORM);
+// Details are asked for the platform's rules, and they are optional.
+const asksReason = computed(() => kind.value === PLATFORM);
 const canSend = computed(() => {
     if (sending.value) return false;
     if (kind.value === GROUP) return ruleIndex.value !== null;
-    if (kind.value === OTHER) return !!text.value.trim();
 
     return kind.value === PLATFORM;
 });
@@ -106,19 +105,14 @@ const send = async () => {
                 <span class="text-sm text-ink">{{ $t('reports.platform') }}</span>
             </label>
 
-            <label class="settings-toggle">
-                <input v-model="kind" type="radio" name="report-kind" class="checkbox-input mt-0.5 rounded-full" :value="OTHER" />
-                <span class="text-sm text-ink">{{ $t('reports.other') }}</span>
-            </label>
-
             <input
                 v-if="asksReason"
                 v-model="text"
                 class="field-input"
                 :maxlength="limit"
                 dir="auto"
-                :placeholder="$t(kind === OTHER ? 'reports.placeholder' : 'reports.platform_placeholder')"
-                :aria-label="$t(kind === OTHER ? 'reports.placeholder' : 'reports.platform_placeholder')"
+                :placeholder="$t('reports.platform_placeholder')"
+                :aria-label="$t('reports.platform_placeholder')"
                 :disabled="sending"
             />
         </fieldset>

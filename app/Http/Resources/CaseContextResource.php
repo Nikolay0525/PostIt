@@ -11,7 +11,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * A case's context (ModerationContextService::forCase()) as the moderator, the log and the jury see
- * it: the words and who answered whom, by label. No author's id and no name leaves the server.
+ * it: the words and who answered whom, by label. No author's id and no name leaves the server, and no
+ * date either: when something was written is one more clue to whose it is.
  *
  * A comment its author deleted keeps its place, but not its text. A hidden or removed one is shown:
  * those who see a context are the ones who judge content, and it is part of the conversation.
@@ -43,7 +44,6 @@ class CaseContextResource extends JsonResource
             // article_html for the post unfolded; article_text for its start, folded.
             'article_html' => $post->is_deleted ? '' : $this->markdownToHtml($post->article),
             'article_text' => $post->is_deleted ? '' : $this->markdownToPlainText($post->article),
-            'created_at' => $post->created_at,
             'label' => $this->label($post),
         ];
     }
@@ -57,7 +57,6 @@ class CaseContextResource extends JsonResource
             'is_hidden' => $comment->isHidden(),
             'is_removed' => $comment->isRemoved(),
             'text' => $comment->is_deleted ? '' : $comment->text,
-            'created_at' => $comment->created_at,
             'label' => $this->label($comment),
         ];
     }

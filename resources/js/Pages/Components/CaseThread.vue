@@ -42,9 +42,8 @@ const setTarget = inject('caseTarget');
         <template v-else>
             <div class="comment-card case-reported">
                 <p class="post-meta-text">
-                    <span class="case-label is-author">{{ trans('moderation.context.author') }}</span>
-                    <span aria-hidden="true"> · </span>
-                    <time :datetime="comment.created_at" :title="fullDate(comment.created_at)">{{ timeAgo(comment.created_at) }}</time>
+                    <span class="case-label is-judged">{{ trans('moderation.context.author') }}</span>
+                    <!-- No date it was written: one more clue to whose it is. Only since when it is hidden. -->
                     <template v-if="judgedInfo">
                         <span aria-hidden="true"> · </span>
                         <time :datetime="judgedInfo.hidden_at" :title="fullDate(judgedInfo.hidden_at)">{{ $t('moderation.case.hidden', { time: timeAgo(judgedInfo.hidden_at) }) }}</time>

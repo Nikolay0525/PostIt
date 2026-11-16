@@ -7,6 +7,7 @@ use App\Enums\ModerationVerdictType;
 use App\Http\Requests\StoreVerdictRequest;
 use App\Http\Resources\CaseContextResource;
 use App\Http\Resources\GroupResource;
+use App\Http\Resources\LogEntryResource;
 use App\Http\Resources\ModerationCaseListItemResource;
 use App\Http\Resources\ModerationCaseResource;
 use App\Repositories\Contracts\GroupRepositoryInterface;
@@ -38,19 +39,23 @@ class ModerationController extends Controller
         protected PlatformRuleRepositoryInterface $platformRuleRepository
     ) {}
 
-    // What the group's moderators did, newest first. Open to everyone, a guest included; nothing is
-    // recorded yet, because there is no decision to record.
+    // What the group's moderators decided, the newest first: for the group's members alone.
     public function log(Request $request, string $groupSlug): Response
     {
         $group = $this->groupService->getGroupBySlug($groupSlug);
 
-        $userId = $request->user()?->id;
+        $this->authorize('viewLog', $group);
+
+        $userId = $request->user()->id;
 
         return Inertia::render('Groups/ModerationLog', [
             'group' => new GroupResource($group),
-            'is_member' => $this->groupService->isMember($group->id, $userId),
-            'can_edit' => (bool) $request->user()?->can('update', $group),
-            'role' => $userId === null ? null : $this->groupRepository->moderatorRole($group->id, $userId)?->key(),
+            'is_member' => true,
+            'can_edit' => $request->user()->can('update', $group),
+            'role' => $this->groupRepository->moderatorRole($group->id, $userId)?->key(),
+            'entries' => Inertia::scroll(fn () => LogEntryResource::collection(
+                $this->moderationCaseRepository->logOf($group->id, $userId, self::PER_PAGE, (int) config('moderation.log_delay_minutes'))
+            )),
         ]);
     }
 

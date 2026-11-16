@@ -9,11 +9,11 @@ use Illuminate\Support\Collection;
 /**
  * For a seeder that opens a moderation case by hand: the reports a real one would have been opened by,
  * so that the case page shows what the content was reported for. From people other than the author:
- * two name a rule of the group, one gives a reason of its own, one says it breaks the platform's rules.
+ * two name a rule of the group, one says it breaks the platform's rules, with details.
  */
 trait FilesReports
 {
-    private const SEEDED_REASONS = ['Rude to other members', 'Looks like spam', 'Off-topic and provocative'];
+    private const SEEDED_DETAILS = ['Rude to other members', 'Looks like spam', 'Off-topic and provocative'];
 
     /**
      * @param  Collection<int, string>  $userIds  who may have reported it
@@ -22,8 +22,8 @@ trait FilesReports
     {
         $reports = app(ReportRepositoryInterface::class);
         $rules = $case->ruleVersion?->rules ?? [];
-        // Without rules to name, a report can only be about the platform's rules or something else.
-        $kinds = $rules === [] ? ['other', 'platform'] : ['rule', 'rule', 'other', 'platform'];
+        // Without rules to name, a report can only be about the platform's rules.
+        $kinds = $rules === [] ? ['platform', 'platform'] : ['rule', 'rule', 'platform'];
 
         $reporters = $userIds->reject(fn (string $id) => $id === $authorId)->shuffle()->take(count($kinds))->values();
 
@@ -38,7 +38,7 @@ trait FilesReports
                 $kind === 'rule' ? $case->rule_version_id : null,
                 $kind === 'rule' ? array_rand($rules) : null,
                 $kind === 'platform',
-                $kind === 'other' ? self::SEEDED_REASONS[array_rand(self::SEEDED_REASONS)] : null,
+                $kind === 'platform' ? self::SEEDED_DETAILS[array_rand(self::SEEDED_DETAILS)] : null,
             );
         }
 

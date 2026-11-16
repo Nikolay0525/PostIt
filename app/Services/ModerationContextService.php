@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ReportTargetType;
+use App\Http\Resources\CaseContextResource;
 use App\Models\Comment;
 use App\Models\ModerationCase;
 use App\Models\Post;
@@ -60,6 +61,18 @@ class ModerationContextService
         $this->label($context, $authorId);
 
         return $context;
+    }
+
+    /**
+     * The context as it is now, already labelled and with nobody's name or id, as plain values: what a
+     * verdict keeps, so that the log and the jury show the conversation the moderator saw, not one that
+     * went on after.
+     *
+     * @return array<string, mixed>
+     */
+    public function snapshot(ModerationCase $case): array
+    {
+        return json_decode(json_encode((new CaseContextResource($this->forCase($case)))->resolve()), true);
     }
 
     /**

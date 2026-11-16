@@ -28,7 +28,8 @@ class ModerationVerdictService
         protected ModerationCaseRepositoryInterface $caseRepository,
         protected PostRepositoryInterface $postRepository,
         protected CommentRepositoryInterface $commentRepository,
-        protected PlatformRuleRepositoryInterface $platformRuleRepository
+        protected PlatformRuleRepositoryInterface $platformRuleRepository,
+        protected ModerationContextService $contextService
     ) {}
 
     /**
@@ -66,8 +67,11 @@ class ModerationVerdictService
             [$ruleIndex, $marks] = [null, null];
         }
 
+        // The conversation as the moderator saw it, kept with a verdict that will be in the log.
+        $context = $type->punishes() ? $this->contextService->snapshot($case) : null;
+
         try {
-            $verdict = DB::transaction(function () use ($case, $moderatorId, $type, $ruleIndex, $marks, $reason) {
+            $verdict = DB::transaction(function () use ($case, $moderatorId, $type, $ruleIndex, $marks, $reason, $context) {
                 $verdict = $this->caseRepository->createVerdict(
                     $case->id,
                     $type,
@@ -76,6 +80,7 @@ class ModerationVerdictService
                     $ruleIndex,
                     $marks === null ? null : $this->cleanMarks($marks),
                     $reason === '' ? null : $reason,
+                    $context,
                 );
 
                 $this->caseRepository->close($case->id);

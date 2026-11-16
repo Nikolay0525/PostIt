@@ -37,7 +37,7 @@ class ReportControllerTest extends TestCase
         $post = Post::factory()->create();
 
         $this->actingAs($reporter)
-            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'Spam'])
+            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'Spam'])
             ->assertCreated()
             ->assertJson(['reported' => true]);
 
@@ -80,23 +80,20 @@ class ReportControllerTest extends TestCase
         $this->assertSame('Be kind.', $report->ruleVersion->rules[$report->rule_index]['text']);
     }
 
-    public function test_something_else_needs_a_reason_and_names_no_rule(): void
+    // There is no "something else": content cannot be punished under a rule that does not exist.
+    public function test_a_report_names_a_rule_of_the_group_or_the_platforms_rules(): void
     {
         $reporter = User::factory()->create();
         $post = Post::factory()->create(['group_id' => $this->groupWithRules()->id]);
 
         $this->actingAs($reporter)
             ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id])
-            ->assertUnprocessable()->assertJsonValidationErrors('text');
-
+            ->assertUnprocessable()->assertJsonValidationErrors('rule_index');
         $this->actingAs($reporter)
             ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'Doxxing'])
-            ->assertCreated();
+            ->assertUnprocessable()->assertJsonValidationErrors('rule_index');
 
-        $report = Report::firstOrFail();
-        $this->assertNull($report->rule_version_id);
-        $this->assertNull($report->rule_index);
-        $this->assertSame('Doxxing', $report->text);
+        $this->assertSame(0, Report::count());
     }
 
     public function test_a_report_can_say_the_platforms_rules_are_broken(): void
@@ -164,7 +161,7 @@ class ReportControllerTest extends TestCase
         $comment = Comment::factory()->create();
 
         $this->actingAs($reporter)
-            ->postJson('/reports', ['target_type' => 'comment', 'target_id' => $comment->id, 'text' => 'Rude'])
+            ->postJson('/reports', ['target_type' => 'comment', 'target_id' => $comment->id, 'platform_violation' => true, 'text' => 'Rude'])
             ->assertCreated();
 
         $report = Report::firstOrFail();
@@ -176,7 +173,7 @@ class ReportControllerTest extends TestCase
     {
         $reporter = User::factory()->create();
         $post = Post::factory()->create();
-        $payload = ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'Spam'];
+        $payload = ['target_type' => 'post', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'Spam'];
 
         $this->actingAs($reporter)->postJson('/reports', $payload)->assertCreated();
         $this->actingAs($reporter)->postJson('/reports', $payload)->assertStatus(409)->assertJsonStructure(['message']);
@@ -188,7 +185,7 @@ class ReportControllerTest extends TestCase
     public function test_different_people_can_report_the_same_content(): void
     {
         $post = Post::factory()->create();
-        $payload = ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'Spam'];
+        $payload = ['target_type' => 'post', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'Spam'];
 
         $this->actingAs(User::factory()->create())->postJson('/reports', $payload)->assertCreated();
         $this->actingAs(User::factory()->create())->postJson('/reports', $payload)->assertCreated();
@@ -203,9 +200,9 @@ class ReportControllerTest extends TestCase
         $comment = Comment::factory()->create(['user_id' => $author->id]);
 
         $this->actingAs($author)
-            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'x'])->assertForbidden();
+            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'x'])->assertForbidden();
         $this->actingAs($author)
-            ->postJson('/reports', ['target_type' => 'comment', 'target_id' => $comment->id, 'text' => 'x'])->assertForbidden();
+            ->postJson('/reports', ['target_type' => 'comment', 'target_id' => $comment->id, 'platform_violation' => true, 'text' => 'x'])->assertForbidden();
 
         $this->assertSame(0, Report::count());
     }
@@ -217,11 +214,11 @@ class ReportControllerTest extends TestCase
         $private = Post::factory()->create(['group_id' => \App\Models\Group::factory()->private()->create()->id]);
 
         $this->actingAs($reporter)
-            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $deleted->id, 'text' => 'x'])->assertNotFound();
+            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $deleted->id, 'platform_violation' => true, 'text' => 'x'])->assertNotFound();
         $this->actingAs($reporter)
-            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $private->id, 'text' => 'x'])->assertNotFound();
+            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $private->id, 'platform_violation' => true, 'text' => 'x'])->assertNotFound();
         $this->actingAs($reporter)
-            ->postJson('/reports', ['target_type' => 'post', 'target_id' => fake()->uuid(), 'text' => 'x'])->assertNotFound();
+            ->postJson('/reports', ['target_type' => 'post', 'target_id' => fake()->uuid(), 'platform_violation' => true, 'text' => 'x'])->assertNotFound();
 
         $this->assertSame(0, Report::count());
     }
@@ -231,14 +228,14 @@ class ReportControllerTest extends TestCase
         $post = Post::factory()->create();
 
         $this->actingAs(User::factory()->unverified()->create())
-            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'x'])->assertForbidden();
+            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'x'])->assertForbidden();
     }
 
     public function test_a_guest_cannot_report(): void
     {
         $post = Post::factory()->create();
 
-        $this->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'x'])->assertUnauthorized();
+        $this->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'x'])->assertUnauthorized();
     }
 
     public function test_a_report_needs_a_short_reason_and_a_known_kind(): void
@@ -247,13 +244,10 @@ class ReportControllerTest extends TestCase
         $post = Post::factory()->create();
 
         $this->actingAs($reporter)
-            ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => ''])
-            ->assertUnprocessable()->assertJsonValidationErrors('text');
-        $this->actingAs($reporter)
             ->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => str_repeat('x', StoreReportRequest::TEXT_MAX_LENGTH + 1)])
             ->assertUnprocessable()->assertJsonValidationErrors('text');
         $this->actingAs($reporter)
-            ->postJson('/reports', ['target_type' => 'user', 'target_id' => $post->id, 'text' => 'x'])
+            ->postJson('/reports', ['target_type' => 'user', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'x'])
             ->assertUnprocessable()->assertJsonValidationErrors('target_type');
 
         $this->assertSame(0, Report::count());

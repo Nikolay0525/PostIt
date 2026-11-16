@@ -22,11 +22,12 @@ class ReportService
     /**
      * Files a report on a post or comment and counts it among the reporter's. It says what was
      * broken: $ruleIndex, a rule of the group's current rules; or the platform's rules
-     * ($breaksPlatformRules); or, with neither, "something else", and the reason is $text. A person
+     * ($breaksPlatformRules), with $text as optional details. One of the two: content cannot be
+     * punished under a rule that does not exist, so there is no "something else". A person
      * reports a piece of content once: false when they already had, and nothing is stored then.
      *
      * @throws ValidationException when $ruleIndex is not one of the group's rules, is given along with the
-     *                             platform's rules, or "something else" has no reason
+     *                             platform's rules, or neither is named
      */
     public function report(string $reporterId, ReportTargetType $targetType, string $targetId, string $groupId, ?int $ruleIndex, bool $breaksPlatformRules, ?string $text): bool
     {
@@ -36,8 +37,8 @@ class ReportService
             throw ValidationException::withMessages(['rule_index' => __('reports.unknown_rule')]);
         }
 
-        if ($ruleIndex === null && ! $breaksPlatformRules && blank($text)) {
-            throw ValidationException::withMessages(['text' => __('reports.reason_needed')]);
+        if ($ruleIndex === null && ! $breaksPlatformRules) {
+            throw ValidationException::withMessages(['rule_index' => __('reports.rule_needed')]);
         }
 
         if ($this->reportRepository->exists($reporterId, $targetType, $targetId)) {

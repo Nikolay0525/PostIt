@@ -24,16 +24,17 @@ class StoreReportRequest extends FormRequest
             'target_type' => ['required', 'in:post,comment'],
             'target_id' => ['required', 'uuid'],
             // What was broken: one of the group's current rules (that it exists is checked against the
-            // group's rules, in ReportService), or the platform's, or neither, which is "something
-            // else" and needs a reason.
-            'rule_index' => ['nullable', 'integer', 'min:0'],
-            'platform_violation' => ['sometimes', 'boolean'],
-            'text' => [
+            // group's rules, in ReportService), or the platform's. Nothing else: content cannot be
+            // punished under a rule that does not exist.
+            'rule_index' => [
                 'nullable',
-                Rule::requiredIf(fn () => $this->input('rule_index') === null && ! $this->boolean('platform_violation')),
-                'string',
-                'max:'.self::TEXT_MAX_LENGTH,
+                Rule::requiredIf(fn () => ! $this->boolean('platform_violation')),
+                'integer',
+                'min:0',
             ],
+            'platform_violation' => ['sometimes', 'boolean'],
+            // Details, for a report on the platform's rules; optional.
+            'text' => ['nullable', 'string', 'max:'.self::TEXT_MAX_LENGTH],
         ];
     }
 }

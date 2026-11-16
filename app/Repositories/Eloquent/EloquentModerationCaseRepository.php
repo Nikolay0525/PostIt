@@ -43,6 +43,7 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
         ?int $ruleIndex,
         ?array $marks,
         ?string $reason,
+        ?array $context = null,
     ): ModerationVerdict {
         return ModerationVerdict::create([
             'moderation_case_id' => $caseId,
@@ -52,7 +53,49 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
             'rule_index' => $ruleIndex,
             'marks' => $marks,
             'reason' => $reason,
+            'context' => $context,
         ]);
+    }
+
+    public function logOf(string $groupId, ?string $viewerId, int $perPage, int $delayMinutes): LengthAwarePaginator
+    {
+        $entries = ModerationVerdict::query()
+            ->whereIn('type', [ModerationVerdictType::Remove->value, ModerationVerdictType::Warning->value])
+            ->whereHas('moderationCase', fn (Builder $case) => $case->where('group_id', $groupId))
+            ->where(function (Builder $shown) use ($viewerId, $delayMinutes) {
+                $shown->where('created_at', '<=', now()->subMinutes($delayMinutes));
+
+                if ($viewerId !== null) {
+                    $shown->orWhereHas('moderationCase', fn (Builder $case) => $this->authoredBy($case, $viewerId));
+                }
+            })
+            ->with(['moderationCase:id,group_id,target_type,target_id', 'ruleVersion', 'appeal'])
+            ->latest()
+            ->orderByDesc('id')
+            ->paginate($perPage);
+
+        $own = $viewerId === null ? [] : ModerationVerdict::whereKey($entries->getCollection()->modelKeys())
+            ->whereHas('moderationCase', fn (Builder $case) => $this->authoredBy($case, $viewerId))
+            ->pluck('id')
+            ->all();
+
+        foreach ($entries->getCollection() as $verdict) {
+            $verdict->setAttribute('is_own', in_array($verdict->id, $own, true));
+        }
+
+        return $entries;
+    }
+
+    // Cases on a post or a comment that this user wrote.
+    private function authoredBy(Builder $case, string $userId): void
+    {
+        $case->where(fn (Builder $mine) => $mine
+            ->where(fn (Builder $post) => $post
+                ->where('target_type', ReportTargetType::Post->value)
+                ->whereIn('target_id', Post::select('id')->where('user_id', $userId)))
+            ->orWhere(fn (Builder $comment) => $comment
+                ->where('target_type', ReportTargetType::Comment->value)
+                ->whereIn('target_id', Comment::select('id')->where('user_id', $userId))));
     }
 
     public function passUp(

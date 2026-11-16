@@ -43,7 +43,7 @@ class HiddenContentTest extends TestCase
         foreach (range(1, 10) as $_) {
             $reporter = User::factory()->create();
             DB::table('user_group_karma')->insert(['user_id' => $reporter->id, 'group_id' => $group->id, 'karma' => 1]);
-            $this->actingAs($reporter)->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'Spam']);
+            $this->actingAs($reporter)->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'Spam']);
         }
 
         $this->assertNotNull($post->fresh()->hidden_at);
@@ -59,7 +59,7 @@ class HiddenContentTest extends TestCase
         foreach (range(1, 10) as $_) {
             $reporter = User::factory()->create();
             DB::table('user_group_karma')->insert(['user_id' => $reporter->id, 'group_id' => $group->id, 'karma' => 1]);
-            $this->actingAs($reporter)->postJson('/reports', ['target_type' => 'comment', 'target_id' => $comment->id, 'text' => 'Rude']);
+            $this->actingAs($reporter)->postJson('/reports', ['target_type' => 'comment', 'target_id' => $comment->id, 'platform_violation' => true, 'text' => 'Rude']);
         }
 
         $this->assertNotNull($comment->fresh()->hidden_at);
@@ -114,8 +114,8 @@ class HiddenContentTest extends TestCase
         $comment = Comment::factory()->create(['user_id' => $author->id, 'hidden_at' => now()]);
         $other = User::factory()->create();
 
-        $this->actingAs($other)->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'text' => 'x'])->assertForbidden();
-        $this->actingAs($other)->postJson('/reports', ['target_type' => 'comment', 'target_id' => $comment->id, 'text' => 'x'])->assertForbidden();
+        $this->actingAs($other)->postJson('/reports', ['target_type' => 'post', 'target_id' => $post->id, 'platform_violation' => true, 'text' => 'x'])->assertForbidden();
+        $this->actingAs($other)->postJson('/reports', ['target_type' => 'comment', 'target_id' => $comment->id, 'platform_violation' => true, 'text' => 'x'])->assertForbidden();
         $this->actingAs($other)->postJson('/votes', ['target_type' => 'post', 'target_id' => $post->id, 'positive' => true])->assertForbidden();
         $this->actingAs($other)->postJson('/votes', ['target_type' => 'comment', 'target_id' => $comment->id, 'positive' => true])->assertForbidden();
         $this->actingAs($author)->get("/groups/{$post->group->slug}/-/edit-post/{$post->slug}")->assertForbidden();

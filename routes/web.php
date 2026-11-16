@@ -31,8 +31,6 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/groups/{groupSlug}', [GroupController::class, 'show'])->name('groups.show');
 Route::get('/groups/{groupSlug}/random-post', [PostController::class, 'random'])->name('groups.random_post');
 Route::get('/groups/{groupSlug}/posts/{postSlug}', [PostController::class, 'show'])->name('posts.show');
-// The log of what moderators did is open to everyone.
-Route::get('/groups/{groupSlug}/-/moderation-log', [ModerationController::class, 'log'])->name('groups.moderation_log');
 Route::get('/users/{username}', [ProfileController::class, 'show'])->name('users.show');
 Route::get('/search', [SearchController::class, 'index'])
     ->middleware('throttle:60,1')->name('search');
@@ -121,6 +119,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/groups/{groupSlug}', [GroupController::class, 'update'])
         ->middleware('throttle:30,1')->name('groups.update');
 
+    // What the group's moderators decided: for its members (GroupPolicy::viewLog()).
+    Route::get('/groups/{groupSlug}/-/moderation-log', [ModerationController::class, 'log'])
+        ->middleware('throttle:60,1')->name('groups.moderation_log');
     Route::get('/groups/{groupSlug}/-/moderation', [ModerationController::class, 'index'])
         ->middleware('throttle:60,1')->name('groups.moderation');
     Route::get('/groups/{groupSlug}/-/moderation/{caseId}', [ModerationController::class, 'show'])

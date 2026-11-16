@@ -48,9 +48,9 @@ const label = ({ kind, number }) => (kind === 'author'
         <!-- The post: the judged content in a case on a post; otherwise what the conversation is under. -->
         <article v-if="context.post" class="post-card" :class="{ 'case-reported': onPost }">
             <p class="post-meta-text">
-                <span class="case-label" :class="{ 'is-author': context.post.label.kind === 'author' }">{{ label(context.post.label) }}</span>
-                <span aria-hidden="true"> · </span>
-                <time :datetime="context.post.created_at" :title="fullDate(context.post.created_at)">{{ timeAgo(context.post.created_at) }}</time>
+                <!-- Coloured only when the post is what is judged, not when its author is the one reported below. -->
+                <span class="case-label" :class="{ 'is-judged': onPost }">{{ label(context.post.label) }}</span>
+                <!-- No date it was written: one more clue to whose it is. Only since when it is hidden. -->
                 <template v-if="onPost && judgedInfo">
                     <span aria-hidden="true"> · </span>
                     <time :datetime="judgedInfo.hidden_at" :title="fullDate(judgedInfo.hidden_at)">{{ $t('moderation.case.hidden', { time: timeAgo(judgedInfo.hidden_at) }) }}</time>

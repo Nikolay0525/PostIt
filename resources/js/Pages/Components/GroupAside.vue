@@ -84,10 +84,11 @@ const { joined, showLoginPrompt, subscribing, subscribeError, buttonLabel, toggl
             </p>
         </header>
 
-        <!-- Buttons, not a list: the log can be long, so it has its own page. It is open to everyone;
-             the queue next to it is for whoever has a role (the server checks GroupPolicy::moderate() again). -->
-        <div class="mt-4 flex gap-2">
-            <Link :href="route('groups.moderation_log', group.slug)" class="btn-secondary flex-1 justify-center">
+        <!-- Buttons, not a list: the log can be long, so it has its own page. It is for the group's
+             members, and somebody not in it does not see its button; the queue next to it is for whoever
+             has a role. The server checks both again (GroupPolicy::viewLog(), ::moderate()). -->
+        <div v-if="joined || role" class="mt-4 flex gap-2">
+            <Link v-if="joined" :href="route('groups.moderation_log', group.slug)" class="btn-secondary flex-1 justify-center">
                 {{ $t('groups.show.moderation_log') }}
             </Link>
             <Link v-if="role" :href="route('groups.moderation', group.slug)" class="btn-secondary flex-1 justify-center">

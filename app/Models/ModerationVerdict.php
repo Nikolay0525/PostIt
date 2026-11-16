@@ -18,6 +18,7 @@ class ModerationVerdict extends BaseEntity
         'rule_index',
         'marks',
         'reason',
+        'context',
     ];
 
     // `decided_by` is for reliability only, so it never leaves the server in a serialized model.
@@ -29,6 +30,8 @@ class ModerationVerdict extends BaseEntity
             'type' => ModerationVerdictType::class,
             // [{start, end, quote}, …]
             'marks' => 'array',
+            // The conversation as it was when it was decided: { post, ancestors, comment, replies }.
+            'context' => 'array',
         ];
     }
 

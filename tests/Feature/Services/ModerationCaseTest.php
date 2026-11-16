@@ -51,6 +51,7 @@ class ModerationCaseTest extends TestCase
         return $this->actingAs($reporter)->postJson('/reports', [
             'target_type' => $target instanceof Post ? 'post' : 'comment',
             'target_id' => $target->id,
+            'platform_violation' => true,
             'text' => 'Spam',
         ]);
     }

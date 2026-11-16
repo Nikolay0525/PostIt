@@ -48,6 +48,16 @@ class GroupPolicy
     }
 
     /**
+     * The group's moderation log is for its members, a member banned from it included (the ban keeps the
+     * subscription): it shows what was removed from the group, and it is where the banned appeal.
+     * Somebody not in the group does not see it, nor its button.
+     */
+    public function viewLog(User $user, Group $group): bool
+    {
+        return $user->hasVerifiedEmail() && $group->members()->whereKey($user->id)->exists();
+    }
+
+    /**
      * A public group can be subscribed to directly; a private group only grants membership
      * through an approved GroupJoinRequest (not built yet), so subscribing to one is never
      * allowed here. A ban does not stop it: it closes the group's content (PostPolicy::view()),

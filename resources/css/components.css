@@ -334,7 +334,8 @@
   .case-label {
     @apply font-medium text-ink;
   }
-  .case-label.is-author {
+  /* The label on the piece being judged — the reported comment, or the post in a case on a post. */
+  .case-label.is-judged {
     @apply text-danger;
   }
   .case-flag {
@@ -371,11 +372,9 @@
   .case-reports {
     @apply mt-4 flex flex-col gap-1.5 border-t border-line pt-3 text-sm;
   }
+  /* One report on a case, in plain text: what it says was broken. */
   .case-report {
-    @apply text-muted;
-  }
-  .case-report-kind {
-    @apply font-medium text-ink;
+    @apply text-ink;
   }
   .post-content {
     @apply mt-3 text-base leading-relaxed text-ink;
