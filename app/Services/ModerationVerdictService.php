@@ -11,6 +11,7 @@ use App\Models\ModerationVerdict;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Support\Concerns\RendersMarkdown;
 use DomainException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,8 @@ use InvalidArgumentException;
 
 class ModerationVerdictService
 {
+    use RendersMarkdown;
+
     public function __construct(
         protected ModerationCaseRepositoryInterface $caseRepository,
         protected PostRepositoryInterface $postRepository,
@@ -96,18 +99,39 @@ class ModerationVerdictService
             throw new InvalidArgumentException('A verdict that punishes must mark where the rule was broken.');
         }
 
+        $text = $this->contentText($case);
+
         foreach ($marks as $mark) {
             $start = $mark['start'] ?? null;
             $end = $mark['end'] ?? null;
+            $quote = (string) ($mark['quote'] ?? '');
 
-            if (! is_int($start) || ! is_int($end) || $start < 0 || $end <= $start || trim((string) ($mark['quote'] ?? '')) === '') {
+            if (! is_int($start) || ! is_int($end) || $start < 0 || $end <= $start || trim($quote) === '') {
                 throw new InvalidArgumentException('A mark needs a start, an end after it, and the quoted text.');
+            }
+
+            // What is marked must be in what was judged; the positions only say where to look first.
+            if ($text !== null && ! str_contains($text, $quote)) {
+                throw new InvalidArgumentException('A mark quotes something that is not in the content.');
             }
         }
 
         if ($reason === null || $reason === '') {
             throw new InvalidArgumentException('A verdict that punishes must give the moderator\'s reason.');
         }
+    }
+
+    /**
+     * The text a moderator reads and marks: a post's as plain text, a comment's as it is. Null if the
+     * content is gone.
+     */
+    private function contentText(ModerationCase $case): ?string
+    {
+        return match ($case->target_type) {
+            ReportTargetType::Post => ($post = $this->postRepository->find($case->target_id)) === null ? null : $this->markdownToPlainText($post->article),
+            ReportTargetType::Comment => $this->commentRepository->find($case->target_id)?->text,
+            ReportTargetType::User => null,
+        };
     }
 
     /**

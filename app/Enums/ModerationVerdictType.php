@@ -20,6 +20,15 @@ enum ModerationVerdictType: int
         };
     }
 
+    public static function fromKey(string $key): self
+    {
+        return match ($key) {
+            'remove' => self::Remove,
+            'warning' => self::Warning,
+            default => self::NoViolation,
+        };
+    }
+
     /** Whether the content stays removed, so the verdict must say which rule it broke and where. */
     public function punishes(): bool
     {

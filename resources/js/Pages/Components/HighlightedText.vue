@@ -44,7 +44,7 @@ const parts = computed(() => {
 
     for (const [from, to] of merged) {
         if (from > at) result.push({ text: props.text.slice(at, from), marked: false });
-        result.push({ text: props.text.slice(from, to), marked: true });
+        result.push({ text: props.text.slice(from, to), marked: true, from });
         at = to;
     }
 
@@ -55,5 +55,5 @@ const parts = computed(() => {
 </script>
 
 <template>
-    <p class="whitespace-pre-line" dir="auto"><template v-for="(part, index) in parts" :key="index"><mark v-if="part.marked" class="moderation-mark">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
+    <p class="whitespace-pre-line" dir="auto"><template v-for="(part, index) in parts" :key="index"><mark v-if="part.marked" class="moderation-mark" :data-from="part.from">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
 </template>

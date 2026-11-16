@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ModerationCaseStatus;
+use App\Enums\ModerationVerdictType;
+use App\Http\Requests\StoreVerdictRequest;
 use App\Http\Resources\CaseContextResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\ModerationCaseListItemResource;
@@ -11,6 +13,13 @@ use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use App\Services\GroupService;
 use App\Services\ModerationContextService;
+use App\Services\ModerationVerdictService;
+use App\Models\ModerationCase;
+use App\Models\Group;
+use DomainException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,7 +32,8 @@ class ModerationController extends Controller
         protected GroupService $groupService,
         protected GroupRepositoryInterface $groupRepository,
         protected ModerationCaseRepositoryInterface $moderationCaseRepository,
-        protected ModerationContextService $moderationContextService
+        protected ModerationContextService $moderationContextService,
+        protected ModerationVerdictService $moderationVerdictService
     ) {}
 
     // What the group's moderators did, newest first. Open to everyone, a guest included; nothing is
@@ -72,11 +82,7 @@ class ModerationController extends Controller
 
         $this->authorize('moderate', $group);
 
-        $case = $this->moderationCaseRepository->findForModeration($caseId);
-
-        // A case of another group is "not found" here, not "forbidden": a moderator must not be able
-        // to tell that a case with this id exists elsewhere. Neither is one that has been closed.
-        abort_if($case === null || $case->group_id !== $group->id || $case->status !== ModerationCaseStatus::Open, 404);
+        $case = $this->openCaseOf($group, $caseId);
 
         $userId = $request->user()->id;
 
@@ -88,6 +94,82 @@ class ModerationController extends Controller
             'moderation_case' => new ModerationCaseResource($case),
             // The conversation it stands in, by label, so that it is judged in it; see ModerationContextService.
             'context' => new CaseContextResource($this->moderationContextService->forCase($case)),
+            // The rules a verdict can name: the group's as they were when the case opened.
+            'rules' => $this->rulesOf($case),
+            // The one most of the reports named, to start the form with; the moderator decides.
+            'suggested_rule' => $this->suggestedRule($case),
         ]);
+    }
+
+    // The moderator's decision on a case. Back to the queue, which then has one case less.
+    public function decide(StoreVerdictRequest $request, string $groupSlug, string $caseId): RedirectResponse
+    {
+        $group = $this->groupService->getGroupBySlug($groupSlug);
+
+        $this->authorize('moderate', $group);
+
+        $case = $this->openCaseOf($group, $caseId);
+        $type = ModerationVerdictType::fromKey($request->validated('type'));
+        $ruleIndex = $request->validated('rule_index');
+
+        if ($type->punishes() && ! isset($case->ruleVersion?->rules[$ruleIndex])) {
+            throw ValidationException::withMessages(['rule_index' => __('moderation.verdict.unknown_rule')]);
+        }
+
+        try {
+            $this->moderationVerdictService->decide(
+                $case,
+                $request->user()->id,
+                $type,
+                $ruleIndex,
+                $request->validated('marks'),
+                $request->validated('reason'),
+            );
+        } catch (InvalidArgumentException) {
+            throw ValidationException::withMessages(['marks' => __('moderation.verdict.invalid')]);
+        } catch (DomainException) {
+            // Another moderator decided it a moment earlier.
+            return redirect()->route('groups.moderation', $group->slug)->with('status', 'case-already-decided');
+        }
+
+        return redirect()->route('groups.moderation', $group->slug)->with('status', 'verdict-given');
+    }
+
+    // A case of another group is "not found" here, not "forbidden": a moderator must not be able to
+    // tell that a case with this id exists elsewhere. Neither is one that has been closed.
+    private function openCaseOf(Group $group, string $caseId): ModerationCase
+    {
+        $case = $this->moderationCaseRepository->findForModeration($caseId);
+
+        abort_if($case === null || $case->group_id !== $group->id || $case->status !== ModerationCaseStatus::Open, 404);
+
+        return $case;
+    }
+
+    /**
+     * @return list<array{index: int, text: string, kind: string}>
+     */
+    private function rulesOf(ModerationCase $case): array
+    {
+        $version = $case->ruleVersion;
+
+        if ($version === null) {
+            return [];
+        }
+
+        return collect($version->rules)
+            ->map(fn (array $rule, int $index) => ['index' => $index, 'text' => $rule['text'], 'kind' => $version->kindOfRule($index)->key()])
+            ->values()
+            ->all();
+    }
+
+    private function suggestedRule(ModerationCase $case): ?int
+    {
+        $named = $case->reports
+            ->where('rule_version_id', $case->rule_version_id)
+            ->whereNotNull('rule_index')
+            ->countBy('rule_index');
+
+        return $named->isEmpty() ? null : (int) $named->sortDesc()->keys()->first();
     }
 }

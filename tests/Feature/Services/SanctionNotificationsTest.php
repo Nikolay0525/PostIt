@@ -45,7 +45,7 @@ class SanctionNotificationsTest extends TestCase
 
     private function warn(int $rule = 0): void
     {
-        $post = Post::factory()->hidden()->create(['group_id' => $this->group->id, 'user_id' => $this->author->id]);
+        $post = Post::factory()->hidden()->create(['group_id' => $this->group->id, 'user_id' => $this->author->id, 'article' => 'a word that broke a rule']);
         $case = app(ModerationCaseRepositoryInterface::class)->open($this->group->id, ReportTargetType::Post, $post->id, $this->versionId);
 
         app(ModerationVerdictService::class)->decide(

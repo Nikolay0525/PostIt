@@ -7,11 +7,14 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
+use Database\Seeders\Concerns\FilesReports;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class CommentSeeder extends Seeder
 {
+    use FilesReports;
+
     public function run(): void
     {
         $userIds = User::pluck('id');
@@ -43,7 +46,8 @@ class CommentSeeder extends Seeder
                 $created->push($comment);
 
                 if ($hidden) {
-                    app(ModerationCaseRepositoryInterface::class)->open($post->group_id, ReportTargetType::Comment, $comment->id);
+                    $case = app(ModerationCaseRepositoryInterface::class)->open($post->group_id, ReportTargetType::Comment, $comment->id, $post->group->currentRuleVersion?->id);
+                    $this->fileReports($case, $comment->user_id, $userIds);
                 }
             }
         }

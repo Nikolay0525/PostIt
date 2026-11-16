@@ -161,4 +161,22 @@ class SeedersTest extends TestCase
                 ->where('post.moderation.verdict.type', 'remove')
                 ->where('post.moderation.verdict.rule.kind', 'mute'));
     }
+
+    public function test_every_open_case_knows_the_rules_it_opened_with_so_a_verdict_can_name_one(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $open = ModerationCase::where('status', ModerationCaseStatus::Open->value)->get();
+        $this->assertGreaterThan(0, $open->count());
+
+        foreach ($open as $case) {
+            $this->assertNotNull($case->rule_version_id, "Case {$case->id} has no rules to name.");
+            $this->assertSame($case->group_id, $case->ruleVersion->group_id);
+        }
+
+        // The ones opened by hand in the main groups come with the reports that would have opened them.
+        foreach ($open->whereNotIn('group_id', Group::where('slug', 'like', 'demo-%')->pluck('id')) as $case) {
+            $this->assertGreaterThan(0, $case->reports()->count(), "Case {$case->id} has no reports.");
+        }
+    }
 }

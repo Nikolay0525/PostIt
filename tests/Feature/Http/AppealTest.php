@@ -148,7 +148,7 @@ class AppealTest extends TestCase
 
     public function test_a_comments_author_appeals_too(): void
     {
-        $comment = Comment::factory()->create(['post_id' => $this->post->id, 'user_id' => $this->author->id]);
+        $comment = Comment::factory()->create(['post_id' => $this->post->id, 'user_id' => $this->author->id, 'text' => 'You are a complete idiot']);
         $verdict = $this->decide($comment, ModerationVerdictType::Warning);
 
         $this->appeal(verdict: $verdict)->assertCreated();

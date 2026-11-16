@@ -6,11 +6,14 @@ use App\Enums\ReportTargetType;
 use App\Models\Group;
 use App\Models\Post;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
+use Database\Seeders\Concerns\FilesReports;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class PostSeeder extends Seeder
 {
+    use FilesReports;
+
     public function run(): void
     {
         foreach (Group::with('members:id')->get() as $group) {
@@ -26,7 +29,9 @@ class PostSeeder extends Seeder
 
             // One post under a moderation case in every group, to see how a hidden post looks.
             $hidden = Post::factory()->hidden()->for($group)->state($author)->create();
-            app(ModerationCaseRepositoryInterface::class)->open($group->id, ReportTargetType::Post, $hidden->id);
+            // With the group's rules as they are now, as a case opened by reports has them: the verdict names one.
+            $case = app(ModerationCaseRepositoryInterface::class)->open($group->id, ReportTargetType::Post, $hidden->id, $group->currentRuleVersion?->id);
+            $this->fileReports($case, $hidden->user_id, $group->members->pluck('id'));
         }
 
         // Factories skip PostService, so do what FollowOwnPost does there: authors follow their posts.

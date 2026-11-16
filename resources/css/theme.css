@@ -17,6 +17,8 @@
   --color-danger: #dc2626;
   --color-danger-700: #b91c1c;
   --color-danger-soft: #fef2f2;
+  /* A border as quiet as --color-line, in the danger's hue: content under moderation, picked out. */
+  --color-danger-line: #f2cccc;
 
   --color-warning: #b45309;
   --color-warning-soft: #fffbeb;
@@ -58,6 +60,7 @@
   --color-danger: #f87171;
   --color-danger-700: #ef4444;
   --color-danger-soft: #3a1618;
+  --color-danger-line: #4d2226;
 
   --color-warning: #fbbf24;
   --color-warning-soft: #3a2a0c;

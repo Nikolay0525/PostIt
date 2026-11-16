@@ -257,8 +257,9 @@
   .feed-list {
     @apply flex flex-col gap-4;
   }
+  /* A card is not a button: it does not light up on hover. What can be pressed in it does. */
   .post-card {
-    @apply rounded-2xl border border-line bg-surface p-5 transition hover:border-brand-100;
+    @apply rounded-2xl border border-line bg-surface p-5;
   }
   .post-meta {
     @apply flex items-center gap-3;
@@ -328,6 +329,35 @@
   /* What the author of a hidden or removed post or comment is told: where it stands, and why. */
   .moderation-notice {
     @apply flex flex-col gap-1 rounded-lg border border-warning bg-warning-soft p-3 text-sm text-ink;
+  }
+  /* A case's conversation: who said it, by label, never by name. */
+  .case-label {
+    @apply font-medium text-ink;
+  }
+  .case-label.is-author {
+    @apply text-danger;
+  }
+  .case-flag {
+    @apply ms-2 rounded-md bg-canvas px-1.5 py-0.5 text-xs text-muted;
+  }
+  /* The content being judged, picked out from the conversation around it. Tied to the card it is on,
+     so that it wins over the card's own border wherever the card's rule stands in this file. */
+  .post-card.case-reported,
+  .comment-card.case-reported {
+    @apply border-danger-line;
+  }
+  /* The small button over a selection in a case's judged text, or over a marked place: "Mark" or
+     "Remove the mark". Placed by the page on the screen, above the words, centred. */
+  .mark-popover {
+    @apply fixed z-50 -translate-x-1/2 -translate-y-full whitespace-nowrap shadow-lg;
+  }
+  /* A marked place in the verdict form, with its ✕. */
+  .case-mark-chip {
+    @apply inline-flex items-center gap-1.5 rounded-lg bg-warning-soft px-2 py-1 text-sm text-ink;
+  }
+  /* In the judged text a marked place can be clicked, to take it off. */
+  .case-reported .moderation-mark {
+    @apply cursor-pointer;
   }
   /* A place the moderator marked in the author's own text. */
   .moderation-mark {

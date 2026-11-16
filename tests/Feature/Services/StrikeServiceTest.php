@@ -57,7 +57,7 @@ class StrikeServiceTest extends TestCase
     private function warn(int $rule = 0, ?User $author = null, ?Group $group = null): ModerationVerdict
     {
         $group ??= $this->group;
-        $post = Post::factory()->hidden()->create(['group_id' => $group->id, 'user_id' => ($author ?? $this->author)->id]);
+        $post = Post::factory()->hidden()->create(['group_id' => $group->id, 'user_id' => ($author ?? $this->author)->id, 'article' => 'a word that broke a rule']);
         $case = app(ModerationCaseRepositoryInterface::class)->open($group->id, ReportTargetType::Post, $post->id, $group->is($this->group) ? $this->versionId : null);
 
         return app(ModerationVerdictService::class)->decide(
@@ -95,7 +95,7 @@ class StrikeServiceTest extends TestCase
         $marks = [['start' => 0, 'end' => 4, 'quote' => 'word']];
 
         foreach ([ModerationVerdictType::NoViolation, ModerationVerdictType::Remove] as $type) {
-            $post = Post::factory()->hidden()->create(['group_id' => $this->group->id, 'user_id' => $this->author->id]);
+            $post = Post::factory()->hidden()->create(['group_id' => $this->group->id, 'user_id' => $this->author->id, 'article' => 'a word that broke a rule']);
             $case = $cases->open($this->group->id, ReportTargetType::Post, $post->id, $this->versionId);
             $service->decide($case, $this->moderator->id, $type, 0, $marks, 'Reason.');
         }
@@ -105,7 +105,7 @@ class StrikeServiceTest extends TestCase
 
     public function test_a_warning_on_a_comment_gives_its_author_a_strike_too(): void
     {
-        $comment = Comment::factory()->hidden()->create(['user_id' => $this->author->id]);
+        $comment = Comment::factory()->hidden()->create(['user_id' => $this->author->id, 'text' => 'a word that broke a rule']);
         $case = app(ModerationCaseRepositoryInterface::class)->open($this->group->id, ReportTargetType::Comment, $comment->id, $this->versionId);
 
         app(ModerationVerdictService::class)->decide($case, $this->moderator->id, ModerationVerdictType::Warning, 0, [['start' => 0, 'end' => 4, 'quote' => 'word']], 'Rude.');
