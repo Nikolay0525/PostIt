@@ -52,7 +52,8 @@ const membership = useGroupMembership(props);
                 <AppealForm v-if="entry.author_view" :verdict="entry.author_view" />
             </div>
 
-            <CaseContext v-if="entry.context" :context="entry.context" :marks="entry.marks" />
+            <p v-if="entry.context && entry.author_username" class="text-sm text-muted">{{ $t('moderation.log.own_name') }}</p>
+            <CaseContext v-if="entry.context" :context="entry.context" :marks="entry.marks" :author-name="entry.author_username" />
             <p v-else class="comment-deleted">{{ $t('moderation.log.no_context') }}</p>
 
             <div class="wizard-actions">

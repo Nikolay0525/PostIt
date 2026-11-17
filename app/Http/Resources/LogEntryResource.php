@@ -9,7 +9,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * One entry of a group's moderation log: what was decided, under which rule and what it gave, where the
  * content broke it, the moderator's reason, and the conversation as it was then (the verdict's
- * snapshot). It names no moderator and no author. Its own author also gets what they need to appeal it.
+ * snapshot). It names no moderator and no author — but to its own author, their own name, in place of the
+ * "author" label: nobody else gets it. Its own author also gets what they need to appeal it.
  *
  * Expects what ModerationCaseRepositoryInterface::logOf() returns: the verdict with its ruleVersion and
  * appeal, and `is_own`.
@@ -39,6 +40,9 @@ class LogEntryResource extends JsonResource
             // before snapshots were kept.
             'context' => $this->context,
             'is_own' => $own,
+            // The viewer's own username, as it is now (a name is never kept with content), for the places
+            // labelled "author": only on their own entry, where it tells them nothing they do not know.
+            'author_username' => $own ? $request->user()->username : null,
             // For its author alone: whether it can still be appealed, and the appeal if they made one.
             'author_view' => $own ? (new AuthorVerdictResource($this->resource))->toArray($request) : null,
         ];

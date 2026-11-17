@@ -21,6 +21,8 @@ const props = defineProps({
     // { hidden_at, reports_count }: shown on the judged content's line, after its author and date.
     // None where the context is only read.
     judgedInfo: { type: Object, default: null },
+    // In place of the "author" label: only the author's own entry in the log has it, their own name.
+    authorName: { type: String, default: null },
 });
 
 // Where a moderator selects what to mark: the judged body (`target`) and, in a case on a post, its title.
@@ -38,9 +40,11 @@ provide('caseTarget', (el) => (target.value = el));
 const onPost = computed(() => props.context.comment === null);
 const unfolded = ref(false);
 
+// Who said something: "author", or "participant N" — or, to the author on their own log entry, their name.
 const label = ({ kind, number }) => (kind === 'author'
-    ? trans('moderation.context.author')
+    ? props.authorName ?? trans('moderation.context.author')
     : trans('moderation.context.participant', { number }));
+provide('caseLabel', label);
 </script>
 
 <template>

@@ -1,6 +1,5 @@
 <script setup>
 import { inject } from 'vue';
-import { trans } from 'laravel-vue-i18n';
 import CaseComment from '@/Pages/Components/CaseComment.vue';
 import HighlightedText from '@/Pages/Components/HighlightedText.vue';
 import { fullDate, timeAgo } from '@/utils/format';
@@ -23,8 +22,9 @@ defineProps({
     judgedInfo: { type: Object, default: null },
 });
 
-// CaseContext's: where the judged text is, for marking.
+// CaseContext's: where the judged text is, for marking; and how a person is labelled.
 const setTarget = inject('caseTarget');
+const label = inject('caseLabel');
 
 </script>
 
@@ -42,7 +42,7 @@ const setTarget = inject('caseTarget');
         <template v-else>
             <div class="comment-card case-reported">
                 <p class="post-meta-text">
-                    <span class="case-label is-judged">{{ trans('moderation.context.author') }}</span>
+                    <span class="case-label is-judged">{{ label({ kind: 'author' }) }}</span>
                     <!-- No date it was written: one more clue to whose it is. Only since when it is hidden. -->
                     <template v-if="judgedInfo">
                         <span aria-hidden="true"> · </span>

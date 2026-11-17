@@ -142,6 +142,7 @@ class ModerationLogTest extends TestCase
             ->where('entry.context.post.title', 'A title')
             ->where('entry.context.post.label.kind', 'author')
             ->where('entry.is_own', false)
+            ->where('entry.author_username', null)
             ->where('entry.author_view', null));
 
         $json = json_encode($response->viewData('page')['props']['entry']);
@@ -162,6 +163,7 @@ class ModerationLogTest extends TestCase
             ->where('entries.data.0.is_own', true));
         $this->entry($verdict, $this->author)->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
             ->where('entry.is_own', true)
+            ->where('entry.author_username', $this->author->username)
             ->where('entry.author_view.can_appeal', true));
 
         $this->travel(31)->minutes();

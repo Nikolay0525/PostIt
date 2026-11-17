@@ -133,6 +133,7 @@ return [
         'yours_comment' => 'This is your comment. Only you see that it is yours.',
         'no_context' => 'The conversation was not kept for this entry.',
         'entry_title' => 'Log entry',
+        'own_name' => 'Your username is shown here to you alone; everyone else sees "Author".',
     ],
     'loading' => 'Loading…',
 

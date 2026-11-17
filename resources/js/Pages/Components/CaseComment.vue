@@ -1,5 +1,5 @@
 <script setup>
-import { trans } from 'laravel-vue-i18n';
+import { inject } from 'vue';
 
 // One comment of a case's conversation that is not the one judged: who said it (a label, never a
 // name), when, and what. Its card is the caller's, as in CommentNode.
@@ -9,9 +9,8 @@ defineProps({
     item: { type: Object, required: true },
 });
 
-const label = ({ kind, number }) => (kind === 'author'
-    ? trans('moderation.context.author')
-    : trans('moderation.context.participant', { number }));
+// CaseContext's: "author", "participant N", or the author's own name on their own log entry.
+const label = inject('caseLabel');
 </script>
 
 <template>
