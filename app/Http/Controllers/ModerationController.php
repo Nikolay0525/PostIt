@@ -8,6 +8,7 @@ use App\Http\Requests\StoreVerdictRequest;
 use App\Http\Resources\CaseContextResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LogEntryResource;
+use App\Http\Resources\LogListItemResource;
 use App\Http\Resources\ModerationCaseListItemResource;
 use App\Http\Resources\ModerationCaseResource;
 use App\Repositories\Contracts\GroupRepositoryInterface;
@@ -53,9 +54,36 @@ class ModerationController extends Controller
             'is_member' => true,
             'can_edit' => $request->user()->can('update', $group),
             'role' => $this->groupRepository->moderatorRole($group->id, $userId)?->key(),
-            'entries' => Inertia::scroll(fn () => LogEntryResource::collection(
+            // Short cards; the whole of each is on its own page (logEntry()).
+            'entries' => Inertia::scroll(fn () => LogListItemResource::collection(
                 $this->moderationCaseRepository->logOf($group->id, $userId, self::PER_PAGE, (int) config('moderation.log_delay_minutes'))
             )),
+        ]);
+    }
+
+    // One entry of the log in full: the conversation, the rule, the marks, the reason, and for its author
+    // the appeal. Where a notification about a verdict leads, and where its author comes back to.
+    public function logEntry(Request $request, string $groupSlug, string $verdictId): Response
+    {
+        $group = $this->groupService->getGroupBySlug($groupSlug);
+        $userId = $request->user()->id;
+
+        $entry = $this->moderationCaseRepository->findLogEntry($group->id, $verdictId, $userId, (int) config('moderation.log_delay_minutes'));
+
+        abort_if($entry === null, 404);
+
+        // The log is the members'; but its own author is let in to their entry even if they left the
+        // group since, or they could not see what they were punished for, nor appeal.
+        if (! $entry->is_own) {
+            $this->authorize('viewLog', $group);
+        }
+
+        return Inertia::render('Groups/ModerationLogEntry', [
+            'group' => new GroupResource($group),
+            'is_member' => $this->groupService->isMember($group->id, $userId),
+            'can_edit' => $request->user()->can('update', $group),
+            'role' => $this->groupRepository->moderatorRole($group->id, $userId)?->key(),
+            'entry' => new LogEntryResource($entry),
         ]);
     }
 

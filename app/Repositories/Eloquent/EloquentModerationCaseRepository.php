@@ -59,7 +59,31 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
 
     public function logOf(string $groupId, ?string $viewerId, int $perPage, int $delayMinutes): LengthAwarePaginator
     {
-        $entries = ModerationVerdict::query()
+        $entries = $this->logQuery($groupId, $viewerId, $delayMinutes)
+            ->latest()
+            ->orderByDesc('id')
+            ->paginate($perPage);
+
+        $this->markOwn($entries->getCollection(), $viewerId);
+
+        return $entries;
+    }
+
+    public function findLogEntry(string $groupId, string $verdictId, ?string $viewerId, int $delayMinutes): ?ModerationVerdict
+    {
+        $entry = $this->logQuery($groupId, $viewerId, $delayMinutes)->whereKey($verdictId)->first();
+
+        if ($entry !== null) {
+            $this->markOwn(new Collection([$entry]), $viewerId);
+        }
+
+        return $entry;
+    }
+
+    // The verdicts of the group that punished, each once it is old enough — or at once for its author.
+    private function logQuery(string $groupId, ?string $viewerId, int $delayMinutes): Builder
+    {
+        return ModerationVerdict::query()
             ->whereIn('type', [ModerationVerdictType::Remove->value, ModerationVerdictType::Warning->value])
             ->whereHas('moderationCase', fn (Builder $case) => $case->where('group_id', $groupId))
             ->where(function (Builder $shown) use ($viewerId, $delayMinutes) {
@@ -69,21 +93,22 @@ class EloquentModerationCaseRepository implements ModerationCaseRepositoryInterf
                     $shown->orWhereHas('moderationCase', fn (Builder $case) => $this->authoredBy($case, $viewerId));
                 }
             })
-            ->with(['moderationCase:id,group_id,target_type,target_id', 'ruleVersion', 'appeal'])
-            ->latest()
-            ->orderByDesc('id')
-            ->paginate($perPage);
+            ->with(['moderationCase:id,group_id,target_type,target_id', 'ruleVersion', 'appeal']);
+    }
 
-        $own = $viewerId === null ? [] : ModerationVerdict::whereKey($entries->getCollection()->modelKeys())
+    /**
+     * @param  Collection<int, ModerationVerdict>  $verdicts
+     */
+    private function markOwn(Collection $verdicts, ?string $viewerId): void
+    {
+        $own = $viewerId === null ? [] : ModerationVerdict::whereKey($verdicts->modelKeys())
             ->whereHas('moderationCase', fn (Builder $case) => $this->authoredBy($case, $viewerId))
             ->pluck('id')
             ->all();
 
-        foreach ($entries->getCollection() as $verdict) {
+        foreach ($verdicts as $verdict) {
             $verdict->setAttribute('is_own', in_array($verdict->id, $own, true));
         }
-
-        return $entries;
     }
 
     // Cases on a post or a comment that this user wrote.

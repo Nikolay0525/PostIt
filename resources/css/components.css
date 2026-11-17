@@ -372,6 +372,14 @@
   .case-reports {
     @apply mt-4 flex flex-col gap-1.5 border-t border-line pt-3 text-sm;
   }
+  /* One entry of the moderation log: what was decided, then the content it was about. */
+  .log-entry {
+    @apply flex flex-col gap-3;
+  }
+  /* Shown to the entry's author alone: that it is theirs. */
+  .log-entry-own {
+    @apply font-medium text-danger;
+  }
   /* One report on a case, in plain text: what it says was broken. */
   .case-report {
     @apply text-ink;

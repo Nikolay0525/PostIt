@@ -30,6 +30,8 @@ const membership = useGroupMembership(props);
 
 // The comments' report form needs the group, and a comment node only knows its post.
 provide('groupId', props.group.id);
+// And where a comment's own author is sent to see the verdict on it: the group's moderation log.
+provide('groupSlug', props.group.slug);
 
 const commentText = ref('');
 const posting = ref(false);

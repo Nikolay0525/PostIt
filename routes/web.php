@@ -122,6 +122,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // What the group's moderators decided: for its members (GroupPolicy::viewLog()).
     Route::get('/groups/{groupSlug}/-/moderation-log', [ModerationController::class, 'log'])
         ->middleware('throttle:60,1')->name('groups.moderation_log');
+    Route::get('/groups/{groupSlug}/-/moderation-log/{verdictId}', [ModerationController::class, 'logEntry'])
+        ->whereUuid('verdictId')->middleware('throttle:60,1')->name('groups.moderation_log.entry');
     Route::get('/groups/{groupSlug}/-/moderation', [ModerationController::class, 'index'])
         ->middleware('throttle:60,1')->name('groups.moderation');
     Route::get('/groups/{groupSlug}/-/moderation/{caseId}', [ModerationController::class, 'show'])

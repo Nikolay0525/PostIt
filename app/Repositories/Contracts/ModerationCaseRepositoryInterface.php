@@ -52,6 +52,12 @@ interface ModerationCaseRepositoryInterface
     public function logOf(string $groupId, ?string $viewerId, int $perPage, int $delayMinutes): LengthAwarePaginator;
 
     /**
+     * One entry of a group's log, on the same terms as logOf(): null if it is not one (another group's,
+     * a "no violation" verdict) or not yet shown to this viewer. With `is_own`.
+     */
+    public function findLogEntry(string $groupId, string $verdictId, ?string $viewerId, int $delayMinutes): ?ModerationVerdict;
+
+    /**
      * Passes the case up to the platform's administrators with the moderator's hint: it leaves the
      * group's queue but stays open on its content (no new case can be opened on it meanwhile).
      *

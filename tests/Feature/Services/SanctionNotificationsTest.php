@@ -155,7 +155,7 @@ class SanctionNotificationsTest extends TestCase
         $this->assertTrue($notification->data['silent']);
     }
 
-    public function test_the_list_names_the_group_and_is_important_and_leads_to_the_group(): void
+    public function test_the_list_names_the_group_and_is_important_and_leads_to_the_verdicts_log_entry(): void
     {
         $this->warn();
         $notification = $this->author->notifications()->sole();
@@ -172,7 +172,7 @@ class SanctionNotificationsTest extends TestCase
             ->assertJsonMissingPath('notifications.0.details.group_id');
 
         $this->actingAs($this->author)->post("/notifications/{$notification->id}/open")
-            ->assertRedirect(route('groups.show', $this->group->slug));
+            ->assertRedirect(route('groups.moderation_log.entry', [$this->group->slug, $notification->data['moderation_verdict_id']]));
         $this->assertNotNull($notification->fresh()->read_at);
     }
 

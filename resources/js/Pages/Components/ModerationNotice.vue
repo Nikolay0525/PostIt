@@ -24,7 +24,11 @@ const removedKey = computed(() => (verdict.value?.type === 'warning' ? 'warned' 
         <p v-if="moderation.state === 'pending'">{{ detailsOnly ? '' : $t(`moderation.author.pending.${kind}`) }}</p>
 
         <template v-else>
-            <p v-if="!detailsOnly" class="font-medium">{{ $t(`moderation.author.${removedKey}.${kind}`) }}</p>
+            <!-- What happened, with the way to the decision (the slot) on the same line. -->
+            <div v-if="!detailsOnly" class="flex items-center justify-between gap-3">
+                <p class="font-medium">{{ $t(`moderation.author.${removedKey}.${kind}`) }}</p>
+                <slot />
+            </div>
 
             <template v-if="verdict && !compact">
                 <p v-if="verdict.rule" dir="auto">
@@ -37,8 +41,5 @@ const removedKey = computed(() => (verdict.value?.type === 'warning' ? 'warned' 
                 <p v-if="verdict.marks.length" class="text-muted">{{ $t('moderation.author.marked') }}</p>
             </template>
         </template>
-
-        <!-- Where an appeal against the decision will go. -->
-        <slot />
     </div>
 </template>

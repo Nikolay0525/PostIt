@@ -5,6 +5,7 @@ return [
     'title' => 'Moderation',
     'queue' => 'Reports to review',
     'none' => 'Nothing is waiting for review.',
+    'none_log' => 'No decisions yet.',
     'post' => 'Post',
     'comment' => 'Comment',
     'comment_on' => 'On the post “:title”',
@@ -53,6 +54,7 @@ return [
             'ban' => 'Breaking it counts towards a ban.',
         ],
         'reason' => 'The moderator\'s reason',
+        'see_decision' => 'See the decision',
         'marked' => 'The places where the rule was broken are marked in your text below.',
     ],
     'appeal' => [
@@ -121,6 +123,16 @@ return [
     'log' => [
         'title' => 'Moderation log',
         'none' => 'No actions yet.',
+        'remove' => 'Removed under rule :number: “:rule”',
+        'warning' => 'A warning under rule :number: “:rule”',
+        'strike' => [
+            'mute' => 'It gave a strike towards a mute.',
+            'ban' => 'It gave a strike towards a ban.',
+        ],
+        'yours_post' => 'This is your post. Only you see that it is yours.',
+        'yours_comment' => 'This is your comment. Only you see that it is yours.',
+        'no_context' => 'The conversation was not kept for this entry.',
+        'entry_title' => 'Log entry',
     ],
     'loading' => 'Loading…',
 

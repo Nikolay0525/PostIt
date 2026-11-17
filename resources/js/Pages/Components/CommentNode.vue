@@ -3,10 +3,7 @@ import { computed, inject, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
-import AppealForm from '@/Pages/Components/AppealForm.vue';
 import ContentMenu from '@/Pages/Components/ContentMenu.vue';
-import HighlightedText from '@/Pages/Components/HighlightedText.vue';
-import ModerationNotice from '@/Pages/Components/ModerationNotice.vue';
 import ReportForm from '@/Pages/Components/ReportForm.vue';
 import UserAvatar from '@/Pages/Components/UserAvatar.vue';
 import VoteButtons from '@/Pages/Components/VoteButtons.vue';
@@ -20,7 +17,8 @@ const props = defineProps({
 
 const page = usePage();
 
-// A removed comment is shown to its own author with the marked places picked out of their text.
+// The verdict on a removed comment of the viewer's: its details and the appeal are on its entry in the
+// group's moderation log, behind a link.
 const verdict = computed(() => (props.comment.moderation?.state === 'removed' ? props.comment.moderation.verdict : null));
 
 // Its author's own moderated comment is a one-line banner until they open it out into the full version.
@@ -37,6 +35,7 @@ const showLoginPrompt = ref(false);
 const reporting = ref(false);
 // The group of the post the comments are under: Posts/Show provides it.
 const groupId = inject('groupId');
+const groupSlug = inject('groupSlug');
 
 const showReplyForm = ref(false);
 const replyText = ref('');
@@ -145,16 +144,20 @@ const saveEdit = async () => {
                     <time :datetime="comment.created_at">{{ timeAgo(comment.created_at) }}</time>
                 </p>
 
-                <div class="moderation-notice mt-2">
-                    <button
-                        type="button"
-                        class="flex w-full items-center justify-between gap-3 text-start"
-                        :aria-expanded="opened"
-                        @click="opened = !opened"
-                    >
-                        <span class="font-medium">{{ $t(`${summaryKey}.comment`) }}</span>
+                <!-- The banner opens the comment out; the link beside the arrow leads to why it was taken down and
+                     to the appeal, on its entry in the moderation log. -->
+                <div class="moderation-notice mt-2 flex-row items-center gap-3">
+                    <button type="button" class="flex-1 text-start font-medium" :aria-expanded="opened" @click="opened = !opened">
+                        {{ $t(`${summaryKey}.comment`) }}
+                    </button>
+                    <Link
+                        v-if="verdict"
+                        :href="route('groups.moderation_log.entry', [groupSlug, verdict.id])"
+                        class="post-more shrink-0"
+                    >{{ $t('moderation.author.see_decision') }}</Link>
+                    <button type="button" class="shrink-0" :aria-expanded="opened" :aria-label="$t(`${summaryKey}.comment`)" @click="opened = !opened">
                         <svg
-                            class="h-4 w-4 shrink-0 transition-transform"
+                            class="h-4 w-4 transition-transform"
                             :class="{ 'rotate-180': opened }"
                             viewBox="0 0 16 16"
                             fill="none"
@@ -165,16 +168,9 @@ const saveEdit = async () => {
                             <path d="m3.5 6 4.5 4.5L12.5 6" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </button>
-
-                    <!-- What the verdict said: only once the comment is opened out, and only if it is one. -->
-                    <ModerationNotice v-if="opened && verdict" :moderation="comment.moderation" kind="comment" details-only class="mt-1" />
-                    <AppealForm v-if="opened && verdict" :verdict="verdict" />
                 </div>
 
-                <template v-if="opened">
-                    <HighlightedText v-if="verdict" :text="comment.text" :marks="verdict.marks" class="post-body mt-2 text-ink" />
-                    <p v-else class="post-body mt-2 text-ink" dir="auto">{{ comment.text }}</p>
-                </template>
+                <p v-if="opened" class="post-body mt-2 text-ink" dir="auto">{{ comment.text }}</p>
             </template>
             <!-- Under a moderation case: no text and no author from the server, but the replies stay. -->
             <p v-else-if="comment.is_hidden" class="comment-deleted">{{ comment.is_removed ? $t('comments.removed') : $t('comments.hidden') }}</p>

@@ -78,12 +78,19 @@ class NotificationService
 
         $this->userRepository->markNotificationRead($notification);
 
-        // A notification about what happened to the user in a group leads to the group, whose page
-        // says what applies to them; one about a post leads to the post.
+        // A notification about what happened to the user in a group leads to the verdict's entry in the
+        // group's moderation log, where they see why and appeal; one without a verdict (a mute, a ban, their
+        // end) to the group, whose page says what applies to them. One about a post leads to the post.
         if (isset($notification->data['group_id']) && ! isset($notification->data['post_id'])) {
             $slug = $this->groupRepository->findMany([$notification->data['group_id']])->first()?->slug;
 
-            return $slug === null ? null : route('groups.show', $slug);
+            if ($slug === null) {
+                return null;
+            }
+
+            return isset($notification->data['moderation_verdict_id'])
+                ? route('groups.moderation_log.entry', [$slug, $notification->data['moderation_verdict_id']])
+                : route('groups.show', $slug);
         }
 
         $postId = $notification->data['post_id'] ?? null;

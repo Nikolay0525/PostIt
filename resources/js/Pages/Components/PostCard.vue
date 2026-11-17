@@ -1,10 +1,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import AppealForm from '@/Pages/Components/AppealForm.vue';
 import AuthPrompt from '@/Pages/Components/AuthPrompt.vue';
 import ContentMenu from '@/Pages/Components/ContentMenu.vue';
-import HighlightedText from '@/Pages/Components/HighlightedText.vue';
 import ModerationNotice from '@/Pages/Components/ModerationNotice.vue';
 import ReportForm from '@/Pages/Components/ReportForm.vue';
 import ShareButton from '@/Pages/Components/ShareButton.vue';
@@ -25,11 +23,9 @@ const preview = computed(() => excerpt(props.post.article_text));
 // else it stays a placeholder.
 const own = computed(() => Boolean(props.post.moderation));
 const concealed = computed(() => props.post.is_hidden && !own.value);
-// A removed post is shown to its author as plain text with the marked places picked out.
+// The verdict on a removed post, if its page loaded it: its details and the appeal are on its entry in
+// the group's moderation log, where the author is sent, so that they know where to go.
 const verdict = computed(() => (props.post.moderation?.state === 'removed' ? props.post.moderation.verdict : null));
-// A mark says which part it is in, the title or the body (the body if it does not say).
-const titleMarks = computed(() => (verdict.value?.marks ?? []).filter((mark) => mark.field === 'title'));
-const bodyMarks = computed(() => (verdict.value?.marks ?? []).filter((mark) => (mark.field ?? 'body') === 'body'));
 
 const showLoginPrompt = ref(false);
 const reporting = ref(false);
@@ -66,21 +62,21 @@ onBeforeUnmount(() => untrackSeen(card.value));
             </p>
         </header>
 
-        <!-- Its own author is told where it stands and, on its page, gets their text back. -->
+        <!-- Its own author is told where it stands and, on its page, gets their text back. Why it was taken
+             down, and the appeal, are on its entry in the moderation log, behind the link. -->
         <template v-if="own">
-            <ModerationNotice :moderation="post.moderation" kind="post" :compact="!full" class="mt-4">
-                <!-- On the post's own page, where the verdict is: the way to appeal it. -->
-                <AppealForm v-if="full && verdict" :verdict="verdict" />
+            <ModerationNotice :moderation="post.moderation" kind="post" compact class="mt-4">
+                <Link
+                    v-if="full && verdict"
+                    :href="route('groups.moderation_log.entry', [post.group.slug, verdict.id])"
+                    class="post-more shrink-0"
+                >{{ $t('moderation.author.see_decision') }}</Link>
             </ModerationNotice>
 
             <template v-if="full">
-                <h2 v-if="post.title" class="post-title" dir="auto">
-                    <HighlightedText v-if="verdict" tag="span" :text="post.title" :marks="titleMarks" />
-                    <template v-else>{{ post.title }}</template>
-                </h2>
-                <HighlightedText v-if="verdict" :text="post.article_text" :marks="bodyMarks" class="post-content" />
+                <h2 v-if="post.title" class="post-title" dir="auto">{{ post.title }}</h2>
                 <!-- article_html is server-rendered from Markdown with raw HTML stripped (RendersMarkdown). -->
-                <div v-else class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
+                <div class="post-content" :class="{ 'mt-4': !post.title }" dir="auto" v-html="post.article_html"></div>
             </template>
         </template>
 
