@@ -174,6 +174,7 @@ class AuthorModerationViewTest extends TestCase
             ->assertJsonPath('notifications.0.has_link', true)
             ->assertJsonPath('notifications.0.details.target', 'post')
             ->assertJsonPath('notifications.0.important', true)
+            ->assertJsonPath('notifications.0.sanction', false)
             ->assertJsonPath('notifications.0.post_unavailable', false);
 
         $this->actingAs($this->author)->post("/notifications/{$notification->id}/open")

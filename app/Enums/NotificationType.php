@@ -59,4 +59,13 @@ enum NotificationType: string
             default => NotificationCategory::Default,
         };
     }
+
+    /**
+     * A sanction given: a strike, a mute, a ban. Shown in red, as a verdict is; the rest of the important
+     * ones — content hidden till a decision, a strike or a punishment over — in yellow.
+     */
+    public function isSanction(): bool
+    {
+        return in_array($this, [self::ReceivedWarning, self::GroupMute, self::GroupBan, self::PlatformBan], true);
+    }
 }

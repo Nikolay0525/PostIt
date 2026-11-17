@@ -93,7 +93,8 @@ provide('caseLabel', label);
         </article>
 
         <!-- A case on a comment: the thread down to it, the comment itself, and what was said to it,
-             nested as on the post's page. -->
+             nested as on the post's page, under the same heading. -->
+        <h2 v-if="context.comment" class="feed-title">{{ $t('comments.heading') }}</h2>
         <CaseThread
             v-if="context.comment"
             :ancestors="context.ancestors"

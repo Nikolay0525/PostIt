@@ -20,7 +20,10 @@ const removedKey = computed(() => (verdict.value?.type === 'warning' ? 'warned' 
 </script>
 
 <template>
-    <div :class="detailsOnly ? 'flex flex-col gap-1' : 'moderation-notice'" role="status">
+    <div
+        :class="detailsOnly ? 'flex flex-col gap-1' : ['moderation-notice', { 'moderation-notice-removed': moderation.state === 'removed' }]"
+        role="status"
+    >
         <p v-if="moderation.state === 'pending'">{{ detailsOnly ? '' : $t(`moderation.author.pending.${kind}`) }}</p>
 
         <template v-else>

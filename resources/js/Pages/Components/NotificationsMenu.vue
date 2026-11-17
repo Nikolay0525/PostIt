@@ -106,13 +106,13 @@ async function readAll() {
                     <button
                         type="button"
                         class="notification-row"
-                        :class="{ 'notification-row-important': n.important }"
+                        :class="{ 'notification-row-important': n.important && !n.sanction, 'notification-row-sanction': n.sanction }"
                         @click="open(n, close)"
                     >
                         <span v-if="!n.read" class="unread-dot" :aria-label="$t('nav.unread')"></span>
                         <span v-else class="unread-dot-space" aria-hidden="true"></span>
                         <span class="min-w-0 flex-1">
-                            <span v-if="n.important" class="notification-important-label">{{ $t('notifications.important') }}</span>
+                            <span v-if="n.important" class="notification-important-label" :class="{ 'text-danger': n.sanction }">{{ $t('notifications.important') }}</span>
                             <span class="block text-sm text-ink" :class="{ 'text-muted': n.read }" dir="auto">{{ text(n) }}</span>
                         </span>
                         <span class="shrink-0 text-xs text-muted">{{ timeAgo(n.created_at) }}</span>

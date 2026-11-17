@@ -127,6 +127,8 @@ class NotificationService
             'id' => $notification->id,
             'type' => $notification->type,
             'important' => $type?->category() === NotificationCategory::Important,
+            // Of the important, a sanction given: shown in red.
+            'sanction' => $type?->isSanction() ?? false,
             'read' => $notification->read_at !== null,
             'created_at' => $notification->created_at->toIso8601String(),
             'author' => $author?->username,
@@ -149,6 +151,8 @@ class NotificationService
             'id' => $notification->id,
             'type' => $notification->type,
             'important' => $type?->category() === NotificationCategory::Important,
+            // Of the important, a sanction given: shown in red.
+            'sanction' => $type?->isSanction() ?? false,
             'read' => $notification->read_at !== null,
             'created_at' => $notification->created_at->toIso8601String(),
             'author' => null,

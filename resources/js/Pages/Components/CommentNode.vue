@@ -146,7 +146,7 @@ const saveEdit = async () => {
 
                 <!-- The banner opens the comment out; the link beside the arrow leads to why it was taken down and
                      to the appeal, on its entry in the moderation log. -->
-                <div class="moderation-notice mt-2 flex-row items-center gap-3">
+                <div class="moderation-notice mt-2 flex-row items-center gap-3" :class="{ 'moderation-notice-removed': comment.moderation.state === 'removed' }">
                     <button type="button" class="flex-1 text-start font-medium" :aria-expanded="opened" @click="opened = !opened">
                         {{ $t(`${summaryKey}.comment`) }}
                     </button>

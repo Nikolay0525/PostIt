@@ -165,6 +165,7 @@ class SanctionNotificationsTest extends TestCase
             ->assertJsonPath('notifications.0.type', NotificationType::ReceivedWarning->value)
             ->assertJsonPath('notifications.0.group_name', 'Cooks')
             ->assertJsonPath('notifications.0.important', true)
+            ->assertJsonPath('notifications.0.sanction', true)
             ->assertJsonPath('notifications.0.has_link', true)
             ->assertJsonPath('notifications.0.details.sanction', 'mute')
             ->assertJsonPath('notifications.0.details.count', 1)
@@ -259,6 +260,7 @@ class SanctionNotificationsTest extends TestCase
             ->assertJsonPath('notifications.0.type', NotificationType::WarningRemoved->value)
             ->assertJsonPath('notifications.0.group_name', 'Cooks')
             ->assertJsonPath('notifications.0.important', true)
+            ->assertJsonPath('notifications.0.sanction', false)
             ->assertJsonPath('notifications.0.has_link', true);
     }
 }

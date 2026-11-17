@@ -182,8 +182,13 @@
   .notification-row {
     @apply flex w-full items-center gap-3 px-4 py-3 text-start transition hover:bg-canvas;
   }
+  /* Yellow for what waits or is over (content hidden till a decision, a strike gone); red for a
+     sanction given (a strike, a mute, a ban), as for a verdict elsewhere. */
   .notification-row-important {
     @apply border-s-2 border-warning bg-warning-soft;
+  }
+  .notification-row-sanction {
+    @apply border-s-2 border-danger bg-danger-soft;
   }
   .notification-important-label {
     @apply mb-0.5 block text-xs font-medium text-warning;
@@ -326,9 +331,13 @@
   .comment-deleted {
     @apply text-sm italic text-muted;
   }
-  /* What the author of a hidden or removed post or comment is told: where it stands, and why. */
+  /* What the author of a hidden or removed post or comment is told: where it stands, and why. Yellow
+     while it waits for a decision; red once a verdict took it down. */
   .moderation-notice {
     @apply flex flex-col gap-1 rounded-lg border border-warning bg-warning-soft p-3 text-sm text-ink;
+  }
+  .moderation-notice-removed {
+    @apply border-danger bg-danger-soft;
   }
   /* A case's conversation: who said it, by label, never by name. */
   .case-label {
