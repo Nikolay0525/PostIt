@@ -13,8 +13,10 @@ use App\Models\Group;
 use App\Models\ModerationCase;
 use App\Models\Post;
 use App\Models\User;
+use App\Models\Vote;
 use App\Repositories\Contracts\GroupRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\ModerationVerdictService;
 use Database\Seeders\LanguageSeeder;
 use DomainException;
@@ -133,6 +135,77 @@ class ModerationVerdictServiceTest extends TestCase
         $this->assertFalse(User::find($post->user_id)->can('update', $post));
         $this->assertFalse(User::factory()->create()->can('report', $post));
         $this->assertFalse(User::factory()->create()->can('vote', $post));
+    }
+
+    /** Votes on the case's content, and the karma they gave its author, as voting would have. */
+    private function voteOn(ModerationCase $case, int $up, int $down): string
+    {
+        $post = Post::find($case->target_id);
+
+        foreach ([...array_fill(0, $up, true), ...array_fill(0, $down, false)] as $positive) {
+            Vote::factory()->onPost($post)->create(['positive' => $positive]);
+        }
+        app(UserRepositoryInterface::class)->addKarma($post->user_id, $case->group_id, $up - $down);
+
+        return $post->user_id;
+    }
+
+    private function assertKarma(string $userId, string $groupId, int $karma): void
+    {
+        $this->assertDatabaseHas('user_group_karma', ['user_id' => $userId, 'group_id' => $groupId, 'karma' => $karma]);
+        $this->assertDatabaseHas('user_counters', ['user_id' => $userId, 'karma' => $karma]);
+    }
+
+    public function test_removed_content_counts_as_having_no_votes_and_its_author_loses_the_karma(): void
+    {
+        $case = $this->openCase();
+        $authorId = $this->voteOn($case, 5, 2);
+
+        $this->verdicts->decide($case, $this->moderator->id, ModerationVerdictType::Remove, 0, $this->marks(), 'Rude.');
+
+        // Kept, for an appeal that overturns the verdict; but counted as none.
+        $this->assertSame(7, Vote::where('parent_id', $case->target_id)->count());
+        $this->assertKarma($authorId, $case->group_id, 0);
+
+        $post = Post::find($case->target_id);
+        $shown = app(\App\Repositories\Contracts\PostRepositoryInterface::class)->findWithStatsBySlug($post->group_id, $post->slug);
+        $this->assertSame(0, $shown->upvotes_count);
+        $this->assertSame(0, $shown->downvotes_count);
+    }
+
+    public function test_a_removed_comment_counts_as_having_no_votes(): void
+    {
+        $case = $this->openCase('comment');
+        $comment = Comment::find($case->target_id);
+        Vote::factory()->onComment($comment)->count(3)->create(['positive' => true]);
+
+        $this->verdicts->decide($case, $this->moderator->id, ModerationVerdictType::Remove, 0, $this->marks(), 'Rude.');
+
+        $this->assertSame(3, Vote::where('parent_id', $comment->id)->count());
+        $shown = app(\App\Repositories\Contracts\CommentRepositoryInterface::class)
+            ->paginateThreadsForPost($comment->post_id, 20)->getCollection()->firstWhere('id', $comment->id);
+        $this->assertSame(0, $shown->upvotes_count);
+    }
+
+    public function test_what_downvotes_took_is_not_given_back_by_a_removal(): void
+    {
+        $case = $this->openCase();
+        $authorId = $this->voteOn($case, 1, 4);
+
+        $this->verdicts->decide($case, $this->moderator->id, ModerationVerdictType::Remove, 0, $this->marks(), 'Rude.');
+
+        $this->assertKarma($authorId, $case->group_id, -3);
+    }
+
+    public function test_no_violation_keeps_the_votes_and_the_karma(): void
+    {
+        $case = $this->openCase();
+        $authorId = $this->voteOn($case, 5, 2);
+
+        $this->verdicts->decide($case, $this->moderator->id, ModerationVerdictType::NoViolation);
+
+        $this->assertSame(7, Vote::where('parent_id', $case->target_id)->count());
+        $this->assertKarma($authorId, $case->group_id, 3);
     }
 
     public function test_a_warning_removes_a_comment(): void

@@ -171,9 +171,35 @@ const saveEdit = async () => {
                 </div>
 
                 <p v-if="opened" class="post-body mt-2 text-ink" dir="auto">{{ comment.text }}</p>
+                <!-- Under a moderation case its score stays as it was when hidden, frozen until the case is
+                     decided; a removed comment counts as having none. -->
+                <p v-if="!comment.is_removed" class="post-footer">
+                    <VoteButtons
+                        readonly
+                        target-type="comment"
+                        :target-id="comment.id"
+                        :upvotes="comment.upvotes"
+                        :downvotes="comment.downvotes"
+                        :controversy="comment.controversy"
+                    />
+                </p>
             </template>
             <!-- Under a moderation case: no text and no author from the server, but the replies stay. -->
-            <p v-else-if="comment.is_hidden" class="comment-deleted">{{ comment.is_removed ? $t('comments.removed') : $t('comments.hidden') }}</p>
+            <template v-else-if="comment.is_hidden">
+                <p class="comment-deleted">{{ comment.is_removed ? $t('comments.removed') : $t('comments.hidden') }}</p>
+                <!-- Under a moderation case its score stays as it was when hidden, frozen until the case is
+                     decided; a removed comment counts as having none. -->
+                <p v-if="!comment.is_removed" class="post-footer">
+                    <VoteButtons
+                        readonly
+                        target-type="comment"
+                        :target-id="comment.id"
+                        :upvotes="comment.upvotes"
+                        :downvotes="comment.downvotes"
+                        :controversy="comment.controversy"
+                    />
+                </p>
+            </template>
 
             <template v-else>
                 <p class="post-meta-text flex items-center gap-2">

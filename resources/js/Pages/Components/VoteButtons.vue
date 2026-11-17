@@ -16,6 +16,9 @@ const props = defineProps({
     controversy: { type: Number, default: null },
     // true = viewer already upvoted, false = downvoted, null = no vote (or a guest).
     viewerVote: { type: Boolean, default: null },
+    // Only the score, with no buttons: content under a moderation case, whose votes stay as they were
+    // when it was hidden until the case is decided (the server refuses new ones too).
+    readonly: Boolean,
 });
 
 // Guests can read everything, so the parent shows a login prompt when they try to vote.
@@ -24,6 +27,8 @@ const emit = defineEmits(['needs-login']);
 const page = usePage();
 
 const isOwnContent = computed(() => props.authorId !== null && page.props.auth.user?.id === props.authorId);
+// No buttons: one's own content, or a frozen score.
+const scoreOnly = computed(() => isOwnContent.value || props.readonly);
 
 // A vote is sent outside Inertia (see utils/http.js), so these are local copies updated
 // directly from the vote response, and re-synced whenever a genuine fresh page load hands
@@ -55,7 +60,7 @@ const vote = async (positive) => {
         return;
     }
 
-    if (voting.value || isOwnContent.value) {
+    if (voting.value || scoreOnly.value) {
         return;
     }
 
@@ -85,7 +90,7 @@ const vote = async (positive) => {
 <template>
     <span class="vote-group">
         <button
-            v-if="!isOwnContent"
+            v-if="!scoreOnly"
             type="button"
             class="post-action"
             :class="{ 'vote-active-up': localViewerVote === true }"
@@ -108,7 +113,7 @@ const vote = async (positive) => {
             </svg></button>
         <span class="vote-score">{{ score }}</span>
         <button
-            v-if="!isOwnContent"
+            v-if="!scoreOnly"
             type="button"
             class="post-action"
             :class="{ 'vote-active-down': localViewerVote === false }"

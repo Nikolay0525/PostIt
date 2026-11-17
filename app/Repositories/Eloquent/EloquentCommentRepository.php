@@ -130,8 +130,9 @@ class EloquentCommentRepository implements CommentRepositoryInterface
         $query = Comment::query()
             ->with('author:id,username,avatar_url')
             ->withCount([
-                'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true),
-                'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false),
+                // A comment a verdict took down counts as having none: its votes are kept for an appeal.
+                'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true)->whereNull('comments.removed_at'),
+                'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false)->whereNull('comments.removed_at'),
             ]);
 
         if ($viewerId !== null) {

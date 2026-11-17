@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ModerationCaseStatus;
 use App\Enums\ModerationVerdictType;
 use App\Enums\ReportTargetType;
+use App\Enums\VoteParentType;
 use App\Events\ModerationCasePassedUp;
 use App\Events\ModerationVerdictGiven;
 use App\Models\ModerationCase;
@@ -14,6 +15,8 @@ use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\ModerationCaseRepositoryInterface;
 use App\Repositories\Contracts\PlatformRuleRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Contracts\VoteRepositoryInterface;
 use App\Support\Concerns\RendersMarkdown;
 use DomainException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -29,12 +32,15 @@ class ModerationVerdictService
         protected PostRepositoryInterface $postRepository,
         protected CommentRepositoryInterface $commentRepository,
         protected PlatformRuleRepositoryInterface $platformRuleRepository,
-        protected ModerationContextService $contextService
+        protected ModerationContextService $contextService,
+        protected VoteRepositoryInterface $voteRepository,
+        protected UserRepositoryInterface $userRepository
     ) {}
 
     /**
      * Decides a case: stores the verdict, closes the case and does what the verdict says to the
-     * content — shows it again, or takes it down.
+     * content — shows it again, or takes it down. Taken down, it counts as having no votes, and its
+     * author loses the karma they earned (takeBackKarma()).
      *
      * A verdict that punishes must name the rule it broke (an index in the rules the case opened
      * with), mark where in the content (a list of {field, start, end, quote}: `field` is "title" or
@@ -246,5 +252,36 @@ class ModerationVerdictService
                 : $this->commentRepository->restore($case->target_id),
             ReportTargetType::User => null,
         };
+
+        if ($remove) {
+            $this->takeBackKarma($case);
+        }
+    }
+
+    // Content taken down for breaking a rule earns its author nothing: the karma its votes gave is taken
+    // back, from the account and the group alike. Karma is a counter of its own, not worked out from the
+    // votes, so it is taken back here. The votes themselves are kept, as they were when it was hidden
+    // (PostPolicy::vote froze them), so that an appeal that overturns the verdict brings them back; till
+    // then the content counts as having none (the post and comment repositories' withStats()). A loss
+    // stays a loss: what downvotes took is not given back, or breaking a rule with a disliked post would pay.
+    private function takeBackKarma(ModerationCase $case): void
+    {
+        $type = match ($case->target_type) {
+            ReportTargetType::Post => VoteParentType::Post,
+            ReportTargetType::Comment => VoteParentType::Comment,
+            ReportTargetType::User => null,
+        };
+        $authorId = $this->caseRepository->authorIdOf($case);
+
+        if ($type === null || $authorId === null) {
+            return;
+        }
+
+        $votes = $this->voteRepository->countVotes($case->target_id, $type);
+        $earned = $votes['upvotes'] - $votes['downvotes'];
+
+        if ($earned > 0) {
+            $this->userRepository->addKarma($authorId, $case->group_id, -$earned);
+        }
     }
 }

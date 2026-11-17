@@ -82,15 +82,28 @@ class HiddenContentTest extends TestCase
                 ->where('post.can_edit', false));
     }
 
-    public function test_a_hidden_post_stays_out_of_the_feed_text(): void
+    public function test_a_hidden_or_removed_post_is_left_out_of_feeds_and_search_but_not_for_its_author(): void
     {
         $post = $this->hiddenPost();
+        $removed = Post::factory()->create(['group_id' => $post->group_id, 'title' => 'Removed title', 'removed_at' => now()]);
+        $shown = Post::factory()->create(['group_id' => $post->group_id, 'title' => 'Secret, but fine']);
 
         $this->get("/groups/{$post->group->slug}")
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('posts.data.0.is_hidden', true)
-                ->where('posts.data.0.article_text', '')
-                ->where('posts.data.0.author.username', 'Hidden'));
+                ->has('posts.data', 1)
+                ->where('posts.data.0.id', $shown->id));
+
+        $this->get('/search?q=Secret')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('posts.data.0.id', $shown->id)->has('posts.data', 1));
+
+        // Its author still sees it, as hidden, with where it stands.
+        $posts = $this->actingAs($post->author)->get("/groups/{$post->group->slug}")
+            ->viewData('page')['props']['posts']['data'];
+        $this->assertEqualsCanonicalizing([$post->id, $shown->id], array_column($posts, 'id'));
+        $this->assertTrue(collect($posts)->firstWhere('id', $post->id)['is_hidden']);
+
+        // Its page still opens by its link.
+        $this->get(route('posts.show', [$removed->group->slug, $removed->slug]))->assertOk();
     }
 
     public function test_a_hidden_comment_stays_in_the_thread_as_a_placeholder(): void

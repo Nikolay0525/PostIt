@@ -74,7 +74,7 @@ class EloquentPostRepository implements PostRepositoryInterface
 
     public function paginateForGroup(string $groupId, PostSort $sort, int $perPage, ?string $viewerId = null): LengthAwarePaginator
     {
-        $query = $this->withStats($viewerId)->where('group_id', $groupId);
+        $query = $this->withoutConcealed($this->withStats($viewerId)->where('group_id', $groupId), $viewerId);
 
         match ($sort) {
             PostSort::Newest => $query->latest(),
@@ -190,7 +190,7 @@ class EloquentPostRepository implements PostRepositoryInterface
 
     public function paginateTrending(array $freshnessDays, int $perPage, ?string $viewerId = null, ?int $maxAgeDays = null): LengthAwarePaginator
     {
-        $query = $this->withStats($viewerId)
+        $query = $this->withoutConcealed($this->withStats($viewerId), $viewerId)
             ->whereHas('group', fn (Builder $group) => $group->where('is_private', false));
 
         $this->withinDays($query, $maxAgeDays);
@@ -200,7 +200,7 @@ class EloquentPostRepository implements PostRepositoryInterface
 
     public function paginateRecommended(string $userId, array $freshnessDays, int $perPage, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
-        $query = $this->withStats($userId)
+        $query = $this->withoutConcealed($this->withStats($userId), $userId)
             ->whereHas('group', fn (Builder $group) => $group->where('is_private', false))
             ->where('user_id', '!=', $userId)
             ->whereNotIn('group_id', fn ($groups) => $groups
@@ -263,7 +263,7 @@ class EloquentPostRepository implements PostRepositoryInterface
     public function paginateForSubscriber(string $userId, int $perPage, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
         // The subscriber is also the viewer here: this feed always shows the current user's own votes.
-        $query = $this->withStats($userId)
+        $query = $this->withoutConcealed($this->withStats($userId), $userId)
             ->whereIn('group_id', fn ($groups) => $groups
                 ->select('group_id')
                 ->from('user_group_subscriptions')
@@ -276,7 +276,8 @@ class EloquentPostRepository implements PostRepositoryInterface
 
     public function search(string $term, int $perPage, ?string $viewerId = null): LengthAwarePaginator
     {
-        $query = $this->whereContains($this->withStats($viewerId), ['posts.title', 'posts.article'], $term);
+        // Not the hidden and removed: a match would tell what their text says.
+        $query = $this->whereContains($this->withoutConcealed($this->withStats($viewerId), $viewerId), ['posts.title', 'posts.article'], $term);
 
         // A match in the title beats one in the text only; then the better-rated, then the newer.
         return $this->orderByScore(
@@ -294,7 +295,7 @@ class EloquentPostRepository implements PostRepositoryInterface
     public function paginateForFollower(string $followerId, int $perPage, FeedFilters $filters = new FeedFilters): LengthAwarePaginator
     {
         // The follower is also the viewer: their own votes are shown, and private groups they're in.
-        $query = $this->withStats($followerId)
+        $query = $this->withoutConcealed($this->withStats($followerId), $followerId)
             ->whereIn('user_id', fn ($authors) => $authors
                 ->select('user_author_id')
                 ->from('user_user_subscriptions')
@@ -303,6 +304,20 @@ class EloquentPostRepository implements PostRepositoryInterface
         $this->applyFilters($query, $followerId, $filters);
 
         return $this->visibleTo($query, $followerId)->latest()->paginate($perPage);
+    }
+
+    // A hidden or removed post is left out of a feed: a card is read by its title and text first, and one
+    // without them only takes up room. Its own author still gets it, with where it stands. The post's page
+    // and a profile do not go through this.
+    private function withoutConcealed(Builder $query, ?string $viewerId): Builder
+    {
+        return $query->where(function (Builder $shown) use ($viewerId) {
+            $shown->whereNull('posts.hidden_at')->whereNull('posts.removed_at');
+
+            if ($viewerId !== null) {
+                $shown->orWhere('posts.user_id', $viewerId);
+            }
+        });
     }
 
     // Posts in public groups, plus private groups the viewer is a member of (none for a guest).
@@ -325,8 +340,9 @@ class EloquentPostRepository implements PostRepositoryInterface
         $query = Post::query()
             ->with(['author:id,username,avatar_url', 'group:id,name,slug,is_private,language_code'])
             ->withCount([
-                'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true),
-                'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false),
+                // A post a verdict took down counts as having none: its votes are kept for an appeal.
+                'votes as upvotes_count' => fn (Builder $votes) => $votes->where('positive', true)->whereNull('posts.removed_at'),
+                'votes as downvotes_count' => fn (Builder $votes) => $votes->where('positive', false)->whereNull('posts.removed_at'),
                 'comments',
                 'sharedBy as shares_count',
             ])

@@ -105,9 +105,11 @@ onBeforeUnmount(() => untrackSeen(card.value));
         <!-- Everyone keeps the comments and copies of a hidden or removed post, and can copy its link: the
              post is gone, the conversation under it is not. What it lacks is the score and the menu. -->
         <footer class="post-footer">
-            <!-- A hidden or removed post is not voted on, so nobody sees its score either. -->
+            <!-- A post under a moderation case keeps its score as it was when hidden, frozen until the case is
+                 decided: it may yet come back. A removed one counts as having none, so has none to show. -->
             <VoteButtons
-                v-if="!post.is_hidden"
+                v-if="!post.is_removed"
+                :readonly="post.is_hidden"
                 target-type="post"
                 :target-id="post.id"
                 :author-id="post.author.id"
