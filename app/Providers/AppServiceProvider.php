@@ -33,6 +33,7 @@ use App\Repositories\Eloquent\EloquentVoteRepository;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -112,6 +113,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (! $this->app->environment('local')) {
+            URL::forceScheme('https');
+        }
+        
         User::observe(UserObserver::class);
 
         // A single resource is sent as a plain object, without the `data` wrapper.
