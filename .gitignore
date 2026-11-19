@@ -29,3 +29,4 @@ Thumbs.db
 /tests/Playwright/test-results
 /tests/Playwright/report
 /tests/Playwright/.cache
+/backups

@@ -1,5 +1,6 @@
 <?php
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -70,6 +71,18 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
+        // Audit/security channel: structured JSON, one line per event, kept
+        // longer than the diagnostic log (see docs/logging_backup_policy.md).
+        // Used for authentication, authorization and critical-data events.
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'info',
+            'max_files' => env('LOG_SECURITY_DAYS', 90),
+            'formatter' => JsonFormatter::class,
             'replace_placeholders' => true,
         ],
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -14,7 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [
+        $middleware->web(prepend: [
+            AssignRequestId::class,
+        ], append: [
             SetLocale::class,
             HandleInertiaRequests::class,
         ]);
